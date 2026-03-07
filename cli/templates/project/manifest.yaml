@@ -1,0 +1,21 @@
+# AIE OS manifest
+
+version: 1
+persona: software-developer
+style: concise-collaborative
+
+principles:
+  - engineering-principles
+
+standards:
+  core:
+    - coding-standards
+    - testing-standards
+    - api-standards
+  languages: []
+  frameworks: []
+
+repoContext:
+  - project-context.md
+  - architecture.md
+  - conventions.md
