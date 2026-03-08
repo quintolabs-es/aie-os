@@ -8,7 +8,12 @@ narrows them.
 ## Rules
 
 - Keep modules focused and name them after their responsibility.
+- Organize code by vertical feature when it improves cohesion, change locality,
+  and maintainability.
+- Keep the artifacts needed to implement one feature close together.
 - Prefer explicit dependencies over hidden global state.
+- Prefer self-explanatory code over comments. Use comments only when intent
+  cannot be made clear through naming and structure.
 - Make side effects visible at the edges of the system.
 - Keep public interfaces small and stable.
 - Use structured error values or exceptions consistently within a module.
@@ -22,5 +27,7 @@ narrows them.
 ## Forbidden Patterns
 
 - Static service locators.
+- Broad technical-layer separation that scatters one feature across too many
+  unrelated folders.
 - Utility modules that accumulate unrelated behavior.
 - Implicit coupling through environment access deep inside domain code.
