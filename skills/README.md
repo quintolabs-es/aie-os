@@ -1,7 +1,11 @@
 # Skills
 
-This directory contains reusable global skills that can be referenced from a
-project manifest.
+This directory contains shared global skills.
+
+```text
+skills/
+  global/
+```
 
 - `global/` contains skills shared across projects.
-- Project-specific skills live in each repository under `.ai/skills/`.
+- Project-specific skills live in each repository under `.aie-os/project-skills/`.

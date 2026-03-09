@@ -19,7 +19,7 @@ async function run(): Promise<void> {
 
   const executionOptions = resolveExecutionOptions(commandInput, path.resolve(process.cwd()));
 
-  switch (commandInput.command) {
+  switch (executionOptions.command) {
     case "init":
       await initProject(executionOptions);
       return;

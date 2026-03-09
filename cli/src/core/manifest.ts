@@ -1,25 +1,28 @@
-import { readText } from "./files";
+import { readText, writeText } from "./files";
 
 export type Manifest = {
-  persona: string;
-  principles: string[];
-  repoContext: string[];
-  skills: {
-    global: string[];
-    project: string[];
+  paths: {
+    agent: string;
+    globalSkills: string;
+    knowledgeBase: string;
+    projectCodingStandards: string;
+    projectContext: string;
+    projectSkills: string;
   };
-  standards: {
-    applicationTypes: string[];
-    core: string[];
+  selection: {
+    applicationType: string;
     frameworks: string[];
-    languages: string[];
+    language: string;
+    persona: string;
+    style: string;
   };
-  style: string;
   version: number;
 };
 
 type ParsedNode = ParsedMap | ParsedList | string;
-type ParsedMap = Record<string, ParsedNode>;
+interface ParsedMap {
+  [key: string]: ParsedNode;
+}
 type ParsedList = string[];
 
 type Token = {
@@ -32,6 +35,46 @@ export async function loadManifest(manifestPath: string): Promise<Manifest> {
   const parsedManifest = parseManifest(rawManifest);
 
   return normalizeManifest(parsedManifest, manifestPath);
+}
+
+export async function saveManifest(
+  manifest: Manifest,
+  manifestPath: string,
+): Promise<void> {
+  const lines = [
+    "# AIE OS manifest",
+    "",
+    `version: ${manifest.version}`,
+    "paths:",
+    `  knowledgeBase: ${quote(manifest.paths.knowledgeBase)}`,
+    `  agent: ${quote(manifest.paths.agent)}`,
+    `  globalSkills: ${quote(manifest.paths.globalSkills)}`,
+    `  projectContext: ${quote(manifest.paths.projectContext)}`,
+    `  projectCodingStandards: ${quote(manifest.paths.projectCodingStandards)}`,
+    `  projectSkills: ${quote(manifest.paths.projectSkills)}`,
+    "selection:",
+    `  persona: ${quote(manifest.selection.persona)}`,
+    `  style: ${quote(manifest.selection.style)}`,
+    `  language: ${quote(manifest.selection.language)}`,
+    `  applicationType: ${quote(manifest.selection.applicationType)}`,
+    "  frameworks:",
+    ...renderList(manifest.selection.frameworks, 4),
+    "",
+  ];
+
+  await writeText(manifestPath, lines.join("\n"));
+}
+
+function renderList(values: string[], indent: number): string[] {
+  if (values.length === 0) {
+    return [`${" ".repeat(indent)}[]`];
+  }
+
+  return values.map((value) => `${" ".repeat(indent)}- ${value}`);
+}
+
+function quote(value: string): string {
+  return JSON.stringify(value);
 }
 
 function parseManifest(rawManifest: string): ParsedMap {
@@ -160,43 +203,44 @@ function parseScalar(value: string): ParsedNode {
 }
 
 function normalizeManifest(rawManifest: ParsedMap, manifestPath: string): Manifest {
-  const standards = expectMap(rawManifest.standards, "standards", manifestPath);
-  const skills = expectOptionalMap(rawManifest.skills, "skills", manifestPath);
+  const paths = expectMap(rawManifest.paths, "paths", manifestPath);
+  const selection = expectMap(rawManifest.selection, "selection", manifestPath);
 
   return {
-    persona: expectString(rawManifest.persona, "persona", manifestPath),
-    principles: expectList(rawManifest.principles, "principles", manifestPath),
-    repoContext: expectList(rawManifest.repoContext, "repoContext", manifestPath),
-    skills: {
-      global: expectOptionalList(skills?.global, "skills.global", manifestPath),
-      project: expectOptionalList(skills?.project, "skills.project", manifestPath),
-    },
-    standards: {
-      applicationTypes: expectOptionalList(
-        standards.applicationTypes,
-        "standards.applicationTypes",
+    version: expectNumber(rawManifest.version, "version", manifestPath),
+    paths: {
+      knowledgeBase: expectString(paths.knowledgeBase, "paths.knowledgeBase", manifestPath),
+      agent: expectString(paths.agent, "paths.agent", manifestPath),
+      globalSkills: expectString(paths.globalSkills, "paths.globalSkills", manifestPath),
+      projectContext: expectString(paths.projectContext, "paths.projectContext", manifestPath),
+      projectCodingStandards: expectString(
+        paths.projectCodingStandards,
+        "paths.projectCodingStandards",
         manifestPath,
       ),
-      core: expectList(standards.core, "standards.core", manifestPath),
-      frameworks: expectList(standards.frameworks, "standards.frameworks", manifestPath),
-      languages: expectList(standards.languages, "standards.languages", manifestPath),
+      projectSkills: expectString(paths.projectSkills, "paths.projectSkills", manifestPath),
     },
-    style: expectString(rawManifest.style, "style", manifestPath),
-    version: expectNumber(rawManifest.version, "version", manifestPath),
+    selection: {
+      persona: expectString(selection.persona, "selection.persona", manifestPath),
+      style: expectString(selection.style, "selection.style", manifestPath),
+      language: expectString(selection.language, "selection.language", manifestPath),
+      applicationType: expectString(
+        selection.applicationType,
+        "selection.applicationType",
+        manifestPath,
+      ),
+      frameworks: expectOptionalList(selection.frameworks, "selection.frameworks", manifestPath),
+    },
   };
 }
 
-function expectList(
+function expectString(
   value: ParsedNode | undefined,
   fieldName: string,
   manifestPath: string,
-): string[] {
-  if (!value) {
-    throw new Error(`Missing ${fieldName} in manifest: ${manifestPath}`);
-  }
-
-  if (!Array.isArray(value)) {
-    throw new Error(`Expected ${fieldName} to be a list in manifest: ${manifestPath}`);
+): string {
+  if (typeof value !== "string") {
+    throw new Error(`Expected ${fieldName} to be a string in manifest: ${manifestPath}`);
   }
 
   return value;
@@ -211,7 +255,11 @@ function expectOptionalList(
     return [];
   }
 
-  return expectList(value, fieldName, manifestPath);
+  if (!Array.isArray(value)) {
+    throw new Error(`Expected ${fieldName} to be a list in manifest: ${manifestPath}`);
+  }
+
+  return value;
 }
 
 function expectMap(
@@ -230,18 +278,6 @@ function expectMap(
   return value;
 }
 
-function expectOptionalMap(
-  value: ParsedNode | undefined,
-  fieldName: string,
-  manifestPath: string,
-): ParsedMap | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  return expectMap(value, fieldName, manifestPath);
-}
-
 function expectNumber(
   value: ParsedNode | undefined,
   fieldName: string,
@@ -257,16 +293,4 @@ function expectNumber(
   }
 
   return parsedValue;
-}
-
-function expectString(
-  value: ParsedNode | undefined,
-  fieldName: string,
-  manifestPath: string,
-): string {
-  if (typeof value !== "string") {
-    throw new Error(`Expected ${fieldName} to be a string in manifest: ${manifestPath}`);
-  }
-
-  return value;
 }

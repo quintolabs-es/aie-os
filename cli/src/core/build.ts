@@ -1,13 +1,10 @@
 import path from "node:path";
-import { readText } from "./files";
+import { listMarkdownFiles, readText } from "./files";
 import type { Manifest } from "./manifest";
 
 export type BuildInput = {
-  agentPath: string;
-  kbPath: string;
   manifest: Manifest;
   projectPath: string;
-  skillsPath: string;
   tool: "codex";
 };
 
@@ -44,7 +41,7 @@ export async function buildAgentContext(input: BuildInput): Promise<BuildOutput>
 export function buildCodexAdapter(output: BuildOutput): string {
   return renderContextDocument({
     manifest: output.manifest,
-    note: "Canonical source: `.ai/agent-context.md`.",
+    note: "Canonical source: `.aie-os/agent-context.md`.",
     sections: output.sections,
     title: "# AGENTS",
     tool: output.tool,
@@ -53,122 +50,115 @@ export function buildCodexAdapter(output: BuildOutput): string {
 
 async function resolveSections(input: BuildInput): Promise<BuildSection[]> {
   const sections: BuildSection[] = [];
+  const projectPath = input.projectPath;
+  const knowledgeBasePath = resolveProjectPath(projectPath, input.manifest.paths.knowledgeBase);
+  const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
+  const globalSkillsPath = resolveOptionalProjectPath(
+    projectPath,
+    input.manifest.paths.globalSkills,
+  );
+  const projectContextPath = resolveProjectPath(projectPath, input.manifest.paths.projectContext);
+  const projectCodingStandardsPath = resolveProjectPath(
+    projectPath,
+    input.manifest.paths.projectCodingStandards,
+  );
+  const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
-  for (const repoFile of input.manifest.repoContext) {
-    const source = path.join(input.projectPath, ".ai", repoFile);
-    sections.push({
-      body: await readText(source),
-      heading: repoFile,
-      layer: "Repo Context",
-      source: path.relative(input.projectPath, source),
-    });
-  }
+  sections.push(
+    ...(await loadDirectorySections(
+      projectContextPath,
+      projectPath,
+      "Project Context",
+    )),
+  );
 
-  for (const principle of input.manifest.principles) {
-    sections.push(
-      await loadSection(
-        input.kbPath,
-        path.join("10-engineering-principles", `${principle}.md`),
-        path.join("knowledge-base", "10-engineering-principles", `${principle}.md`),
-        principle,
-        "Engineering Principles",
+  sections.push(
+    ...(await loadDirectorySections(
+      path.join(knowledgeBasePath, "engineering-principles", "universal"),
+      projectPath,
+      "Engineering Principles",
+    )),
+  );
+
+  sections.push(
+    ...(await loadDirectorySections(
+      projectCodingStandardsPath,
+      projectPath,
+      "Project Coding Standards",
+    )),
+  );
+
+  sections.push(
+    ...(await loadDirectorySections(
+      path.join(knowledgeBasePath, "coding-standards", "universal"),
+      projectPath,
+      "Shared Coding Standards",
+    )),
+  );
+
+  sections.push(
+    ...(await loadDirectorySections(
+      path.join(knowledgeBasePath, "coding-standards", "language", input.manifest.selection.language),
+      projectPath,
+      "Language Standards",
+    )),
+  );
+
+  sections.push(
+    ...(await loadDirectorySections(
+      path.join(
+        knowledgeBasePath,
+        "coding-standards",
+        "application-type",
+        input.manifest.selection.applicationType,
       ),
-    );
-  }
+      projectPath,
+      "Application-Type Standards",
+    )),
+  );
 
-  for (const standard of input.manifest.standards.core) {
+  for (const framework of input.manifest.selection.frameworks) {
     sections.push(
-      await loadSection(
-        input.kbPath,
-        path.join("20-coding-standards", "10-core", `${standard}.md`),
-        path.join("knowledge-base", "20-coding-standards", "10-core", `${standard}.md`),
-        standard,
-        "Core Technical Standards",
-      ),
-    );
-  }
-
-  for (const language of input.manifest.standards.languages) {
-    sections.push(
-      await loadSection(
-        input.kbPath,
-        path.join("20-coding-standards", "20-language", `${language}.md`),
-        path.join("knowledge-base", "20-coding-standards", "20-language", `${language}.md`),
-        language,
-        "Language Standards",
-      ),
-    );
-  }
-
-  for (const applicationType of input.manifest.standards.applicationTypes) {
-    sections.push(
-      await loadSection(
-        input.kbPath,
-        path.join("20-coding-standards", "30-application-type", `${applicationType}.md`),
-        path.join(
-          "knowledge-base",
-          "20-coding-standards",
-          "30-application-type",
-          `${applicationType}.md`,
-        ),
-        applicationType,
-        "Application-Type Standards",
-      ),
-    );
-  }
-
-  for (const framework of input.manifest.standards.frameworks) {
-    sections.push(
-      await loadSection(
-        input.kbPath,
-        path.join("20-coding-standards", "40-framework", `${framework}.md`),
-        path.join("knowledge-base", "20-coding-standards", "40-framework", `${framework}.md`),
-        framework,
+      ...(await loadDirectorySections(
+        path.join(knowledgeBasePath, "coding-standards", "framework", framework),
+        projectPath,
         "Framework Standards",
-      ),
-    );
-  }
-
-  for (const projectSkill of input.manifest.skills.project) {
-    sections.push(
-      await loadSection(
-        path.join(input.projectPath, ".ai"),
-        path.join("skills", `${projectSkill}.md`),
-        path.join(".ai", "skills", `${projectSkill}.md`),
-        projectSkill,
-        "Project Skills",
-      ),
-    );
-  }
-
-  for (const globalSkill of input.manifest.skills.global) {
-    sections.push(
-      await loadSection(
-        input.skillsPath,
-        path.join("global", `${globalSkill}.md`),
-        path.join("skills", "global", `${globalSkill}.md`),
-        globalSkill,
-        "Global Skills",
-      ),
+      )),
     );
   }
 
   sections.push(
-    await loadSection(
-      input.agentPath,
-      path.join("10-style", `${input.manifest.style}.md`),
-      path.join("agent", "10-style", `${input.manifest.style}.md`),
-      input.manifest.style,
+    ...(await loadDirectorySections(
+      projectSkillsPath,
+      projectPath,
+      "Project Skills",
+    )),
+  );
+
+  if (globalSkillsPath) {
+    sections.push(
+      ...(await loadDirectorySections(
+        globalSkillsPath,
+        projectPath,
+        "Global Skills",
+      )),
+    );
+  }
+
+  sections.push(
+    await loadSingleFileSection(
+      path.join(agentPath, "style", `${input.manifest.selection.style}.md`),
+      projectPath,
+      input.manifest.selection.style,
       "Response Style",
     ),
   );
 
   sections.push(
-    await loadSection(
-      input.agentPath,
-      path.join("20-persona", `${input.manifest.persona}.md`),
-      path.join("agent", "20-persona", `${input.manifest.persona}.md`),
-      input.manifest.persona,
+    await loadSingleFileSection(
+      path.join(agentPath, "persona", `${input.manifest.selection.persona}.md`),
+      projectPath,
+      input.manifest.selection.persona,
       "Persona",
     ),
   );
@@ -176,21 +166,54 @@ async function resolveSections(input: BuildInput): Promise<BuildSection[]> {
   return sections;
 }
 
-async function loadSection(
-  rootPath: string,
-  relativePath: string,
-  sourceLabel: string,
+async function loadDirectorySections(
+  directoryPath: string,
+  projectPath: string,
+  layer: string,
+): Promise<BuildSection[]> {
+  const files = await listMarkdownFiles(directoryPath);
+
+  return Promise.all(
+    files.map(async (filePath) => ({
+      body: await readText(filePath),
+      heading: path.basename(filePath, ".md"),
+      layer,
+      source: path.relative(projectPath, filePath),
+    })),
+  );
+}
+
+async function loadSingleFileSection(
+  filePath: string,
+  projectPath: string,
   heading: string,
   layer: string,
 ): Promise<BuildSection> {
-  const source = path.join(rootPath, relativePath);
-
   return {
-    body: await readText(source),
+    body: await readText(filePath),
     heading,
     layer,
-    source: sourceLabel,
+    source: path.relative(projectPath, filePath),
   };
+}
+
+function resolveProjectPath(projectPath: string, configuredPath: string): string {
+  if (path.isAbsolute(configuredPath)) {
+    return configuredPath;
+  }
+
+  return path.resolve(projectPath, configuredPath);
+}
+
+function resolveOptionalProjectPath(
+  projectPath: string,
+  configuredPath: string,
+): string | null {
+  if (configuredPath.trim() === "") {
+    return null;
+  }
+
+  return resolveProjectPath(projectPath, configuredPath);
 }
 
 function renderContextDocument(input: {
@@ -202,16 +225,17 @@ function renderContextDocument(input: {
 }): string {
   const buildInputs = [
     `- Tool: ${input.tool}`,
-    `- Persona: ${input.manifest.persona}`,
-    `- Style: ${input.manifest.style}`,
-    `- Principles: ${formatList(input.manifest.principles)}`,
-    `- Core standards: ${formatList(input.manifest.standards.core)}`,
-    `- Language standards: ${formatList(input.manifest.standards.languages)}`,
-    `- Application-type standards: ${formatList(input.manifest.standards.applicationTypes)}`,
-    `- Framework standards: ${formatList(input.manifest.standards.frameworks)}`,
-    `- Project skills: ${formatList(input.manifest.skills.project)}`,
-    `- Global skills: ${formatList(input.manifest.skills.global)}`,
-    `- Repo context: ${formatList(input.manifest.repoContext)}`,
+    `- Persona: ${input.manifest.selection.persona}`,
+    `- Style: ${input.manifest.selection.style}`,
+    `- Language: ${input.manifest.selection.language}`,
+    `- Application type: ${input.manifest.selection.applicationType}`,
+    `- Frameworks: ${formatList(input.manifest.selection.frameworks)}`,
+    `- Knowledge base path: ${input.manifest.paths.knowledgeBase}`,
+    `- Agent path: ${input.manifest.paths.agent}`,
+    `- Global skills path: ${formatValue(input.manifest.paths.globalSkills)}`,
+    `- Project context path: ${input.manifest.paths.projectContext}`,
+    `- Project coding standards path: ${input.manifest.paths.projectCodingStandards}`,
+    `- Project skills path: ${input.manifest.paths.projectSkills}`,
   ].join("\n");
 
   const renderedSections = input.sections
@@ -248,4 +272,8 @@ function formatList(items: string[]): string {
   }
 
   return items.join(", ");
+}
+
+function formatValue(value: string): string {
+  return value.trim() === "" ? "none" : value;
 }

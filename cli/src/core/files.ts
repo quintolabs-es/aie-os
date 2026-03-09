@@ -28,3 +28,49 @@ export async function writeText(filePath: string, contents: string): Promise<voi
   await ensureDirectory(path.dirname(filePath));
   await fs.writeFile(filePath, contents, "utf8");
 }
+
+export async function listDirectoryNames(directoryPath: string): Promise<string[]> {
+  const entries = await fs.readdir(directoryPath, {
+    withFileTypes: true,
+  });
+
+  return entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+}
+
+export async function listMarkdownBasenames(directoryPath: string): Promise<string[]> {
+  const entries = await fs.readdir(directoryPath, {
+    withFileTypes: true,
+  });
+
+  return entries
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md")
+    .map((entry) => entry.name.replace(/\.md$/u, ""))
+    .sort();
+}
+
+export async function listMarkdownFiles(directoryPath: string): Promise<string[]> {
+  const entries = await fs.readdir(directoryPath, {
+    withFileTypes: true,
+  });
+
+  const files = await Promise.all(
+    entries.map(async (entry) => {
+      const entryPath = path.join(directoryPath, entry.name);
+
+      if (entry.isDirectory()) {
+        return listMarkdownFiles(entryPath);
+      }
+
+      if (entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md") {
+        return [entryPath];
+      }
+
+      return [];
+    }),
+  );
+
+  return files.flat().sort();
+}

@@ -17,6 +17,8 @@ narrows them.
 - Make side effects visible at the edges of the system.
 - Keep public interfaces small and stable.
 - Use structured error values or exceptions consistently within a module.
+- README files must explain setup, run, and deployment with direct commands.
+- Tool READMEs must explain usage directly and prefer command examples.
 
 ## Preferred Patterns
 
