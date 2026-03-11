@@ -34,7 +34,7 @@ bash ./bin/aie-os init \
 ### Build agent context.
 ```bash
 cd xample-app
-bash aie-os/bin/aie-os build --tool codex --project-path /defaults/to/cwd
+bash aie-os/bin/aie-os build --tool codex
 ```
 * `--tool`: mandatory. Accepts `codex`. More adapters can be added.
 * `--project-path /path/to/project` optional, defaults to current directory.
