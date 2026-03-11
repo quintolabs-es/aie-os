@@ -9,7 +9,7 @@ On `build` it uses init information to collect shared engineering principles, sh
 The shared content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
 
 ## Usage
-### Setup cli
+### Setup aie-os cli
 
 ```bash
 cd xample-app
