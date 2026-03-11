@@ -47,7 +47,8 @@ xample-app/
 - Canonical outputs:
   - `.aie-os/build/effective-context.json`
   - `.aie-os/build/effective-context.md`
-- Adapters consume `effective-context.json` as the machine-readable contract and may also use `effective-context.md`.
+- `effective-context.json` is the machine-readable adapter contract.
+- `effective-context.md` is the human-readable rendering of the resolved context for review and debugging.
 - Adapters write tool-specific artifacts only.
 
 ## Agent Adapters

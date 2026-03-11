@@ -244,9 +244,8 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
     tool: options.tool,
   });
   const adapter = getAdapter(options.tool);
-  const adapterOutput = adapter.build({
+  const adapterOutput = await adapter.build({
     effectiveContext: buildOutput.effectiveContext,
-    effectiveContextMarkdown: buildOutput.effectiveContextMarkdown,
     projectPath: options.projectPath,
   });
 

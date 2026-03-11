@@ -15,7 +15,6 @@ export type EffectiveContext = {
 
 export type AdapterInput = {
   effectiveContext: EffectiveContext;
-  effectiveContextMarkdown: string;
   projectPath: string;
 };
 
@@ -31,5 +30,5 @@ export type AdapterOutput = {
 
 export type Adapter = {
   tool: "codex";
-  build: (input: AdapterInput) => AdapterOutput;
+  build: (input: AdapterInput) => Promise<AdapterOutput>;
 };
