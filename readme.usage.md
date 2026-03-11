@@ -1,7 +1,7 @@
 ### Initialize AIE-OS
 ```bash
 cd xample-app
-bash aie-os/bin/aie-os init --project-path /defaults/to/cwd
+bash aie-os/bin/aie-os init
 ```
 
 If all options are provided, `init` runs without prompting.
