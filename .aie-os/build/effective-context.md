@@ -17,7 +17,17 @@ Higher-precedence sections appear first. Later sections may refine earlier secti
 - Project coding standards path: .aie-os/project-coding-standards
 - Project skills path: .aie-os/project-skills
 
-## 1. Engineering Principles: engineering-principles
+## Skills
+
+
+
+### 1. Project Skills: add-tool-adapter
+
+- Source: `.aie-os/project-skills/add-tool-adapter`
+- Entry point: `SKILL.md`
+- Description: Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates deterministic registration points, and then tells the contributor where the adapter-specific rendering logic must be implemented.
+
+## 1. Engineering Principles: Engineering Principles
 
 Source: `content/knowledge-base/engineering-principles/universal/engineering-principles.md`
 
@@ -94,7 +104,7 @@ Stable cross-project reasoning rules that guide implementation decisions.
 - Local conventions that weaken shared principles without explicit justification.
 - Implicit runtime defaults for critical environment or deployment settings.
 
-## 2. Shared Coding Standards: coding-standards
+## 2. Shared Coding Standards: Coding Standards
 
 Source: `content/knowledge-base/coding-standards/universal/coding-standards.md`
 
@@ -138,7 +148,7 @@ narrows them.
 - Utility modules that accumulate unrelated behavior.
 - Implicit coupling through environment access deep inside domain code.
 
-## 3. Shared Coding Standards: testing-standards
+## 3. Shared Coding Standards: Testing Standards
 
 Source: `content/knowledge-base/coding-standards/universal/testing-standards.md`
 
@@ -167,7 +177,7 @@ Define the default testing expectations for new or changed behavior.
 - Tests that only verify mocks interacted in a certain order.
 - Broad end-to-end coverage as the only test layer.
 
-## 4. Language Standards: typescript
+## 4. Language Standards: TypeScript Standards
 
 Source: `content/knowledge-base/coding-standards/language/typescript/typescript.md`
 
@@ -206,61 +216,7 @@ Language-specific standards for TypeScript codebases.
 - Type assertions used to bypass missing validation.
 - Shared mutable module state for request-scoped behavior.
 
-## 5. Project Skills: SKILL
-
-Source: `.aie-os/project-skills/add-tool-adapter/SKILL.md`
-
----
-name: add-tool-adapter
-description: Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates deterministic registration points, and then tells the contributor where the adapter-specific rendering logic must be implemented.
----
-
-# Add Tool Adapter
-
-Use this skill when the user wants to add a new adapter for a new tool in this `AIE OS` project.
-
-## Outcome
-
-- Ask for the tool name if it is not already explicit.
-- Scaffold the new adapter contribution shape for that tool.
-- Add the deterministic wiring needed by the project:
-  - adapter file scaffold
-  - static adapter registry entry
-  - supported tool type update
-  - CLI tool selection wiring if needed
-- After scaffolding, tell the contributor exactly where the real adapter logic must be implemented.
-
-## Scope
-
-Do:
-- create the adapter file scaffold
-- update the static TypeScript adapter registry
-- update the supported adapter tool type
-- update CLI support if the new tool must be selectable from `build --tool`
-
-Do not:
-- invent tool-specific rendering rules without user input
-- leave deterministic wiring as a manual follow-up
-- change unrelated adapters
-
-## Implementation Target
-
-The real adapter logic belongs in:
-- `cli/src/core/agentAdapters/<tool>Adapter.ts`
-
-The deterministic registration points are:
-- `cli/src/core/agentAdapters/index.ts`
-- `cli/src/core/agentAdapters/types.ts`
-- CLI parsing/help if the tool should be accepted by `build --tool`
-
-## Response After Scaffolding
-
-After the scaffold is created, report:
-- the files added or updated
-- the generated adapter file path
-- that the remaining work is to implement the adapter-specific artifact rendering logic in that adapter file
-
-## 6. Response Style: concise-collaborative
+## 5. Response Style: Response Style
 
 Source: `content/agent/style/concise-collaborative.md`
 
@@ -300,22 +256,20 @@ Define the default communication style for implementation-focused work.
 - Repeating context the user already has.
 - Hiding uncertainty behind vague language.
 
-## 7. Persona: software-developer
+## 6. Persona: Software Developer Persona
 
 Source: `content/agent/persona/software-developer.md`
 
 # Software Developer Persona
 
-## Validation instruction
-Priority: Follow this rule whenever it applies.
-
-When the user's entire message is exactly `knock knock`:
-- Reply with exactly: `Vendo enanitos verdes.`
-- Output nothing else.
-
 ## Purpose
 
 Default persona for implementing and refining production code.
+
+## Critical Rules
+- When the user's entire message is exactly `knock knock`:
+  * Reply with exactly: `Vendo enanitos verdes.`
+  * Output nothing else.
 
 ## Rules
 
