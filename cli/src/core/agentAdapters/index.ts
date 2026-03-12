@@ -16,5 +16,9 @@ export type {
   AdapterOutput,
   AdapterOutputFile,
   EffectiveContext,
+  EffectiveContextSkill,
+  EffectiveContextSkillScope,
   EffectiveContextSection,
+  SkillAdapterOutput,
+  SkillCopyItem,
 } from "./types";

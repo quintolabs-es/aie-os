@@ -7,9 +7,21 @@ export type EffectiveContextSection = {
   source: string;
 };
 
+export type EffectiveContextSkillScope = "project" | "shared";
+
+export type EffectiveContextSkill = {
+  description: string;
+  entrypoint: string;
+  name: string;
+  scope: EffectiveContextSkillScope;
+  source: string;
+  warnings: string[];
+};
+
 export type EffectiveContext = {
   manifest: Manifest;
   sections: EffectiveContextSection[];
+  skills: EffectiveContextSkill[];
   version: string;
 };
 
@@ -23,9 +35,21 @@ export type AdapterOutputFile = {
   path: string;
 };
 
+export type SkillCopyItem = {
+  destination: string;
+  source: string;
+};
+
+export type SkillAdapterOutput = {
+  copies: SkillCopyItem[];
+  markdown: string;
+};
+
 export type AdapterOutput = {
   files: AdapterOutputFile[];
   primaryArtifact: string;
+  skillAdapterOutput?: SkillAdapterOutput;
+  warnings: string[];
 };
 
 export type Adapter = {

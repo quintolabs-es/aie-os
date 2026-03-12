@@ -1,7 +1,17 @@
 import path from "node:path";
-import { listMarkdownFiles, readText } from "./files";
+import {
+  fileExists,
+  listDirectoryNames,
+  listMarkdownFiles,
+  readText,
+} from "./files";
 import type { Manifest } from "./manifest";
-import type { EffectiveContext, EffectiveContextSection } from "./agentAdapters";
+import type {
+  EffectiveContext,
+  EffectiveContextSection,
+  EffectiveContextSkill,
+  EffectiveContextSkillScope,
+} from "./agentAdapters";
 
 export type BuildInput = {
   manifest: Manifest;
@@ -17,10 +27,11 @@ export type BuildOutput = {
 };
 
 export async function buildAgentContext(input: BuildInput): Promise<BuildOutput> {
-  const sections = await resolveSections(input);
+  const resolvedContext = await resolveContext(input);
   const effectiveContext: EffectiveContext = {
     manifest: input.manifest,
-    sections,
+    sections: resolvedContext.sections,
+    skills: resolvedContext.skills,
     version: "0.1",
   };
 
@@ -37,8 +48,12 @@ export async function buildAgentContext(input: BuildInput): Promise<BuildOutput>
   };
 }
 
-async function resolveSections(input: BuildInput): Promise<EffectiveContextSection[]> {
+async function resolveContext(input: BuildInput): Promise<{
+  sections: EffectiveContextSection[];
+  skills: EffectiveContextSkill[];
+}> {
   const sections: EffectiveContextSection[] = [];
+  const skills: EffectiveContextSkill[] = [];
   const projectPath = input.projectPath;
   const knowledgeBasePath = resolveProjectPath(projectPath, input.manifest.paths.knowledgeBase);
   const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
@@ -104,13 +119,7 @@ async function resolveSections(input: BuildInput): Promise<EffectiveContextSecti
   }
 
   if (skillsPath) {
-    sections.push(
-      ...(await loadDirectorySections(
-        skillsPath,
-        projectPath,
-        "Skills",
-      )),
-    );
+    skills.push(...(await loadSkillDefinitions(skillsPath, projectPath, "shared")));
   }
 
   sections.push(
@@ -121,13 +130,7 @@ async function resolveSections(input: BuildInput): Promise<EffectiveContextSecti
     )),
   );
 
-  sections.push(
-    ...(await loadDirectorySections(
-      projectSkillsPath,
-      projectPath,
-      "Project Skills",
-    )),
-  );
+  skills.push(...(await loadSkillDefinitions(projectSkillsPath, projectPath, "project")));
 
   sections.push(
     await loadSingleFileSection(
@@ -147,7 +150,10 @@ async function resolveSections(input: BuildInput): Promise<EffectiveContextSecti
     ),
   );
 
-  return sections;
+  return {
+    sections,
+    skills,
+  };
 }
 
 async function loadDirectorySections(
@@ -165,6 +171,113 @@ async function loadDirectorySections(
       source: path.relative(projectPath, filePath),
     })),
   );
+}
+
+async function loadSkillDefinitions(
+  directoryPath: string,
+  projectPath: string,
+  scope: EffectiveContextSkillScope,
+): Promise<EffectiveContextSkill[]> {
+  const skillNames = await listDirectoryNames(directoryPath);
+
+  return Promise.all(
+    skillNames.map(async (skillName) => {
+      const skillDirectory = path.join(directoryPath, skillName);
+      const skillMetadata = await loadSkillMetadata(skillDirectory);
+
+      return {
+        description: skillMetadata.description,
+        entrypoint: "SKILL.md",
+        name: skillName,
+        scope,
+        source: toOutputFileReference(projectPath, skillDirectory),
+        warnings: skillMetadata.warnings,
+      };
+    }),
+  );
+}
+
+async function loadSkillMetadata(skillDirectory: string): Promise<{
+  description: string;
+  warnings: string[];
+}> {
+  const skillFilePath = path.join(skillDirectory, "SKILL.md");
+  if (!(await fileExists(skillFilePath))) {
+    return {
+      description: "No usage description provided.",
+      warnings: [`Skill missing SKILL.md: ${skillDirectory}`],
+    };
+  }
+
+  const contents = await readText(skillFilePath);
+  const description = readFrontmatterField(contents, "description");
+
+  if (description === "") {
+    return {
+      description: "No usage description provided.",
+      warnings: [`Skill missing description in SKILL.md frontmatter: ${skillDirectory}`],
+    };
+  }
+
+  return {
+    description,
+    warnings: [],
+  };
+}
+
+function readFrontmatterField(contents: string, fieldName: string): string {
+  const match = contents.match(/^---\r?\n([\s\S]*?)\r?\n---/u);
+  if (!match) {
+    return "";
+  }
+
+  const lines = match[1].split(/\r?\n/u);
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const fieldMatch = line.match(new RegExp(`^${fieldName}:(?:\\s*(.*))?$`, "u"));
+
+    if (!fieldMatch) {
+      continue;
+    }
+
+    const rawValue = (fieldMatch[1] ?? "").trim();
+    if (rawValue === "|" || rawValue === ">") {
+      const blockLines: string[] = [];
+      let nextIndex = index + 1;
+
+      while (nextIndex < lines.length) {
+        const nextLine = lines[nextIndex];
+        if (!nextLine.startsWith("  ")) {
+          break;
+        }
+
+        blockLines.push(nextLine.slice(2));
+        nextIndex += 1;
+      }
+
+      return trimYamlScalar(
+        rawValue === ">"
+          ? blockLines.join(" ")
+          : blockLines.join("\n"),
+      );
+    }
+
+    return trimYamlScalar(rawValue);
+  }
+
+  return "";
+}
+
+function trimYamlScalar(value: string): string {
+  const trimmed = value.trim();
+  const quotedMatch = trimmed.match(/^(['"])([\s\S]*)\1$/u);
+
+  if (quotedMatch) {
+    return quotedMatch[2].trim();
+  }
+
+  return trimmed;
 }
 
 async function loadSingleFileSection(
@@ -221,6 +334,20 @@ export async function renderEffectiveContextMarkdown(input: {
     `- Project skills path: ${input.effectiveContext.manifest.paths.projectSkills}`,
   ].join("\n");
 
+  const renderedSkills = input.effectiveContext.skills.length === 0
+    ? ["## Skills", "", "_None_"].join("\n")
+    : [
+      "## Skills",
+      "",
+      ...input.effectiveContext.skills.map((skill, index) => [
+        `### ${index + 1}. ${formatSkillScope(skill.scope)}: ${skill.name}`,
+        "",
+        `- Source: \`${skill.source}\``,
+        `- Entry point: \`${skill.entrypoint}\``,
+        `- Description: ${skill.description}`,
+      ].join("\n")),
+    ].join("\n\n");
+
   const renderedSections = input.effectiveContext.sections
     .map(async (section, index) =>
       [
@@ -245,6 +372,8 @@ export async function renderEffectiveContextMarkdown(input: {
     "",
     buildInputs,
     "",
+    renderedSkills,
+    "",
     resolvedSections.join("\n\n"),
     "",
   ].join("\n");
@@ -256,6 +385,10 @@ function formatList(items: string[]): string {
   }
 
   return items.join(", ");
+}
+
+function formatSkillScope(scope: EffectiveContextSkillScope): string {
+  return scope === "project" ? "Project Skills" : "Skills";
 }
 
 function formatValue(value: string): string {

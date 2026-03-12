@@ -887,7 +887,11 @@ Add project-specific coding standard files here, for example:
 
 const PROJECT_SKILLS_README = `# Project Skills
 
-Add project-specific skill files here, for example:
-- create-endpoint.md
-- release-process.md
+Project skills are discovered by folder.
+Skills should follow the Agent Skills packaging specification:
+https://agentskills.io/specification
+
+Add project-specific skills here, for example:
+- create-endpoint/
+- release-process/
 `;

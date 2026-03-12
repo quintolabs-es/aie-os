@@ -29,6 +29,18 @@ export async function writeText(filePath: string, contents: string): Promise<voi
   await fs.writeFile(filePath, contents, "utf8");
 }
 
+export async function copyDirectory(sourcePath: string, destinationPath: string): Promise<void> {
+  await ensureDirectory(path.dirname(destinationPath));
+  await fs.rm(destinationPath, {
+    force: true,
+    recursive: true,
+  });
+  await fs.cp(sourcePath, destinationPath, {
+    force: true,
+    recursive: true,
+  });
+}
+
 export async function listDirectoryNames(directoryPath: string): Promise<string[]> {
   const entries = await fs.readdir(directoryPath, {
     withFileTypes: true,

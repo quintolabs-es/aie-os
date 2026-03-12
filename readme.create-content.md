@@ -25,20 +25,21 @@ AIE OS builds context from three shared sources plus two project-local sources:
 
 - skills root (`--skills-path`)
   - mandatory structure:
-    - `[skills-path]/*.md` or nested `**/*.md`
+    - `[skills-path]/<skill-name>/`
   - purpose:
     - shared reusable workflows
 
 - project-local sources in the target project
   - mandatory structure:
     - `.aie-os/project-coding-standards/*.md`
-    - `.aie-os/project-skills/*.md`
+    - `.aie-os/project-skills/<skill-name>/`
   - purpose:
     - project-specific overrides and additions
 
 Rules:
 - `<name>` folder names under `language/`, `application-type/`, and `framework/` are the option names discovered by `init`. Make them legible, e.g., `language/csharp/*.md`, `application-type/console/*.md`, etc.
-- Markdown file names are content units; file names do not need to match the selected option name.
+- Skills should follow the Agent Skills packaging specification: https://agentskills.io/specification
+- AIE OS integrates skills by folder and does not validate skill internals beyond discovering the skill directory.
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
 - Project-specific coding standards and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.

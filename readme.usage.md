@@ -55,4 +55,10 @@ Commit to the target project repository:
 - `.aie-os/project-skills/`
 - `.aie-os/build/effective-context.json`
 - `.aie-os/build/effective-context.md`
+- `.aie-os/build/skills/`
 - agent-specific generated artefacts (e.g. `AGENTS.md`)
+
+For `--tool codex`:
+- AIE OS indexes all shared and project skills in `AGENTS.md`
+- each skill entry includes the skill name, copied `SKILL.md` path, and usage description
+- shared and project skills are copied into `.aie-os/build/skills/` so `AGENTS.md` references only project-local paths
