@@ -8,6 +8,7 @@ import {
 import type { Manifest } from "./manifest";
 import type {
   EffectiveContext,
+  ParsedSourceBlocks,
   EffectiveContextSection,
   EffectiveContextSkill,
   EffectiveContextSkillScope,
@@ -164,12 +165,7 @@ async function loadDirectorySections(
   const files = await listMarkdownFiles(directoryPath);
 
   return Promise.all(
-    files.map(async (filePath) => ({
-      file: toOutputFileReference(projectPath, filePath),
-      heading: path.basename(filePath, ".md"),
-      layer,
-      source: path.relative(projectPath, filePath),
-    })),
+    files.map(async (filePath) => createEffectiveContextSection(filePath, projectPath, layer)),
   );
 }
 
@@ -286,10 +282,29 @@ async function loadSingleFileSection(
   heading: string,
   layer: string,
 ): Promise<EffectiveContextSection> {
+  const contents = await readText(filePath);
+
   return {
     file: toOutputFileReference(projectPath, filePath),
-    heading,
+    heading: readMarkdownTitle(contents) || heading,
     layer,
+    parsed: parseSourceBlocks(contents),
+    source: path.relative(projectPath, filePath),
+  };
+}
+
+async function createEffectiveContextSection(
+  filePath: string,
+  projectPath: string,
+  layer: string,
+): Promise<EffectiveContextSection> {
+  const contents = await readText(filePath);
+
+  return {
+    file: toOutputFileReference(projectPath, filePath),
+    heading: readMarkdownTitle(contents) || path.basename(filePath, ".md"),
+    layer,
+    parsed: parseSourceBlocks(contents),
     source: path.relative(projectPath, filePath),
   };
 }
@@ -300,6 +315,123 @@ function resolveProjectPath(projectPath: string, configuredPath: string): string
   }
 
   return path.resolve(projectPath, configuredPath);
+}
+
+function parseSourceBlocks(contents: string): ParsedSourceBlocks {
+  const parsed: ParsedSourceBlocks = {
+    criticalRules: [],
+    examples: [],
+    forbiddenPatterns: [],
+    preferredPatterns: [],
+    purpose: [],
+    rules: [],
+    unclassified: [],
+  };
+
+  const normalizedContents = contents.replace(/\r\n/g, "\n");
+  const sections = normalizedContents.split(/^##\s+/m);
+
+  if (sections.length === 1) {
+    parsed.unclassified.push(...extractContentBlocks(removeTitle(normalizedContents)));
+    return parsed;
+  }
+
+  const [preamble, ...sectionBodies] = sections;
+  parsed.unclassified.push(...extractContentBlocks(removeTitle(preamble)));
+
+  for (const sectionBody of sectionBodies) {
+    const newlineIndex = sectionBody.indexOf("\n");
+    const rawHeading = newlineIndex === -1 ? sectionBody : sectionBody.slice(0, newlineIndex);
+    const rawContent = newlineIndex === -1 ? "" : sectionBody.slice(newlineIndex + 1);
+    const sectionKey = normalizeSectionKey(rawHeading);
+    const blocks = extractContentBlocks(rawContent);
+
+    switch (sectionKey) {
+      case "purpose":
+        parsed.purpose.push(...blocks);
+        break;
+      case "critical-rules":
+      case "validation-instruction":
+        parsed.criticalRules.push(...blocks);
+        break;
+      case "rules":
+        parsed.rules.push(...blocks);
+        break;
+      case "preferred-patterns":
+        parsed.preferredPatterns.push(...blocks);
+        break;
+      case "forbidden-patterns":
+        parsed.forbiddenPatterns.push(...blocks);
+        break;
+      case "examples":
+        parsed.examples.push(...blocks);
+        break;
+      default:
+        parsed.unclassified.push(...blocks);
+        break;
+    }
+  }
+
+  return parsed;
+}
+
+function removeTitle(contents: string): string {
+  return contents.replace(/^#\s+.*\n+/u, "");
+}
+
+function readMarkdownTitle(contents: string): string {
+  const match = contents.match(/^#\s+(.+)$/m);
+  return match ? match[1].trim() : "";
+}
+
+function normalizeSectionKey(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/gu, "");
+}
+
+function extractContentBlocks(contents: string): string[] {
+  const lines = contents.trim().split("\n");
+  const blocks: string[] = [];
+  let currentBlock: string[] = [];
+  let currentType: "bullet" | "text" | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimEnd();
+
+    if (line.trim() === "") {
+      if (currentType === "text" && currentBlock.length > 0) {
+        blocks.push(currentBlock.join("\n").trim());
+        currentBlock = [];
+        currentType = null;
+      } else if (currentType === "bullet" && currentBlock.length > 0) {
+        currentBlock.push("");
+      }
+
+      continue;
+    }
+
+    if (/^[-*+]\s+/u.test(line)) {
+      if (currentBlock.length > 0) {
+        blocks.push(currentBlock.join("\n").trim());
+      }
+
+      currentBlock = [line];
+      currentType = "bullet";
+      continue;
+    }
+
+    currentBlock.push(line);
+    currentType = currentType ?? "text";
+  }
+
+  if (currentBlock.length > 0) {
+    blocks.push(currentBlock.join("\n").trim());
+  }
+
+  return blocks.filter((block) => block !== "");
 }
 
 function resolveOptionalProjectPath(

@@ -1,9 +1,22 @@
 import type { Manifest } from "../manifest";
 
+export type AdapterTool = "codex";
+
+export type ParsedSourceBlocks = {
+  criticalRules: string[];
+  examples: string[];
+  forbiddenPatterns: string[];
+  preferredPatterns: string[];
+  purpose: string[];
+  rules: string[];
+  unclassified: string[];
+};
+
 export type EffectiveContextSection = {
   file: string;
   heading: string;
   layer: string;
+  parsed: ParsedSourceBlocks;
   source: string;
 };
 
@@ -53,6 +66,6 @@ export type AdapterOutput = {
 };
 
 export type Adapter = {
-  tool: "codex";
+  tool: AdapterTool;
   build: (input: AdapterInput) => Promise<AdapterOutput>;
 };
