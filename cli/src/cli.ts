@@ -4,6 +4,7 @@ import path from "node:path";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
 import { getAdapter } from "./core/agentAdapters";
+import { agentArtifactWriter } from "./core/agentArtifactWriter";
 import { buildAgentContext } from "./core/build";
 import {
   ensureDirectory,
@@ -258,9 +259,7 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
     `${JSON.stringify(buildOutput.effectiveContext, null, 2)}\n`,
   );
 
-  for (const file of adapterOutput.files) {
-    await writeText(path.join(options.projectPath, file.path), file.contents);
-  }
+  await agentArtifactWriter.write(options.projectPath, adapterOutput);
 
   output.write(
     `\nBuild complete. Generated .aie-os/build/effective-context.json, .aie-os/build/effective-context.md, and ${adapterOutput.primaryArtifact}.\n`,
