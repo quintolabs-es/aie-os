@@ -11,9 +11,13 @@ narrows them.
 - Organize code by vertical feature when it improves cohesion, change locality,
   and maintainability.
 - Keep the artifacts needed to implement one feature close together.
+- Prefer one primary exported object per file, with the file name matching that
+  object.
 - Prefer explicit dependencies over hidden global state.
 - Prefer self-explanatory code over comments. Use comments only when intent
   cannot be made clear through naming and structure.
+- Changes must pass the strongest available compile-time or static validation
+  for the stack before they are considered complete.
 - Make side effects visible at the edges of the system.
 - Keep public interfaces small and stable.
 - Use structured error values or exceptions consistently within a module.

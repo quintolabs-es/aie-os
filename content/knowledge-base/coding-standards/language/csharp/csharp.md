@@ -7,6 +7,9 @@ Language and runtime standards for .NET and C# codebases.
 ## Rules
 
 - Enable nullable reference types and address warnings intentionally.
+- Code changes must compile successfully before they are considered complete.
+- Use one primary object per file. The file name must match the primary object
+  name.
 - Pass `CancellationToken` through async flows that can be cancelled.
 - Keep domain logic out of controllers and infrastructure layers.
 - Keep dependency registration explicit and close to composition roots.
@@ -27,6 +30,12 @@ Language and runtime standards for .NET and C# codebases.
   settings.
 - Add automated tests that validate DI construction for application entry
   points.
+- Supporting request, response, and closely coupled contract objects may stay
+  in the same file as the primary object.
+- If an interface has a single implementation, the interface may stay in the
+  same file as that implementation.
+- If an interface is defined in its own file, its request and response contract
+  objects must stay in that same file.
 
 ## Preferred Patterns
 
