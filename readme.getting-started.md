@@ -1,3 +1,12 @@
+### First time setup aie-os cli
+```bash
+cd xample-app
+git clone <aie-os-repo-url>
+npm --prefix aie-os/cli run build
+```
+### Create content
+Check `readme.create-content.md` for instructions on how to add principles, standards, skills, agent personas.
+
 ### Initialize AIE-OS
 ```bash
 cd xample-app
@@ -62,3 +71,4 @@ For `--tool codex`:
 - AIE OS indexes all shared and project skills in `AGENTS.md`
 - each skill entry includes the skill name, copied `SKILL.md` path, and usage description
 - shared and project skills are copied into `.aie-os/build/skills/` so `AGENTS.md` references only project-local paths
+

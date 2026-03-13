@@ -9,19 +9,7 @@ On `build` it uses init information to collect shared engineering principles, sh
 The shared content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
 
 ## Usage
-### Setup aie-os cli
-
-```bash
-cd xample-app
-git clone <aie-os-repo-url>
-npm --prefix aie-os/cli run build
-```
-
-### Create content
-Check `readme.create-content.md` for instructions on how to add principles, standards, skills, agent personas.
-
-### Init and build
-Check `readme.usage.md`.
+Check `readme.getting-started.md`,
 
 ## Target project structure
 Below the general agent-agnostic structure. Agent specific artefacts are added by the build execution after the effective-context files.
