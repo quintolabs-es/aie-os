@@ -1,7 +1,7 @@
 import path from "node:path";
 import { stdout as output } from "node:process";
-import { copyDirectory, writeText } from "./files";
-import type { AdapterOutput } from "./agentAdapters";
+import { copyDirectory, writeText } from "../context/filesystem";
+import type { AdapterOutput } from "../agentAdapters";
 
 export const agentArtifactWriter = {
   async write(projectPath: string, output: AdapterOutput): Promise<void> {

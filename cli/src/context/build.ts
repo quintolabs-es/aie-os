@@ -4,7 +4,7 @@ import {
   listDirectoryNames,
   listMarkdownFiles,
   readText,
-} from "./files";
+} from "./filesystem";
 import type { Manifest } from "./manifest";
 import type {
   EffectiveContext,
@@ -12,7 +12,7 @@ import type {
   EffectiveContextSection,
   EffectiveContextSkill,
   EffectiveContextSkillScope,
-} from "./agentAdapters";
+} from "../agentAdapters";
 
 export type BuildInput = {
   manifest: Manifest;

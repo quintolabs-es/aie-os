@@ -45,6 +45,7 @@ Rules:
 - The available frameworks are exactly the folder names under `[kb-path]/coding-standards/framework/`.
 - Make discovered option names legible, e.g., `language/csharp/*.md`, `application-type/console/*.md`, etc.
 - Shared content should stay reusable across many repositories. Put repo-specific commands and conventions in `.aie-os/project-coding-standards/`.
+- An application-type folder may exist only to expose a valid option name to `init`; use `conditional/` when the actual rules depend on a language + application-type combination.
 - Skills should follow the Agent Skills packaging specification: https://agentskills.io/specification
 - AIE OS integrates skills by folder and does not validate skill internals beyond discovering the skill directory.
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
@@ -186,6 +187,7 @@ Examples:
 Use this for true cross-dimension rules such as:
 
 - defaults for new C# APIs
+- rules for TypeScript CLI tools consumed through `bin/<app-name>`
 - rules that apply only to TypeScript mobile apps
 
 Do not use `conditional/` for normal language-only, application-type-only, or framework-only rules.

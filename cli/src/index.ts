@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
 import path from "node:path";
-import {
-  buildProject,
-  initProject,
-  parseCommandInput,
-  resolveExecutionOptions,
-  usageText,
-} from "./cli";
+import { buildProject } from "./commands/build";
+import { initProject } from "./commands/init";
+import { parseCommandInput, resolveExecutionOptions, usageText } from "./commands/commandLine";
 
 async function run(): Promise<void> {
   const commandInput = parseCommandInput(process.argv.slice(2));

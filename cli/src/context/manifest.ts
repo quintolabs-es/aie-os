@@ -1,4 +1,4 @@
-import { readText, writeText } from "./files";
+import { readText, writeText } from "./filesystem";
 
 export type Manifest = {
   paths: {
