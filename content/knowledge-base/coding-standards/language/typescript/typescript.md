@@ -1,11 +1,3 @@
-# TypeScript Standards
-
-## Purpose
-
-Language-specific standards for TypeScript codebases.
-
-## Rules
-
 - Use strict compiler settings and keep type errors at zero.
 - Code changes must pass TypeScript compilation or the strongest configured
   static type check before they are considered complete.
@@ -16,15 +8,9 @@ Language-specific standards for TypeScript codebases.
 - Supporting `interface` and `type` contract objects may stay in the same file when they are tightly scoped to that primary export.
 - If an `interface` or `type` contract is used by only one implementation and is not reused, it may stay in the same file as that implementation.
 - If a contract is defined in its own file, keep its request and response types in that same file.
-
-## Preferred Patterns
-
-- Discriminated unions for state and result modeling.
-- Named exports for reusable modules.
-- `readonly` data where mutation is not required.
-
-## Forbidden Patterns
-
-- `any` in production code without a documented boundary reason.
-- Type assertions used to bypass missing validation.
-- Shared mutable module state for request-scoped behavior.
+- Prefer discriminated unions for state and result modeling.
+- Prefer named exports for reusable modules.
+- Prefer `readonly` data where mutation is not required.
+- Do not use `any` in production code without a documented boundary reason.
+- Do not use type assertions to bypass missing validation.
+- Do not use shared mutable module state for request-scoped behavior.

@@ -2,21 +2,15 @@ import type { Manifest } from "../context/manifest";
 
 export type AdapterTool = "codex";
 
-export type ParsedSourceBlocks = {
-  criticalRules: string[];
-  examples: string[];
-  forbiddenPatterns: string[];
-  preferredPatterns: string[];
-  purpose: string[];
-  rules: string[];
-  unclassified: string[];
+export type EffectiveContextBlock = {
+  contents: string;
+  layer: string;
+  sectionLabel: string;
+  source: string;
 };
 
-export type EffectiveContextSection = {
-  file: string;
-  heading: string;
-  layer: string;
-  parsed: ParsedSourceBlocks;
+export type EffectiveContextPersona = {
+  contents: string;
   source: string;
 };
 
@@ -32,8 +26,10 @@ export type EffectiveContextSkill = {
 };
 
 export type EffectiveContext = {
+  criticalRules: EffectiveContextBlock[];
   manifest: Manifest;
-  sections: EffectiveContextSection[];
+  persona: EffectiveContextPersona;
+  sections: EffectiveContextBlock[];
   skills: EffectiveContextSkill[];
   version: string;
 };

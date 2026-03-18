@@ -1,11 +1,3 @@
-# C# Standards
-
-## Purpose
-
-Language and runtime standards for .NET and C# codebases.
-
-## Rules
-
 - Enable nullable reference types and address warnings intentionally.
 - Code changes must compile successfully before they are considered complete.
 - Use one primary public top-level type per file. The file name must match that type.
@@ -15,16 +7,10 @@ Language and runtime standards for .NET and C# codebases.
 - Pass `CancellationToken` through async flows that can be cancelled.
 - Prefer async APIs end to end.
 - Use constructor injection where dependencies are injected.
-
-## Preferred Patterns
-
-- Dependency injection through constructors.
-- Small application services with explicit command or query responsibilities.
-- Structured logging with contextual properties.
-- Records or immutable types for simple data contracts where they fit the model.
-
-## Forbidden Patterns
-
-- Blocking on async code with `.Result` or `.Wait()`.
-- Static mutable state for request or user-specific data.
-- Catch-all exception handlers that hide the original failure.
+- Prefer dependency injection through constructors.
+- Prefer small application services with explicit command or query responsibilities.
+- Prefer structured logging with contextual properties.
+- Prefer records or immutable types for simple data contracts where they fit the model.
+- Do not block on async code with `.Result` or `.Wait()`.
+- Do not use static mutable state for request or user-specific data.
+- Do not hide the original failure behind catch-all exception handlers.

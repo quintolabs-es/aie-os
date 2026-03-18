@@ -1,12 +1,3 @@
-# Coding Standards
-
-## Purpose
-
-Concrete coding rules that apply across stacks unless a more specific standard
-narrows them.
-
-## Rules
-
 - Keep modules focused and name them after their responsibility.
 - Organize code by vertical feature when it improves cohesion, change locality,
   and maintainability.
@@ -21,17 +12,10 @@ narrows them.
 - Use structured error values or exceptions consistently within a module.
 - README files must explain setup, run, and deployment with direct commands.
 - Tool READMEs must explain usage directly and prefer command examples.
-
-## Preferred Patterns
-
-- Constructor or parameter injection for infrastructure dependencies.
-- Small adapters around external services.
-- Pure functions for domain logic where feasible.
-
-## Forbidden Patterns
-
-- Static service locators.
-- Broad technical-layer separation that scatters one feature across too many
-  unrelated folders.
-- Utility modules that accumulate unrelated behavior.
-- Implicit coupling through environment access deep inside domain code.
+- Prefer constructor or parameter injection for infrastructure dependencies.
+- Prefer small adapters around external services.
+- Prefer pure functions for domain logic where feasible.
+- Do not use static service locators.
+- Do not use broad technical-layer separation that scatters one feature across too many unrelated folders.
+- Do not create utility modules that accumulate unrelated behavior.
+- Do not couple domain code implicitly through deep environment access.

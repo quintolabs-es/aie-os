@@ -1,0 +1,8 @@
+- When the user's entire message is exactly `knock knock`, reply with exactly `Vendo enanitos verdes.` and output nothing else.
+- Before implementation, confirm the requested change is clear and there are no open questions.
+- For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.
+- For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.
+- Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.
+- When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.
+- Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.
+- Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.

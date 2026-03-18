@@ -8,8 +8,8 @@ import {
 import type { Manifest } from "./manifest";
 import type {
   EffectiveContext,
-  ParsedSourceBlocks,
-  EffectiveContextSection,
+  EffectiveContextBlock,
+  EffectiveContextPersona,
   EffectiveContextSkill,
   EffectiveContextSkillScope,
 } from "../agentAdapters";
@@ -33,10 +33,17 @@ type ConditionalAppliesTo = {
   languages: string[];
 };
 
+type LoadedBlocks = {
+  criticalRules: EffectiveContextBlock[];
+  sections: EffectiveContextBlock[];
+};
+
 export async function buildAgentContext(input: BuildInput): Promise<BuildOutput> {
   const resolvedContext = await resolveContext(input);
   const effectiveContext: EffectiveContext = {
+    criticalRules: resolvedContext.criticalRules,
     manifest: input.manifest,
+    persona: resolvedContext.persona,
     sections: resolvedContext.sections,
     skills: resolvedContext.skills,
     version: "0.1",
@@ -44,9 +51,8 @@ export async function buildAgentContext(input: BuildInput): Promise<BuildOutput>
 
   return {
     effectiveContext,
-    effectiveContextMarkdown: await renderEffectiveContextMarkdown({
+    effectiveContextMarkdown: renderEffectiveContextMarkdown({
       effectiveContext,
-      projectPath: input.projectPath,
       title: "# Agent Context",
       tool: input.tool,
     }),
@@ -56,157 +62,192 @@ export async function buildAgentContext(input: BuildInput): Promise<BuildOutput>
 }
 
 async function resolveContext(input: BuildInput): Promise<{
-  sections: EffectiveContextSection[];
+  criticalRules: EffectiveContextBlock[];
+  persona: EffectiveContextPersona;
+  sections: EffectiveContextBlock[];
   skills: EffectiveContextSkill[];
 }> {
-  const sections: EffectiveContextSection[] = [];
+  const criticalRules: EffectiveContextBlock[] = [];
+  const sections: EffectiveContextBlock[] = [];
   const skills: EffectiveContextSkill[] = [];
   const projectPath = input.projectPath;
   const knowledgeBasePath = resolveProjectPath(projectPath, input.manifest.paths.knowledgeBase);
   const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
-  const skillsPath = resolveOptionalProjectPath(
-    projectPath,
-    input.manifest.paths.skills,
-  );
+  const skillsPath = resolveOptionalProjectPath(projectPath, input.manifest.paths.skills);
   const projectCodingStandardsPath = resolveProjectPath(
     projectPath,
     input.manifest.paths.projectCodingStandards,
   );
   const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
-  sections.push(
-    ...(await loadDirectorySections(
+  const persona = await loadPersona(
+    path.join(agentPath, "persona", `${input.manifest.selection.persona}.md`),
+    projectPath,
+  );
+
+  pushLoadedBlocks(
+    { criticalRules, sections },
+    await loadOptionalDirectoryBlocks(
+      path.join(agentPath, "universal"),
+      projectPath,
+      "Agent Rules",
+      "Agent Rules",
+    ),
+  );
+
+  pushLoadedBlocks(
+    { criticalRules, sections },
+    await loadDirectoryBlocks(
       path.join(knowledgeBasePath, "engineering-principles", "universal"),
       projectPath,
       "Engineering Principles",
-    )),
+      "Engineering Principles",
+    ),
   );
 
-  sections.push(
-    ...(await loadDirectorySections(
+  pushLoadedBlocks(
+    { criticalRules, sections },
+    await loadDirectoryBlocks(
       path.join(knowledgeBasePath, "coding-standards", "universal"),
       projectPath,
       "Shared Coding Standards",
-    )),
+      "Coding Standards",
+    ),
   );
 
   for (const language of input.manifest.selection.languages) {
-    sections.push(
-      ...(await loadDirectorySections(
+    pushLoadedBlocks(
+      { criticalRules, sections },
+      await loadDirectoryBlocks(
         path.join(knowledgeBasePath, "coding-standards", "language", language),
         projectPath,
         "Language Standards",
-      )),
+        `Language: ${language}`,
+      ),
     );
   }
 
   for (const applicationType of input.manifest.selection.applicationTypes) {
-    sections.push(
-      ...(await loadDirectorySections(
-        path.join(
-          knowledgeBasePath,
-          "coding-standards",
-          "application-type",
-          applicationType,
-        ),
+    pushLoadedBlocks(
+      { criticalRules, sections },
+      await loadDirectoryBlocks(
+        path.join(knowledgeBasePath, "coding-standards", "application-type", applicationType),
         projectPath,
         "Application-Type Standards",
-      )),
+        `Application Type: ${applicationType}`,
+      ),
     );
   }
 
   for (const framework of input.manifest.selection.frameworks) {
-    sections.push(
-      ...(await loadDirectorySections(
+    pushLoadedBlocks(
+      { criticalRules, sections },
+      await loadDirectoryBlocks(
         path.join(knowledgeBasePath, "coding-standards", "framework", framework),
         projectPath,
         "Framework Standards",
-      )),
+        `Framework: ${framework}`,
+      ),
     );
   }
 
-  sections.push(
-    ...(await loadConditionalSections(
+  pushLoadedBlocks(
+    { criticalRules, sections },
+    await loadConditionalBlocks(
       path.join(knowledgeBasePath, "coding-standards", "conditional"),
       projectPath,
       input.manifest.selection,
       "Conditional Coding Standards",
-    )),
+      "Conditional Rules",
+    ),
   );
 
   if (skillsPath) {
     skills.push(...(await loadSkillDefinitions(skillsPath, projectPath, "shared")));
   }
 
-  sections.push(
-    ...(await loadDirectorySections(
+  pushLoadedBlocks(
+    { criticalRules, sections },
+    await loadDirectoryBlocks(
       projectCodingStandardsPath,
       projectPath,
       "Project Coding Standards",
-    )),
+      "Project Coding Standards",
+    ),
   );
 
   skills.push(...(await loadSkillDefinitions(projectSkillsPath, projectPath, "project")));
 
-  sections.push(
-    ...(await loadOptionalDirectorySections(
-      path.join(agentPath, "universal"),
-      projectPath,
-      "Universal Agent Rules",
-    )),
-  );
-
-  sections.push(
-    await loadSingleFileSection(
-      path.join(agentPath, "persona", `${input.manifest.selection.persona}.md`),
-      projectPath,
-      input.manifest.selection.persona,
-      "Persona",
-    ),
-  );
-
   return {
+    criticalRules,
+    persona,
     sections,
     skills,
   };
 }
 
-async function loadDirectorySections(
+function pushLoadedBlocks(target: LoadedBlocks, loaded: LoadedBlocks): void {
+  target.criticalRules.push(...loaded.criticalRules);
+  target.sections.push(...loaded.sections);
+}
+
+async function loadPersona(filePath: string, projectPath: string): Promise<EffectiveContextPersona> {
+  const contents = normalizeMarkdownContents(await readText(filePath));
+
+  return {
+    contents,
+    source: toOutputFileReference(projectPath, filePath),
+  };
+}
+
+async function loadDirectoryBlocks(
   directoryPath: string,
   projectPath: string,
   layer: string,
-): Promise<EffectiveContextSection[]> {
+  baseSectionLabel: string,
+): Promise<LoadedBlocks> {
   const files = await listMarkdownFiles(directoryPath);
 
-  return Promise.all(
-    files.map(async (filePath) => createEffectiveContextSection(filePath, projectPath, layer)),
-  );
+  return loadBlocksFromFiles(files, {
+    baseDirectory: directoryPath,
+    baseSectionLabel,
+    layer,
+    projectPath,
+  });
 }
 
-async function loadOptionalDirectorySections(
+async function loadOptionalDirectoryBlocks(
   directoryPath: string,
   projectPath: string,
   layer: string,
-): Promise<EffectiveContextSection[]> {
+  baseSectionLabel: string,
+): Promise<LoadedBlocks> {
   if (!(await fileExists(directoryPath))) {
-    return [];
+    return {
+      criticalRules: [],
+      sections: [],
+    };
   }
 
-  return loadDirectorySections(directoryPath, projectPath, layer);
+  return loadDirectoryBlocks(directoryPath, projectPath, layer, baseSectionLabel);
 }
 
-async function loadConditionalSections(
+async function loadConditionalBlocks(
   directoryPath: string,
   projectPath: string,
   selection: Manifest["selection"],
   layer: string,
-): Promise<EffectiveContextSection[]> {
+  baseSectionLabel: string,
+): Promise<LoadedBlocks> {
   if (!(await fileExists(directoryPath))) {
-    return [];
+    return {
+      criticalRules: [],
+      sections: [],
+    };
   }
 
   const files = await listMarkdownFiles(directoryPath);
-  const sections: EffectiveContextSection[] = [];
+  const matchedFiles: string[] = [];
 
   for (const filePath of files) {
     const contents = await readText(filePath);
@@ -220,10 +261,73 @@ async function loadConditionalSections(
       continue;
     }
 
-    sections.push(createEffectiveContextSectionFromContents(filePath, projectPath, layer, contents));
+    matchedFiles.push(filePath);
   }
 
-  return sections;
+  return loadBlocksFromFiles(matchedFiles, {
+    baseDirectory: directoryPath,
+    baseSectionLabel,
+    layer,
+    projectPath,
+  });
+}
+
+async function loadBlocksFromFiles(
+  files: string[],
+  input: {
+    baseDirectory: string;
+    baseSectionLabel: string;
+    layer: string;
+    projectPath: string;
+  },
+): Promise<LoadedBlocks> {
+  const criticalRules: EffectiveContextBlock[] = [];
+  const sections: EffectiveContextBlock[] = [];
+
+  for (const filePath of files) {
+    const contents = normalizeMarkdownContents(await readText(filePath));
+
+    if (contents === "") {
+      continue;
+    }
+
+    const block: EffectiveContextBlock = {
+      contents,
+      layer: input.layer,
+      sectionLabel: deriveSectionLabel(
+        input.baseDirectory,
+        input.baseSectionLabel,
+        filePath,
+      ),
+      source: toOutputFileReference(input.projectPath, filePath),
+    };
+
+    if (path.basename(filePath) === "critical-rules.md") {
+      criticalRules.push(block);
+      continue;
+    }
+
+    sections.push(block);
+  }
+
+  return {
+    criticalRules,
+    sections,
+  };
+}
+
+function deriveSectionLabel(
+  baseDirectory: string,
+  baseSectionLabel: string,
+  filePath: string,
+): string {
+  const relativeDirectory = path.relative(baseDirectory, path.dirname(filePath));
+
+  if (relativeDirectory === "") {
+    return baseSectionLabel;
+  }
+
+  return `${baseSectionLabel}: ${relativeDirectory.split(path.sep).join(" / ")}`;
 }
 
 async function loadSkillDefinitions(
@@ -320,126 +424,6 @@ function readFrontmatterField(contents: string, fieldName: string): string {
   }
 
   return "";
-}
-
-function trimYamlScalar(value: string): string {
-  const trimmed = value.trim();
-  const quotedMatch = trimmed.match(/^(['"])([\s\S]*)\1$/u);
-
-  if (quotedMatch) {
-    return quotedMatch[2].trim();
-  }
-
-  return trimmed;
-}
-
-async function loadSingleFileSection(
-  filePath: string,
-  projectPath: string,
-  heading: string,
-  layer: string,
-): Promise<EffectiveContextSection> {
-  const contents = await readText(filePath);
-
-  return {
-    file: toOutputFileReference(projectPath, filePath),
-    heading: readMarkdownTitle(contents) || heading,
-    layer,
-    parsed: parseSourceBlocks(contents),
-    source: path.relative(projectPath, filePath),
-  };
-}
-
-async function createEffectiveContextSection(
-  filePath: string,
-  projectPath: string,
-  layer: string,
-): Promise<EffectiveContextSection> {
-  const contents = await readText(filePath);
-
-  return createEffectiveContextSectionFromContents(filePath, projectPath, layer, contents);
-}
-
-function createEffectiveContextSectionFromContents(
-  filePath: string,
-  projectPath: string,
-  layer: string,
-  contents: string,
-): EffectiveContextSection {
-
-  return {
-    file: toOutputFileReference(projectPath, filePath),
-    heading: readMarkdownTitle(contents) || path.basename(filePath, ".md"),
-    layer,
-    parsed: parseSourceBlocks(contents),
-    source: path.relative(projectPath, filePath),
-  };
-}
-
-function resolveProjectPath(projectPath: string, configuredPath: string): string {
-  if (path.isAbsolute(configuredPath)) {
-    return configuredPath;
-  }
-
-  return path.resolve(projectPath, configuredPath);
-}
-
-function parseSourceBlocks(contents: string): ParsedSourceBlocks {
-  const parsed: ParsedSourceBlocks = {
-    criticalRules: [],
-    examples: [],
-    forbiddenPatterns: [],
-    preferredPatterns: [],
-    purpose: [],
-    rules: [],
-    unclassified: [],
-  };
-
-  const normalizedContents = contents.replace(/\r\n/g, "\n");
-  const sections = normalizedContents.split(/^##\s+/m);
-
-  if (sections.length === 1) {
-    parsed.unclassified.push(...extractContentBlocks(removeTitle(normalizedContents)));
-    return parsed;
-  }
-
-  const [preamble, ...sectionBodies] = sections;
-  parsed.unclassified.push(...extractContentBlocks(removeTitle(preamble)));
-
-  for (const sectionBody of sectionBodies) {
-    const newlineIndex = sectionBody.indexOf("\n");
-    const rawHeading = newlineIndex === -1 ? sectionBody : sectionBody.slice(0, newlineIndex);
-    const rawContent = newlineIndex === -1 ? "" : sectionBody.slice(newlineIndex + 1);
-    const sectionKey = normalizeSectionKey(rawHeading);
-    const blocks = extractContentBlocks(rawContent);
-
-    switch (sectionKey) {
-      case "purpose":
-        parsed.purpose.push(...blocks);
-        break;
-      case "critical-rules":
-      case "validation-instruction":
-        parsed.criticalRules.push(...blocks);
-        break;
-      case "rules":
-        parsed.rules.push(...blocks);
-        break;
-      case "preferred-patterns":
-        parsed.preferredPatterns.push(...blocks);
-        break;
-      case "forbidden-patterns":
-        parsed.forbiddenPatterns.push(...blocks);
-        break;
-      case "examples":
-        parsed.examples.push(...blocks);
-        break;
-      default:
-        parsed.unclassified.push(...blocks);
-        break;
-    }
-  }
-
-  return parsed;
 }
 
 function parseConditionalAppliesTo(
@@ -561,6 +545,17 @@ function parseInlineStringArray(value: string, filePath: string): string[] {
     .filter((item) => item !== "");
 }
 
+function trimYamlScalar(value: string): string {
+  const trimmed = value.trim();
+  const quotedMatch = trimmed.match(/^(['"])([\s\S]*)\1$/u);
+
+  if (quotedMatch) {
+    return quotedMatch[2].trim();
+  }
+
+  return trimmed;
+}
+
 function matchesConditionalAppliesTo(
   appliesTo: ConditionalAppliesTo,
   selection: Manifest["selection"],
@@ -580,63 +575,20 @@ function matchesConditionalDimension(selected: string[], required: string[]): bo
   return required.some((value) => selected.includes(value));
 }
 
-function removeTitle(contents: string): string {
-  return contents.replace(/^#\s+.*\n+/u, "");
+function normalizeMarkdownContents(contents: string): string {
+  let normalized = contents.replace(/^\uFEFF/u, "");
+  normalized = normalized.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n*/u, "");
+  normalized = normalized.replace(/^\s*#\s+.*(?:\r?\n)+/u, "");
+
+  return normalized.trim();
 }
 
-function readMarkdownTitle(contents: string): string {
-  const match = contents.match(/^#\s+(.+)$/m);
-  return match ? match[1].trim() : "";
-}
-
-function normalizeSectionKey(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
-    .replace(/^-+|-+$/gu, "");
-}
-
-function extractContentBlocks(contents: string): string[] {
-  const lines = contents.trim().split("\n");
-  const blocks: string[] = [];
-  let currentBlock: string[] = [];
-  let currentType: "bullet" | "text" | null = null;
-
-  for (const rawLine of lines) {
-    const line = rawLine.trimEnd();
-
-    if (line.trim() === "") {
-      if (currentType === "text" && currentBlock.length > 0) {
-        blocks.push(currentBlock.join("\n").trim());
-        currentBlock = [];
-        currentType = null;
-      } else if (currentType === "bullet" && currentBlock.length > 0) {
-        currentBlock.push("");
-      }
-
-      continue;
-    }
-
-    if (/^[-*+]\s+/u.test(line)) {
-      if (currentBlock.length > 0) {
-        blocks.push(currentBlock.join("\n").trim());
-      }
-
-      currentBlock = [line];
-      currentType = "bullet";
-      continue;
-    }
-
-    currentBlock.push(line);
-    currentType = currentType ?? "text";
+function resolveProjectPath(projectPath: string, configuredPath: string): string {
+  if (path.isAbsolute(configuredPath)) {
+    return configuredPath;
   }
 
-  if (currentBlock.length > 0) {
-    blocks.push(currentBlock.join("\n").trim());
-  }
-
-  return blocks.filter((block) => block !== "");
+  return path.resolve(projectPath, configuredPath);
 }
 
 function resolveOptionalProjectPath(
@@ -650,13 +602,12 @@ function resolveOptionalProjectPath(
   return resolveProjectPath(projectPath, configuredPath);
 }
 
-export async function renderEffectiveContextMarkdown(input: {
+export function renderEffectiveContextMarkdown(input: {
   effectiveContext: EffectiveContext;
   note?: string;
-  projectPath: string;
   title: string;
   tool: "codex";
-}): Promise<string> {
+}): string {
   const buildInputs = [
     `- Tool: ${input.tool}`,
     `- Persona: ${input.effectiveContext.manifest.selection.persona}`,
@@ -684,24 +635,31 @@ export async function renderEffectiveContextMarkdown(input: {
       ].join("\n")),
     ].join("\n\n");
 
-  const renderedSections = input.effectiveContext.sections
-    .map(async (section, index) =>
-      [
-        `## ${index + 1}. ${section.layer}: ${section.heading}`,
-        "",
-        `Source: \`${section.source}\``,
-        "",
-        (await readText(resolveSectionFilePath(input.projectPath, section.file))).trim(),
-      ].join("\n"),
-    );
+  const renderedPersona = [
+    "## Persona",
+    "",
+    `Source: \`${input.effectiveContext.persona.source}\``,
+    "",
+    input.effectiveContext.persona.contents,
+  ].join("\n");
 
-  const resolvedSections = await Promise.all(renderedSections);
+  const renderedCriticalRules = renderMarkdownBlocks(
+    "## Critical Rules",
+    input.effectiveContext.criticalRules,
+    true,
+  );
+
+  const renderedSections = renderMarkdownBlocks(
+    undefined,
+    input.effectiveContext.sections,
+    true,
+  );
 
   return [
     input.title,
     "",
     "This file is generated by AIE OS. Do not edit directly.",
-    "Higher-precedence sections appear first. Later sections may refine earlier sections but must not contradict them.",
+    "Persona is rendered first. Then all matched critical-rules.md files are aggregated. Then the remaining matched markdown files are appended in precedence order.",
     "",
     ...(input.note ? [input.note, ""] : []),
     "## Build Inputs",
@@ -710,9 +668,76 @@ export async function renderEffectiveContextMarkdown(input: {
     "",
     renderedSkills,
     "",
-    resolvedSections.join("\n\n"),
+    renderedPersona,
     "",
-  ].join("\n");
+    renderedCriticalRules,
+    "",
+    renderedSections,
+    "",
+  ]
+    .filter((part) => part !== "")
+    .join("\n");
+}
+
+function renderMarkdownBlocks(
+  title: string | undefined,
+  blocks: EffectiveContextBlock[],
+  includeSource: boolean,
+): string {
+  if (blocks.length === 0) {
+    return "";
+  }
+
+  const grouped = groupBlocksBySectionLabel(blocks);
+  const parts: string[] = [];
+  const groupHeadingPrefix = title === undefined ? "##" : "###";
+
+  if (title) {
+    parts.push(title);
+  }
+
+  for (const group of grouped) {
+    parts.push(`${groupHeadingPrefix} ${group.sectionLabel}`);
+
+    for (const block of group.blocks) {
+      if (includeSource) {
+        parts.push("");
+        parts.push(`Source: \`${block.source}\``);
+      }
+
+      parts.push("");
+      parts.push(block.contents);
+      parts.push("");
+    }
+  }
+
+  return parts.join("\n").trim();
+}
+
+function groupBlocksBySectionLabel(
+  blocks: EffectiveContextBlock[],
+): Array<{ blocks: EffectiveContextBlock[]; sectionLabel: string }> {
+  const groups: Array<{ blocks: EffectiveContextBlock[]; sectionLabel: string }> = [];
+  const seen = new Map<string, { blocks: EffectiveContextBlock[]; sectionLabel: string }>();
+
+  for (const block of blocks) {
+    const existing = seen.get(block.sectionLabel);
+
+    if (existing) {
+      existing.blocks.push(block);
+      continue;
+    }
+
+    const group = {
+      blocks: [block],
+      sectionLabel: block.sectionLabel,
+    };
+
+    seen.set(block.sectionLabel, group);
+    groups.push(group);
+  }
+
+  return groups;
 }
 
 function formatList(items: string[]): string {
@@ -739,12 +764,4 @@ function toOutputFileReference(projectPath: string, filePath: string): string {
   }
 
   return filePath;
-}
-
-function resolveSectionFilePath(projectPath: string, fileReference: string): string {
-  if (path.isAbsolute(fileReference)) {
-    return fileReference;
-  }
-
-  return path.resolve(projectPath, fileReference);
 }

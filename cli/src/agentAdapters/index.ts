@@ -21,11 +21,11 @@ export type {
   AdapterInput,
   AdapterOutput,
   AdapterOutputFile,
+  EffectiveContextBlock,
   EffectiveContext,
-  ParsedSourceBlocks,
   EffectiveContextSkill,
   EffectiveContextSkillScope,
-  EffectiveContextSection,
+  EffectiveContextPersona,
   SkillAdapterOutput,
   SkillCopyItem,
 } from "./types";

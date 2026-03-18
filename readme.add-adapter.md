@@ -31,6 +31,11 @@ The extension model is:
 
 - `effectiveContext`
   - canonical machine-readable build result
+  - contains:
+    - `persona`
+    - `criticalRules`
+    - `sections`
+    - `skills`
 - `projectPath`
   - target project root
 
@@ -84,7 +89,15 @@ export const exampleAdapter: Adapter = {
     const contents = [
       "# EXAMPLE",
       "",
-      ...input.effectiveContext.sections.map((section) => `## ${section.heading}`),
+      "## Persona",
+      "",
+      input.effectiveContext.persona.contents,
+      "",
+      "## Critical Rules",
+      "",
+      ...input.effectiveContext.criticalRules.map((section) => `### ${section.sectionLabel}`),
+      "",
+      ...input.effectiveContext.sections.map((section) => `## ${section.sectionLabel}`),
       "",
     ].join("\n");
 

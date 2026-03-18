@@ -1,10 +1,15 @@
 # AIE OS
 
-`AIE OS` standardizes reusable engineering knowledge, reusable agent configuration, reusable skills, and deterministic context delivery for coding agents.
+`AIE OS` defines a simple and easy to maintain standard way of creating coding principles and standards, as well as targetting skills in a way they can be used to build a deterministic context delivery for coding agents.
+
+## Problem
+I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding standards I set.
+I want to build this knowledge base of standards, and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
 ## How AIE-OS works
-On `init`, it captures the project configuration, including the project path, shared root paths (`kb`, `agent`, `skills`), selected persona, selected languages, selected application types, and selected frameworks.
-On `build` it uses init information to collect shared engineering principles, shared coding standards, language/application-type/framework-specific standards from the provided knowledge base, project-specific coding standards and skills, and the selected agent persona to build **one canonical context**. Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification, but AIE OS integrates them by folder rather than validating their internals. Then the selected agent adapter turns that canonical context into agent-specific artifacts such as `AGENTS.md`.
+On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
+On `build` it aggregates all the relevant rules from the specified locations and builds a final agent-specific (codex, claude..) context file. 
+Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification. 
 
 The shared content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
 
@@ -32,6 +37,11 @@ xample-app/
 ## Building Context
 
 - `build` resolves shared knowledge, agent configuration, shared skills, project coding standards, and project skills into one canonical output.
+- Rendering order:
+  - selected persona
+  - all matched `critical-rules.md`
+  - all other matched markdown files
+- Final section labels come from the folder structure, not from headings inside the content files.
 - Skills are represented separately in the canonical context so adapters can integrate them without inlining each skill body.
 - Canonical outputs:
   - `.aie-os/build/effective-context.json`
