@@ -11,7 +11,6 @@ An adapter must not:
 - discover source files
 - decide which content is included
 - re-run build logic
-- parse `effective-context.md`
 - write files directly
 
 ### Architecture

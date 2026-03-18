@@ -1,0 +1,2 @@
+- review the structure of `effective-context.json`
+- understand how skills are handled and add to readme.md

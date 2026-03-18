@@ -1,4 +1,5 @@
 import path from "node:path";
+import fs from "node:fs/promises";
 import { stdout as output } from "node:process";
 import { getAdapter } from "../agentAdapters";
 import { agentArtifactWriter } from "../artifacts/agentArtifactWriter";
@@ -32,18 +33,18 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   });
 
   await writeText(
-    path.join(options.projectPath, PROJECT_AIE_DIRECTORY, BUILD_DIRECTORY, "effective-context.md"),
-    buildOutput.effectiveContextMarkdown,
-  );
-  await writeText(
     path.join(options.projectPath, PROJECT_AIE_DIRECTORY, BUILD_DIRECTORY, "effective-context.json"),
     `${JSON.stringify(buildOutput.effectiveContext, null, 2)}\n`,
+  );
+  await fs.rm(
+    path.join(options.projectPath, PROJECT_AIE_DIRECTORY, BUILD_DIRECTORY, "effective-context.md"),
+    { force: true },
   );
 
   await agentArtifactWriter.write(options.projectPath, adapterOutput);
 
   output.write(
-    `\nBuild complete. Generated .aie-os/build/effective-context.json, .aie-os/build/effective-context.md, and ${adapterOutput.primaryArtifact}.\n`,
+    `\nBuild complete. Generated .aie-os/build/effective-context.json and ${adapterOutput.primaryArtifact}.\n`,
   );
 }
 

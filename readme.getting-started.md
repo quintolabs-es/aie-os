@@ -65,7 +65,6 @@ Commit to the target project repository:
 - `.aie-os/project-coding-standards/`
 - `.aie-os/project-skills/`
 - `.aie-os/build/effective-context.json`
-- `.aie-os/build/effective-context.md`
 - `.aie-os/build/skills/`
 - agent-specific generated artefacts (e.g. `AGENTS.md`)
 

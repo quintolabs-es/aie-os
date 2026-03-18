@@ -6,18 +6,21 @@
 I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding standards I set.
 I want to build this knowledge base of standards, and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
-## How AIE-OS works
+## How AIE-OS works in a nutshell
 On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
-On `build` it aggregates all the relevant rules from the specified locations and builds a final agent-specific (codex, claude..) context file. 
-Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification. 
+On `build` it aggregates all the relevant rules from the specified locations and builds a final agent-specific (codex, claude..) context file.
+Skills are copied to project folder (.aie-os) and referenced in the aggregated context file. Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
 
-The shared content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
+## Create content
+The content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
 
-## Usage
-Check `readme.getting-started.md`,
+Check `readme.create-content.md` for instructions to create content.
+
+## Getting started
+Check `readme.getting-started.md` for instructions on usage.
 
 ## Target project structure
-Below the general agent-agnostic structure. Agent specific artefacts are added by the build execution after the effective-context files.
+Below the general agent-agnostic structure. Agent specific artefacts are added by the build execution after the effective-context file.
 ```text
 xample-app/
   aie-os/
@@ -27,7 +30,6 @@ xample-app/
     project-skills/
     build/
       effective-context.json
-      effective-context.md
 ```
 
 - `aie-os/` is the local clone of this repo. ignore it in `.gitignore`.
@@ -45,12 +47,10 @@ xample-app/
 - Skills are represented separately in the canonical context so adapters can integrate them without inlining each skill body.
 - Canonical outputs:
   - `.aie-os/build/effective-context.json`
-  - `.aie-os/build/effective-context.md`
-- `effective-context.json` is the machine-readable adapter contract.
-- `effective-context.md` is the human-readable rendering of the resolved context for review and debugging.
+- `effective-context.json` is the machine-readable canonical build artifact and adapter contract.
 - Adapters write tool-specific artifacts only.
 
 ## Agent Adapters
 - Adapters transform the canonical effective context into the agent-specific files each tool expects.
-- `codex` writes `AGENTS.md` at the target project root using the canonical effective context built in `.aie-os/build/effective-context.json` and rendered in `.aie-os/build/effective-context.md`.
+- `codex` writes `AGENTS.md` at the target project root using the canonical effective context built in `.aie-os/build/effective-context.json`.
 - `codex` also snapshots all configured skills under `.aie-os/build/skills/` and renders an `Available Skills` section in `AGENTS.md` with the copied `SKILL.md` paths and usage descriptions.
