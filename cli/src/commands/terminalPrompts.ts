@@ -1,4 +1,10 @@
-import { clearLine, cursorTo, moveCursor } from "node:readline";
+import {
+  clearScreenDown,
+  cursorTo,
+  emitKeypressEvents,
+  moveCursor,
+  type Key,
+} from "node:readline";
 import { stdin as input, stdout as output } from "node:process";
 import type { CommandName } from "./types";
 
@@ -6,6 +12,8 @@ const ANSI_RESET = "\u001B[0m";
 const ANSI_DIM = "\u001B[2m";
 const ANSI_ERROR = "\u001B[31m";
 const ANSI_SELECTED = "\u001B[38;2;22;146;209m";
+const ANSI_HIDE_CURSOR = "\u001B[?25l";
+const ANSI_SHOW_CURSOR = "\u001B[?25h";
 
 export class CommandCanceledError extends Error {
   readonly command: CommandName;
@@ -24,7 +32,7 @@ export function canPromptInteractively(): boolean {
 type TextPromptInput = {
   command: CommandName;
   defaultValue: string;
-  description: string;
+  description?: string;
   errorMessage?: string;
   optionName: string;
   promptLabel: string;
@@ -48,39 +56,62 @@ type MultiSelectPromptInput = {
   options: string[];
 };
 
+type PromptCursor = {
+  column: number;
+  lineIndex: number;
+};
+
+type RenderedPrompt = {
+  cursor: PromptCursor;
+  hideCursor?: boolean;
+  lines: string[];
+};
+
 export async function promptTextInput(inputOptions: TextPromptInput): Promise<string> {
-  let value = "";
+  let value = inputOptions.defaultValue;
+  let showingDefault = true;
 
   return runInteractivePrompt(inputOptions.command, {
-    handleKey(key) {
-      if (key === "\r" || key === "\n") {
+    handleKey(str, key) {
+      if (isEnterKey(key)) {
         return {
           done: value,
         };
       }
 
-      if (key === "\u007F") {
+      if (key.name === "backspace") {
         value = Array.from(value).slice(0, -1).join("");
+        showingDefault = false;
         return {};
       }
 
-      if (isPrintableKey(key)) {
-        value += key;
+      if (isPrintableCharacter(str, key)) {
+        value = showingDefault ? str : `${value}${str}`;
+        showingDefault = false;
       }
 
       return {};
     },
     render() {
-      return [
-        `Provide ${inputOptions.promptLabel}.`,
-        inputOptions.description,
-        `Option: ${inputOptions.optionName}`,
-        `Default: ${inputOptions.defaultValue === "" ? "disabled" : inputOptions.defaultValue}`,
+      const lines = [
+        `Set ${inputOptions.promptLabel} (${inputOptions.optionName})`,
         "",
         `> ${value}`,
-        inputOptions.errorMessage ? colorize(inputOptions.errorMessage, ANSI_ERROR) : "",
-        colorize(inputOptions.submitHint, ANSI_DIM),
-      ].filter((line, index, lines) => !(line === "" && lines[index - 1] === ""));
+      ];
+
+      if (inputOptions.errorMessage) {
+        lines.push("", colorize(inputOptions.errorMessage, ANSI_ERROR));
+      }
+
+      lines.push("", colorize(inputOptions.submitHint, ANSI_DIM));
+
+      return {
+        cursor: {
+          column: 2 + value.length,
+          lineIndex: 2,
+        },
+        lines,
+      };
     },
   });
 }
@@ -95,18 +126,18 @@ export async function promptSingleSelect(inputOptions: SingleSelectPromptInput):
     : 0;
 
   return runInteractivePrompt(inputOptions.command, {
-    handleKey(key) {
-      if (key === "\u001B[A") {
+    handleKey(_str, key) {
+      if (key.name === "up") {
         activeIndex = activeIndex === 0 ? inputOptions.options.length - 1 : activeIndex - 1;
         return {};
       }
 
-      if (key === "\u001B[B") {
+      if (key.name === "down") {
         activeIndex = activeIndex === inputOptions.options.length - 1 ? 0 : activeIndex + 1;
         return {};
       }
 
-      if (key === "\r" || key === "\n") {
+      if (isEnterKey(key)) {
         return {
           done: inputOptions.options[activeIndex],
         };
@@ -115,18 +146,24 @@ export async function promptSingleSelect(inputOptions: SingleSelectPromptInput):
       return {};
     },
     render() {
-      return [
-        inputOptions.label,
-        inputOptions.explanation,
-        "",
-        ...inputOptions.options.map((option, index) =>
-          formatOptionLine({
-            active: index === activeIndex,
-            label: `${index + 1}) ${option}`,
-          })),
-        "",
-        colorize("Use ↑/↓ to move, Enter to confirm, Esc to cancel.", ANSI_DIM),
-      ];
+      return {
+        hideCursor: true,
+        cursor: {
+          column: 0,
+          lineIndex: 0,
+        },
+        lines: [
+          inputOptions.label,
+          "",
+          ...inputOptions.options.map((option, index) =>
+            formatOptionLine({
+              active: index === activeIndex,
+              label: `${index + 1}) ${option}`,
+            })),
+          "",
+          colorize("Use ↑/↓ to move, Enter to confirm, Esc to cancel.", ANSI_DIM),
+        ],
+      };
     },
   });
 }
@@ -141,18 +178,18 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
   const selected = new Set(inputOptions.defaultValue);
 
   return runInteractivePrompt(inputOptions.command, {
-    handleKey(key) {
-      if (key === "\u001B[A") {
+    handleKey(str, key) {
+      if (key.name === "up") {
         activeIndex = activeIndex === 0 ? inputOptions.options.length - 1 : activeIndex - 1;
         return {};
       }
 
-      if (key === "\u001B[B") {
+      if (key.name === "down") {
         activeIndex = activeIndex === inputOptions.options.length - 1 ? 0 : activeIndex + 1;
         return {};
       }
 
-      if (key === " ") {
+      if (key.name === "space" || str === " ") {
         const option = inputOptions.options[activeIndex];
         if (selected.has(option)) {
           selected.delete(option);
@@ -163,7 +200,7 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
         return {};
       }
 
-      if (key === "\r" || key === "\n") {
+      if (isEnterKey(key)) {
         if (!inputOptions.allowEmpty && selected.size === 0) {
           errorMessage = "Select at least one option.";
           return {};
@@ -177,19 +214,30 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
       return {};
     },
     render() {
-      return [
+      const lines = [
         inputOptions.label,
-        inputOptions.explanation,
         "",
         ...inputOptions.options.map((option, index) =>
           formatOptionLine({
             active: index === activeIndex,
             label: `${index + 1}) [${selected.has(option) ? "x" : " "}] ${option}`,
           })),
-        "",
-        errorMessage ? colorize(errorMessage, ANSI_ERROR) : "",
-        colorize("Use ↑/↓ to move, Space to toggle, Enter to confirm, Esc to cancel.", ANSI_DIM),
-      ].filter((line, index, lines) => !(line === "" && lines[index - 1] === ""));
+      ];
+
+      if (errorMessage) {
+        lines.push("", colorize(errorMessage, ANSI_ERROR));
+      }
+
+      lines.push("", colorize("Use ↑/↓ to move, Space to toggle, Enter to confirm, Esc to cancel.", ANSI_DIM));
+
+      return {
+        hideCursor: true,
+        cursor: {
+          column: 0,
+          lineIndex: 0,
+        },
+        lines,
+      };
     },
   });
 }
@@ -197,8 +245,8 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
 async function runInteractivePrompt<T>(
   command: CommandName,
   inputOptions: {
-    handleKey: (key: string) => { done?: T };
-    render: () => string[];
+    handleKey: (str: string | undefined, key: Key) => { done?: T };
+    render: () => RenderedPrompt;
   },
 ): Promise<T> {
   if (!canPromptInteractively()) {
@@ -206,23 +254,26 @@ async function runInteractivePrompt<T>(
   }
 
   return new Promise<T>((resolve, reject) => {
-    let renderedLineCount = 0;
+    let hasRendered = false;
+    let lastCursorRowOffset = 0;
     let rawModeEnabled = false;
 
     const cleanup = () => {
-      input.off("data", onData);
+      input.off("keypress", onKeypress);
+      clearRenderedBlock(lastCursorRowOffset, hasRendered);
+      showCursor();
       if (rawModeEnabled && input.isTTY) {
         input.setRawMode(false);
       }
       input.pause();
-      output.write("\n");
     };
 
     const render = () => {
-      clearRenderedBlock(renderedLineCount);
-      const lines = inputOptions.render();
-      output.write(lines.join("\n"));
-      renderedLineCount = lines.length;
+      const renderedPrompt = inputOptions.render();
+      clearRenderedBlock(lastCursorRowOffset, hasRendered);
+      output.write(renderedPrompt.lines.join("\n"));
+      lastCursorRowOffset = positionCursor(renderedPrompt);
+      hasRendered = true;
     };
 
     const finish = (callback: () => void) => {
@@ -230,15 +281,13 @@ async function runInteractivePrompt<T>(
       callback();
     };
 
-    const onData = (chunk: Buffer | string) => {
-      const key = chunk.toString();
-
-      if (key === "\u0003" || key === "\u001B") {
+    const onKeypress = (str: string | undefined, key: Key) => {
+      if (key.name === "escape" || (key.ctrl && key.name === "c")) {
         finish(() => reject(new CommandCanceledError(command)));
         return;
       }
 
-      const result = inputOptions.handleKey(key);
+      const result = inputOptions.handleKey(str, key);
       if (Object.prototype.hasOwnProperty.call(result, "done")) {
         finish(() => resolve(result.done as T));
         return;
@@ -247,30 +296,58 @@ async function runInteractivePrompt<T>(
       render();
     };
 
+    emitKeypressEvents(input);
     if (input.isTTY) {
       input.setRawMode(true);
       rawModeEnabled = true;
     }
 
     input.resume();
-    input.on("data", onData);
+    input.on("keypress", onKeypress);
     render();
   });
 }
 
-function clearRenderedBlock(lineCount: number): void {
-  if (lineCount === 0) {
+function positionCursor(renderedPrompt: RenderedPrompt): number {
+  const terminalWidth = Math.max(output.columns ?? 80, 1);
+  const totalRows = countBlockRows(renderedPrompt.lines, terminalWidth);
+
+  if (renderedPrompt.hideCursor) {
+    hideCursor();
+    return totalRows - 1;
+  }
+
+  showCursor();
+  const rowsBeforeCursor = renderedPrompt.lines
+    .slice(0, renderedPrompt.cursor.lineIndex)
+    .reduce((total, line) => total + countDisplayRows(line, terminalWidth), 0);
+  const cursorLineRowOffset = Math.floor(renderedPrompt.cursor.column / terminalWidth);
+  const cursorColumn = renderedPrompt.cursor.column % terminalWidth;
+  const targetRowOffset = rowsBeforeCursor + cursorLineRowOffset;
+  const currentRowOffset = totalRows - 1;
+
+  moveCursor(output, 0, targetRowOffset - currentRowOffset);
+  cursorTo(output, cursorColumn);
+  return targetRowOffset;
+}
+
+function clearRenderedBlock(lastCursorRowOffset: number, hasRendered: boolean): void {
+  if (!hasRendered) {
     return;
   }
 
-  for (let index = 0; index < lineCount; index += 1) {
-    clearLine(output, 0);
-    cursorTo(output, 0);
+  moveCursor(output, 0, -lastCursorRowOffset);
+  cursorTo(output, 0);
+  clearScreenDown(output);
+}
 
-    if (index < lineCount - 1) {
-      moveCursor(output, 0, -1);
-    }
-  }
+function countBlockRows(lines: string[], width: number): number {
+  return lines.reduce((total, line) => total + countDisplayRows(line, width), 0);
+}
+
+function countDisplayRows(line: string, width: number): number {
+  const visibleLength = stripAnsi(line).length;
+  return Math.max(1, Math.ceil(Math.max(visibleLength, 1) / width));
 }
 
 function formatOptionLine(inputOptions: { active: boolean; label: string }): string {
@@ -289,9 +366,25 @@ function colorize(value: string, ansiCode: string): string {
 }
 
 function canUseColor(): boolean {
-  return canPromptInteractively() && !("NO_COLOR" in process.env);
+  return Boolean(output.isTTY && !("NO_COLOR" in process.env));
 }
 
-function isPrintableKey(key: string): boolean {
-  return key >= " " && key !== "\u007F" && !key.startsWith("\u001B");
+function hideCursor(): void {
+  output.write(ANSI_HIDE_CURSOR);
+}
+
+function showCursor(): void {
+  output.write(ANSI_SHOW_CURSOR);
+}
+
+function isEnterKey(key: Key): boolean {
+  return key.name === "return" || key.name === "enter";
+}
+
+function isPrintableCharacter(str: string | undefined, key: Key): str is string {
+  return typeof str === "string" && str.length > 0 && !key.ctrl && !key.meta && key.name !== "escape";
+}
+
+function stripAnsi(value: string): string {
+  return value.replace(/\u001B\[[0-9;]*m/gu, "");
 }

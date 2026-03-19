@@ -1,0 +1,20 @@
+{
+  "version": "0.1",
+  "paths": {
+    "agent": "content/agent",
+    "skills": "content/skills",
+    "knowledgeBase": "content/knowledge-base",
+    "projectCodingStandards": ".aie-os/project-coding-standards",
+    "projectSkills": ".aie-os/project-skills"
+  },
+  "selection": {
+    "applicationTypes": [
+      "cli"
+    ],
+    "frameworks": [],
+    "languages": [
+      "typescript"
+    ],
+    "persona": "software-developer"
+  }
+}

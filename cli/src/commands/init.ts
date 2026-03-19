@@ -153,7 +153,7 @@ async function collectSelections(
             ? "software-developer"
             : (personaOptions[0] ?? null),
           explanation: "Persona defines the agent role and behavioral mode.",
-          label: "Persona",
+          label: "Select persona",
           options: personaOptions,
         })
       : missingRequiredInitOption("--agent-persona"));
@@ -166,7 +166,7 @@ async function collectSelections(
           command: "init",
           defaultValue: languageOptions.length === 1 ? [languageOptions[0]] : [],
           explanation: "Select one or more languages. This supports monorepos.",
-          label: "Languages",
+          label: "Select languages",
           options: languageOptions,
         })
       : missingRequiredInitOption("--languages"));
@@ -179,7 +179,7 @@ async function collectSelections(
           command: "init",
           defaultValue: [],
           explanation: "Application type selects standards for the shape of the application, such as api or cli.",
-          label: "Application types",
+          label: "Select application types",
           options: applicationTypeOptions,
         })
       : []);
@@ -192,7 +192,7 @@ async function collectSelections(
           command: "init",
           defaultValue: [],
           explanation: "Framework overlays add framework-specific coding standards.",
-          label: "Frameworks",
+          label: "Select frameworks",
           options: frameworkOptions,
         })
       : []);
@@ -263,11 +263,12 @@ async function promptPath(inputOptions: {
   projectPath: string;
 }): Promise<string> {
   let errorMessage: string | undefined;
+  let currentValue = inputOptions.defaultValue;
 
   while (true) {
     const rawValue = await promptTextInput({
       command: "init",
-      defaultValue: inputOptions.defaultValue,
+      defaultValue: currentValue,
       description: inputOptions.description,
       errorMessage,
       optionName: inputOptions.optionName,
@@ -287,6 +288,7 @@ async function promptPath(inputOptions: {
       );
       return normalizedValue;
     } catch (error) {
+      currentValue = rawValue.trim() === "" ? currentValue : rawValue.trim();
       errorMessage = error instanceof Error ? error.message : "Invalid path.";
     }
   }
@@ -300,11 +302,12 @@ async function promptOptionalPath(inputOptions: {
   projectPath: string;
 }): Promise<string> {
   let errorMessage: string | undefined;
+  let currentValue = inputOptions.defaultValue;
 
   while (true) {
     const rawValue = await promptTextInput({
       command: "init",
-      defaultValue: inputOptions.defaultValue,
+      defaultValue: currentValue,
       description: inputOptions.description,
       errorMessage,
       optionName: inputOptions.optionName,
@@ -330,6 +333,7 @@ async function promptOptionalPath(inputOptions: {
       );
       return normalizedValue;
     } catch (error) {
+      currentValue = rawValue.trim() === "" ? currentValue : rawValue.trim();
       errorMessage = error instanceof Error ? error.message : "Invalid path.";
     }
   }
