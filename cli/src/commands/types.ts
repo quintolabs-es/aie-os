@@ -4,7 +4,7 @@ export type CommandName = "init" | "build";
 export type ToolName = AdapterTool;
 
 export type ParsedOptions = {
-  command: CommandName;
+  command: CommandName | null;
   help: boolean;
   options: Record<string, string>;
 };

@@ -1,8 +1,7 @@
 import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
-import readline from "node:readline/promises";
-import { stdin as input, stdout as output } from "node:process";
+import { stdout as output } from "node:process";
 import {
   ensureDirectory,
   fileExists,
@@ -16,28 +15,24 @@ import {
   projectCodingStandardsReadmeTemplate,
   projectSkillsReadmeTemplate,
 } from "./scaffoldTemplates";
+import {
+  canPromptInteractively,
+  promptMultiSelect,
+  promptSingleSelect,
+  promptTextInput,
+} from "./terminalPrompts";
 import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
 
 export async function initProject(options: InitExecutionOptions): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
-
-  const reader = readline.createInterface({
-    input,
-    output,
-  });
-
-  try {
-    const manifest = await collectManifest(
-      options.projectPath,
-      options.defaults,
-      options.initialSelections,
-      options.providedPaths,
-      reader,
-    );
-    await scaffoldProject(options.projectPath, manifest);
-  } finally {
-    reader.close();
-  }
+  const manifest = await collectManifest(
+    options.projectPath,
+    options.defaults,
+    options.initialSelections,
+    options.providedPaths,
+    canPromptInteractively(),
+  );
+  await scaffoldProject(options.projectPath, manifest);
 }
 
 async function collectManifest(
@@ -45,39 +40,45 @@ async function collectManifest(
   defaults: InitPromptDefaults,
   initialSelections: Partial<InitSelections>,
   providedPaths: Partial<InitPromptDefaults>,
-  reader: readline.Interface,
+  interactive: boolean,
 ): Promise<Manifest> {
   const knowledgeBasePath = providedPaths.kbPath
     ? providedPaths.kbPath
-    : await promptPath(reader, {
-        defaultValue: defaults.kbPath,
-        description: "AIE OS reads shared engineering principles and coding standards from this folder.",
-        promptLabel: "knowledge base path",
-        optionName: "--kb-path",
-        projectPath,
-      });
+    : interactive
+      ? await promptPath({
+          defaultValue: defaults.kbPath,
+          description: "AIE OS reads shared engineering principles and coding standards from this folder.",
+          promptLabel: "knowledge base path",
+          optionName: "--kb-path",
+          projectPath,
+        })
+      : defaults.kbPath;
   await ensureDirectoryType(resolveAgainstProject(projectPath, knowledgeBasePath), "Knowledge base path");
 
   const agentPath = providedPaths.agentPath
     ? providedPaths.agentPath
-    : await promptPath(reader, {
-        defaultValue: defaults.agentPath,
-        description: "AIE OS reads persona definitions from this folder.",
-        promptLabel: "agent path",
-        optionName: "--agent-path",
-        projectPath,
-      });
+    : interactive
+      ? await promptPath({
+          defaultValue: defaults.agentPath,
+          description: "AIE OS reads persona definitions from this folder.",
+          promptLabel: "agent path",
+          optionName: "--agent-path",
+          projectPath,
+        })
+      : defaults.agentPath;
   await ensureDirectoryType(resolveAgainstProject(projectPath, agentPath), "Agent path");
 
   const skillsPath = providedPaths.skillsPath !== undefined
     ? normalizeOptionalProvidedPath(projectPath, providedPaths.skillsPath)
-    : await promptOptionalPath(reader, {
-        defaultValue: defaults.skillsPath,
-        description: "AIE OS reads shared skills from this folder. Type none to disable shared skills.",
-        promptLabel: "skills path",
-        optionName: "--skills-path",
-        projectPath,
-      });
+    : interactive
+      ? await promptOptionalPath({
+          defaultValue: defaults.skillsPath,
+          description: "AIE OS reads shared skills from this folder. Type none to disable shared skills.",
+          promptLabel: "skills path",
+          optionName: "--skills-path",
+          projectPath,
+        })
+      : defaults.skillsPath;
   if (skillsPath.trim() !== "") {
     await ensureDirectoryType(resolveAgainstProject(projectPath, skillsPath), "Skills path");
   }
@@ -89,7 +90,7 @@ async function collectManifest(
       initialSelections,
       knowledgeBasePath,
     },
-    reader,
+    interactive,
   );
 
   return {
@@ -112,7 +113,7 @@ async function collectSelections(
     initialSelections: Partial<InitSelections>;
     knowledgeBasePath: string;
   },
-  reader: readline.Interface,
+  interactive: boolean,
 ): Promise<InitSelections> {
   const resolvedAgentPath = resolveAgainstProject(projectPath, input.agentPath);
   const resolvedKnowledgeBasePath = resolveAgainstProject(projectPath, input.knowledgeBasePath);
@@ -145,42 +146,56 @@ async function collectSelections(
 
   const persona =
     validateSingleSelection(initial.persona, personaOptions, "agent persona") ??
-    (await promptSelect(reader, {
-      defaultValue: personaOptions.includes("software-developer") ? "software-developer" : (personaOptions[0] ?? null),
-      explanation: "Persona defines the agent role and behavioral mode.",
-      label: "Persona",
-      options: personaOptions,
-    }));
+    (interactive
+      ? await promptSingleSelect({
+          command: "init",
+          defaultValue: personaOptions.includes("software-developer")
+            ? "software-developer"
+            : (personaOptions[0] ?? null),
+          explanation: "Persona defines the agent role and behavioral mode.",
+          label: "Persona",
+          options: personaOptions,
+        })
+      : missingRequiredInitOption("--agent-persona"));
 
   const languages =
     validateMultiSelection(initial.languages, languageOptions, "languages", false) ??
-    (await promptMultiSelect(reader, {
-      allowNone: false,
-      defaultValue: languageOptions.length === 1 ? [languageOptions[0]] : [],
-      explanation: "Select one or more languages. Use comma-separated numbers or names. This supports monorepos.",
-      label: "Languages",
-      options: languageOptions,
-    }));
+    (interactive
+      ? await promptMultiSelect({
+          allowEmpty: false,
+          command: "init",
+          defaultValue: languageOptions.length === 1 ? [languageOptions[0]] : [],
+          explanation: "Select one or more languages. This supports monorepos.",
+          label: "Languages",
+          options: languageOptions,
+        })
+      : missingRequiredInitOption("--languages"));
 
   const applicationTypes =
     validateMultiSelection(initial.applicationTypes, applicationTypeOptions, "application types", true) ??
-    (await promptMultiSelect(reader, {
-      allowNone: true,
-      defaultValue: [],
-      explanation: "Application type selects standards for the shape of the application, such as api or cli. Choose one or more, or none when not needed.",
-      label: "Application types",
-      options: applicationTypeOptions,
-    }));
+    (interactive
+      ? await promptMultiSelect({
+          allowEmpty: true,
+          command: "init",
+          defaultValue: [],
+          explanation: "Application type selects standards for the shape of the application, such as api or cli.",
+          label: "Application types",
+          options: applicationTypeOptions,
+        })
+      : []);
 
   const frameworks =
     validateMultiSelection(initial.frameworks, frameworkOptions, "frameworks", true) ??
-    (await promptMultiSelect(reader, {
-      allowNone: true,
-      defaultValue: [],
-      explanation: "Framework overlays add framework-specific coding standards. Choose none when not needed.",
-      label: "Frameworks",
-      options: frameworkOptions,
-    }));
+    (interactive
+      ? await promptMultiSelect({
+          allowEmpty: true,
+          command: "init",
+          defaultValue: [],
+          explanation: "Framework overlays add framework-specific coding standards.",
+          label: "Frameworks",
+          options: frameworkOptions,
+        })
+      : []);
 
   return {
     applicationTypes,
@@ -240,178 +255,84 @@ async function writeTemplateIfMissing(targetPath: string, content: string): Prom
   await writeText(targetPath, content);
 }
 
-async function promptPath(
-  reader: readline.Interface,
-  input: {
-    defaultValue: string;
-    description: string;
-    promptLabel: string;
-    optionName: string;
-    projectPath: string;
-  },
-): Promise<string> {
-  const value = await promptText(reader, {
-    defaultValue: input.defaultValue,
-    description: input.description,
-    promptLabel: input.promptLabel,
-    optionName: input.optionName,
-  });
-
-  return normalizeConfiguredPath(input.projectPath, value);
-}
-
-async function promptOptionalPath(
-  reader: readline.Interface,
-  input: {
-    defaultValue: string;
-    description: string;
-    promptLabel: string;
-    optionName: string;
-    projectPath: string;
-  },
-): Promise<string> {
-  output.write(`\nProvide ${input.promptLabel}, or press Enter to accept default.\n`);
-  output.write(`${input.description}\n`);
-  output.write(`option: ${input.optionName}\n`);
-  output.write(`default: ${input.defaultValue || "disabled"}\n`);
-  const answer = (await reader.question("Enter a path, press Enter to accept the default, or type none to disable: ")).trim();
-
-  if (answer === "") {
-    return normalizeConfiguredPath(input.projectPath, input.defaultValue);
-  }
-
-  if (answer.toLowerCase() === "none") {
-    return "";
-  }
-
-  return normalizeConfiguredPath(input.projectPath, answer);
-}
-
-async function promptSelect(
-  reader: readline.Interface,
-  input: {
-    allowNone?: boolean;
-    defaultValue: string | null;
-    explanation: string;
-    label: string;
-    options: string[];
-  },
-): Promise<string> {
-  if (input.options.length === 0) {
-    throw new Error(`No options available for ${input.label}`);
-  }
-
-  output.write(`\n${input.label}\n${input.explanation}\n`);
-  input.options.forEach((option, index) => {
-    const defaultMarker = option === input.defaultValue ? " (default)" : "";
-    output.write(`${index + 1}) ${option}${defaultMarker}\n`);
-  });
-  if (input.allowNone && input.defaultValue === null) {
-    output.write("Default: none\n");
-  }
+async function promptPath(inputOptions: {
+  defaultValue: string;
+  description: string;
+  promptLabel: string;
+  optionName: string;
+  projectPath: string;
+}): Promise<string> {
+  let errorMessage: string | undefined;
 
   while (true) {
-    const prompt = input.defaultValue || input.allowNone
-      ? "Select an option by number or name, or press Enter for the default: "
-      : "Select an option by number or name: ";
-    const answer = (await reader.question(prompt)).trim();
+    const rawValue = await promptTextInput({
+      command: "init",
+      defaultValue: inputOptions.defaultValue,
+      description: inputOptions.description,
+      errorMessage,
+      optionName: inputOptions.optionName,
+      promptLabel: inputOptions.promptLabel,
+      submitHint: "Press Enter to accept the default, type a new value, or press Esc to cancel.",
+    });
 
-    if (answer === "") {
-      if (input.defaultValue) {
-        return input.defaultValue;
-      }
+    const normalizedValue = normalizeConfiguredPath(
+      inputOptions.projectPath,
+      rawValue.trim() === "" ? inputOptions.defaultValue : rawValue.trim(),
+    );
 
-      if (input.allowNone) {
-        return "none";
-      }
+    try {
+      await ensureDirectoryType(
+        resolveAgainstProject(inputOptions.projectPath, normalizedValue),
+        capitalizeLabel(inputOptions.promptLabel),
+      );
+      return normalizedValue;
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : "Invalid path.";
     }
-
-    const selected = resolveSingleOption(answer, input.options);
-    if (selected) {
-      return selected;
-    }
-
-    output.write("Invalid selection.\n");
   }
 }
 
-async function promptMultiSelect(
-  reader: readline.Interface,
-  input: {
-    allowNone: boolean;
-    defaultValue: string[];
-    explanation: string;
-    label: string;
-    options: string[];
-  },
-): Promise<string[]> {
-  if (input.options.length === 0) {
-    return [];
-  }
-
-  output.write(`\n${input.label}\n${input.explanation}\n`);
-  input.options.forEach((option, index) => {
-    output.write(`${index + 1}) ${option}\n`);
-  });
-  output.write(`Default: ${input.defaultValue.length === 0 ? "none" : input.defaultValue.join(", ")}\n`);
+async function promptOptionalPath(inputOptions: {
+  defaultValue: string;
+  description: string;
+  promptLabel: string;
+  optionName: string;
+  projectPath: string;
+}): Promise<string> {
+  let errorMessage: string | undefined;
 
   while (true) {
-    const answer = (await reader.question(
-      "Select comma-separated numbers or names, press Enter for none, or type none: ",
-    )).trim();
+    const rawValue = await promptTextInput({
+      command: "init",
+      defaultValue: inputOptions.defaultValue,
+      description: inputOptions.description,
+      errorMessage,
+      optionName: inputOptions.optionName,
+      promptLabel: inputOptions.promptLabel,
+      submitHint: "Press Enter to accept the default, type a new value, type none to disable, or press Esc to cancel.",
+    });
 
-    if (answer === "" || answer.toLowerCase() === "none") {
-      if (input.defaultValue.length > 0) {
-        return input.defaultValue;
-      }
+    const normalizedValue = rawValue.trim().toLowerCase() === "none"
+      ? ""
+      : normalizeConfiguredPath(
+          inputOptions.projectPath,
+          rawValue.trim() === "" ? inputOptions.defaultValue : rawValue.trim(),
+        );
 
-      if (input.allowNone) {
-        return [];
-      }
-
-      output.write("Select at least one option.\n");
-      continue;
+    if (normalizedValue === "") {
+      return "";
     }
 
-    const selections = answer
-      .split(",")
-      .map((value) => value.trim())
-      .filter((value) => value !== "")
-      .map((value) => resolveSingleOption(value, input.options));
-
-    if (selections.every((value) => value)) {
-      return Array.from(new Set(selections as string[]));
+    try {
+      await ensureDirectoryType(
+        resolveAgainstProject(inputOptions.projectPath, normalizedValue),
+        capitalizeLabel(inputOptions.promptLabel),
+      );
+      return normalizedValue;
+    } catch (error) {
+      errorMessage = error instanceof Error ? error.message : "Invalid path.";
     }
-
-    output.write("Invalid selection.\n");
   }
-}
-
-async function promptText(
-  reader: readline.Interface,
-  input: {
-    defaultValue: string;
-    description: string;
-    promptLabel: string;
-    optionName: string;
-  },
-): Promise<string> {
-  output.write(`\nProvide ${input.promptLabel}, or press Enter to accept default.\n`);
-  output.write(`${input.description}\n`);
-  output.write(`option: ${input.optionName}\n`);
-  output.write(`default: ${input.defaultValue}\n`);
-  const answer = (await reader.question("Press Enter to accept the default or enter a value: ")).trim();
-
-  return answer === "" ? input.defaultValue : answer;
-}
-
-function resolveSingleOption(value: string, options: string[]): string | null {
-  const index = Number(value);
-  if (!Number.isNaN(index) && Number.isInteger(index) && index >= 1 && index <= options.length) {
-    return options[index - 1];
-  }
-
-  return options.includes(value) ? value : null;
 }
 
 function validateSingleSelection(
@@ -433,6 +354,16 @@ function validateSingleSelection(
   }
 
   return selectedValue;
+}
+
+function missingRequiredInitOption(optionName: string): never {
+  throw new Error(
+    `Missing required option ${optionName}. Run "aie-os init" in a terminal to be prompted interactively.`,
+  );
+}
+
+function capitalizeLabel(label: string): string {
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 function validateMultiSelection(

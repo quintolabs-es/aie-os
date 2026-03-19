@@ -13,5 +13,32 @@ test("CLI help command prints usage text", async () => {
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
   assert.match(stdout, /Usage:\r?\n/u);
-  assert.match(stdout, /build --tool codex/u);
+  assert.match(stdout, /aie-os build --tool codex/u);
+});
+
+test("CLI without a command shows a command-required error and help", async () => {
+  const cliEntry = path.join(__dirname, "..", "dist", "index.js");
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [cliEntry]),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /You must specify a command\./u);
+      assert.match(error.stdout, /Usage:/u);
+      return true;
+    },
+  );
+});
+
+test("Build command requires --tool", async () => {
+  const cliEntry = path.join(__dirname, "..", "dist", "index.js");
+
+  await assert.rejects(
+    execFileAsync(process.execPath, [cliEntry, "build"]),
+    (error) => {
+      assert.equal(error.code, 1);
+      assert.match(error.stderr, /Missing required option --tool/u);
+      return true;
+    },
+  );
 });

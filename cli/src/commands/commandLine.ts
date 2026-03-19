@@ -8,28 +8,64 @@ const TOOL_NAME: ToolName = "codex";
 export const usageText = `AIE OS
 
 Usage:
-  init [--project-path <path>] [--kb-path <path>] [--agent-path <path>] [--skills-path <path>] [--agent-persona <name>] [--languages <a,b>] [--application-type <a,b>] [--frameworks <a,b>]
-  build --tool codex [--project-path <path>]
+  aie-os init [options]
+  aie-os build --tool codex [options]
 
-Options:
+Commands:
+  init
+    Initialize AIE OS for the target project. Missing init values can be prompted interactively in a terminal.
+  build
+    Build the effective context and generate tool-specific artifacts. Build is non-interactive.
+
+Init options:
   --project-path                    Target repository. Defaults to the current directory.
-  --kb-path                         Shared knowledge-base path. Prompted explicitly during init if not provided.
-  --agent-path                      Shared agent path. Prompted explicitly during init if not provided.
-  --skills-path                     Shared skills path. Prompted explicitly during init if not provided.
-  --agent-persona                   Agent persona. Prompted during init if not provided.
-  --languages                       Comma-separated languages. Prompted during init if not provided.
-  --application-type                Comma-separated application types. Prompted during init if not provided.
-  --frameworks                      Comma-separated frameworks. Prompted during init if not provided.
-  --tool                            Delivery adapter target. Only codex is supported in v1.
-  -h, --help                        Show help.`;
+  --kb-path                         Shared knowledge-base path.
+  --agent-path                      Shared agent path.
+  --skills-path                     Shared skills path.
+  --agent-persona                   Agent persona.
+  --languages                       Comma-separated languages.
+  --application-type                Comma-separated application types.
+  --frameworks                      Comma-separated frameworks.
+
+Build options:
+  --project-path                    Target repository. Defaults to the current directory.
+  --tool                            Delivery adapter target. Required. Only codex is supported in v1.
+
+Other options:
+  -h, --help                        Show help.
+
+Examples:
+  aie-os init
+  aie-os init --agent-persona software-developer --languages typescript --application-type cli
+  aie-os build --tool codex
+
+Notes:
+  - init prompts for missing values only when running in a terminal.
+  - build never prompts and fails explicitly when required values are missing.`;
 
 export function parseCommandInput(argv: string[]): ParsedOptions {
   const [command, ...rest] = argv;
 
-  if (!command || command === "-h" || command === "--help") {
+  if (!command) {
     return {
-      command: "build",
+      command: null,
+      help: false,
+      options: {},
+    };
+  }
+
+  if (command === "-h" || command === "--help") {
+    return {
+      command: null,
       help: true,
+      options: {},
+    };
+  }
+
+  if (command.startsWith("--")) {
+    return {
+      command: null,
+      help: false,
       options: {},
     };
   }
@@ -72,6 +108,10 @@ export function resolveExecutionOptions(
   parsed: ParsedOptions,
   cwd: string,
 ): ExecutionOptions {
+  if (!parsed.command) {
+    throw new Error("You must specify a command.");
+  }
+
   const projectPath = resolveProjectPath(cwd, parsed.options["--project-path"]);
 
   if (parsed.help) {
