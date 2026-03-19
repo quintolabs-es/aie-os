@@ -5,6 +5,7 @@ import {
   listMarkdownFiles,
   readText,
 } from "./filesystem";
+import { aieStructure } from "./aieStructure";
 import type { Manifest } from "./manifest";
 import type {
   EffectiveContext,
@@ -76,14 +77,18 @@ async function resolveContext(input: BuildInput): Promise<{
   const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
   const persona = await loadPersona(
-    path.join(agentPath, "persona", `${input.manifest.selection.persona}.md`),
+    path.join(
+      agentPath,
+      aieStructure.agent.personaDirectoryName,
+      `${input.manifest.selection.persona}${aieStructure.files.markdownExtension}`,
+    ),
     projectPath,
   );
 
   pushLoadedBlocks(
     { criticalRules, sections },
     await loadOptionalDirectoryBlocks(
-      path.join(agentPath, "universal"),
+      path.join(agentPath, aieStructure.agent.universalDirectoryName),
       projectPath,
       "Agent Rules",
       "Agent Rules",
@@ -93,7 +98,11 @@ async function resolveContext(input: BuildInput): Promise<{
   pushLoadedBlocks(
     { criticalRules, sections },
     await loadDirectoryBlocks(
-      path.join(knowledgeBasePath, "engineering-principles", "universal"),
+      path.join(
+        knowledgeBasePath,
+        aieStructure.knowledgeBase.engineeringPrinciplesDirectoryName,
+        aieStructure.knowledgeBase.universalDirectoryName,
+      ),
       projectPath,
       "Engineering Principles",
       "Engineering Principles",
@@ -103,7 +112,11 @@ async function resolveContext(input: BuildInput): Promise<{
   pushLoadedBlocks(
     { criticalRules, sections },
     await loadDirectoryBlocks(
-      path.join(knowledgeBasePath, "coding-standards", "universal"),
+      path.join(
+        knowledgeBasePath,
+        aieStructure.knowledgeBase.codingStandardsDirectoryName,
+        aieStructure.knowledgeBase.universalDirectoryName,
+      ),
       projectPath,
       "Shared Coding Standards",
       "Coding Standards",
@@ -114,7 +127,12 @@ async function resolveContext(input: BuildInput): Promise<{
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
-        path.join(knowledgeBasePath, "coding-standards", "language", language),
+        path.join(
+          knowledgeBasePath,
+          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.languageDirectoryName,
+          language,
+        ),
         projectPath,
         "Language Standards",
         `Language: ${language}`,
@@ -126,7 +144,12 @@ async function resolveContext(input: BuildInput): Promise<{
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
-        path.join(knowledgeBasePath, "coding-standards", "application-type", applicationType),
+        path.join(
+          knowledgeBasePath,
+          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.applicationTypeDirectoryName,
+          applicationType,
+        ),
         projectPath,
         "Application-Type Standards",
         `Application Type: ${applicationType}`,
@@ -138,7 +161,12 @@ async function resolveContext(input: BuildInput): Promise<{
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
-        path.join(knowledgeBasePath, "coding-standards", "framework", framework),
+        path.join(
+          knowledgeBasePath,
+          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.frameworkDirectoryName,
+          framework,
+        ),
         projectPath,
         "Framework Standards",
         `Framework: ${framework}`,
@@ -149,7 +177,11 @@ async function resolveContext(input: BuildInput): Promise<{
   pushLoadedBlocks(
     { criticalRules, sections },
     await loadConditionalBlocks(
-      path.join(knowledgeBasePath, "coding-standards", "conditional"),
+      path.join(
+        knowledgeBasePath,
+        aieStructure.knowledgeBase.codingStandardsDirectoryName,
+        aieStructure.knowledgeBase.conditionalDirectoryName,
+      ),
       projectPath,
       input.manifest.selection,
       "Conditional Coding Standards",
@@ -196,10 +228,10 @@ function toEffectiveContextInputs(manifest: Manifest): EffectiveContextInputs {
 }
 
 async function loadPersona(filePath: string, projectPath: string): Promise<EffectiveContextPersona> {
-  const contents = normalizeMarkdownContents(await readText(filePath));
+  const content = normalizeMarkdownContents(await readText(filePath));
 
   return {
-    contents,
+    content,
     source: toOutputFileReference(projectPath, filePath),
   };
 }
@@ -289,14 +321,14 @@ async function loadBlocksFromFiles(
   const sections: EffectiveContextBlock[] = [];
 
   for (const filePath of files) {
-    const contents = normalizeMarkdownContents(await readText(filePath));
+    const content = normalizeMarkdownContents(await readText(filePath));
 
-    if (contents === "") {
+    if (content === "") {
       continue;
     }
 
     const block: EffectiveContextBlock = {
-      contents,
+      content,
       layer: input.layer,
       sectionLabel: deriveSectionLabel(
         input.baseDirectory,
@@ -306,7 +338,7 @@ async function loadBlocksFromFiles(
       source: toOutputFileReference(input.projectPath, filePath),
     };
 
-    if (path.basename(filePath) === "critical-rules.md") {
+    if (path.basename(filePath) === aieStructure.files.criticalRulesFileName) {
       criticalRules.push(block);
       continue;
     }
@@ -348,7 +380,7 @@ async function loadSkillDefinitions(
 
       return {
         description: skillMetadata.description,
-        entrypoint: "SKILL.md",
+        entrypoint: aieStructure.files.skillFileName,
         name: skillName,
         scope,
         source: toOutputFileReference(projectPath, skillDirectory),
@@ -362,11 +394,11 @@ async function loadSkillMetadata(skillDirectory: string): Promise<{
   description: string;
   warnings: string[];
 }> {
-  const skillFilePath = path.join(skillDirectory, "SKILL.md");
+  const skillFilePath = path.join(skillDirectory, aieStructure.files.skillFileName);
   if (!(await fileExists(skillFilePath))) {
     return {
       description: "No usage description provided.",
-      warnings: [`Skill missing SKILL.md: ${skillDirectory}`],
+      warnings: [`Skill missing ${aieStructure.files.skillFileName}: ${skillDirectory}`],
     };
   }
 
@@ -376,7 +408,9 @@ async function loadSkillMetadata(skillDirectory: string): Promise<{
   if (description === "") {
     return {
       description: "No usage description provided.",
-      warnings: [`Skill missing description in SKILL.md frontmatter: ${skillDirectory}`],
+      warnings: [
+        `Skill missing description in ${aieStructure.files.skillFileName} frontmatter: ${skillDirectory}`,
+      ],
     };
   }
 
@@ -609,7 +643,10 @@ function resolveOptionalProjectPath(
 function toOutputFileReference(projectPath: string, filePath: string): string {
   const relativePath = path.relative(projectPath, filePath);
 
-  if (relativePath === ".aie-os" || relativePath.startsWith(`.aie-os${path.sep}`)) {
+  if (
+    relativePath === aieStructure.project.directoryName ||
+    relativePath.startsWith(`${aieStructure.project.directoryName}${path.sep}`)
+  ) {
     return relativePath;
   }
 

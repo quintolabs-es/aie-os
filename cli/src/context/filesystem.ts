@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { aieStructure } from "./aieStructure";
 
 export async function ensureDirectory(directoryPath: string): Promise<void> {
   await fs.mkdir(directoryPath, {
@@ -58,8 +59,18 @@ export async function listMarkdownBasenames(directoryPath: string): Promise<stri
   });
 
   return entries
-    .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md")
-    .map((entry) => entry.name.replace(/\.md$/u, ""))
+    .filter(
+      (entry) =>
+        entry.isFile() &&
+        entry.name.endsWith(aieStructure.files.markdownExtension) &&
+        entry.name !== aieStructure.files.readmeFileName,
+    )
+    .map((entry) =>
+      entry.name.replace(
+        new RegExp(`${aieStructure.files.markdownExtension.replace(".", "\\.")}$`, "u"),
+        "",
+      ),
+    )
     .sort();
 }
 
@@ -76,7 +87,11 @@ export async function listMarkdownFiles(directoryPath: string): Promise<string[]
         return listMarkdownFiles(entryPath);
       }
 
-      if (entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md") {
+      if (
+        entry.isFile() &&
+        entry.name.endsWith(aieStructure.files.markdownExtension) &&
+        entry.name !== aieStructure.files.readmeFileName
+      ) {
         return [entryPath];
       }
 

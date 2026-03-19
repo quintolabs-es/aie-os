@@ -1,5 +1,6 @@
 import fsSync from "node:fs";
 import path from "node:path";
+import { aieStructure } from "../context/aieStructure";
 import type { ExecutionOptions, InitExecutionOptions, ParsedOptions, ToolName } from "./types";
 
 const TOOL_NAME: ToolName = "codex";
@@ -147,24 +148,48 @@ export function resolveExecutionOptions(
 }
 
 function detectInitDefaults(projectPath: string) {
-  const localAieOsPath = path.join(projectPath, "aie-os");
+  const localAieOsPath = path.join(projectPath, aieStructure.localTool.directoryName);
   const bundledRoot = path.resolve(__dirname, "..", "..", "..");
 
   return {
     kbPath: detectSharedDefault(
       projectPath,
-      path.join(localAieOsPath, "content", "knowledge-base"),
-      path.join(bundledRoot, "content", "knowledge-base"),
+      path.join(
+        localAieOsPath,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.knowledgeBaseDirectoryName,
+      ),
+      path.join(
+        bundledRoot,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.knowledgeBaseDirectoryName,
+      ),
     ),
     agentPath: detectSharedDefault(
       projectPath,
-      path.join(localAieOsPath, "content", "agent"),
-      path.join(bundledRoot, "content", "agent"),
+      path.join(
+        localAieOsPath,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.agentDirectoryName,
+      ),
+      path.join(
+        bundledRoot,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.agentDirectoryName,
+      ),
     ),
     skillsPath: detectOptionalSharedDefault(
       projectPath,
-      path.join(localAieOsPath, "content", "skills"),
-      path.join(bundledRoot, "content", "skills"),
+      path.join(
+        localAieOsPath,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.skillsDirectoryName,
+      ),
+      path.join(
+        bundledRoot,
+        aieStructure.sharedContent.rootDirectoryName,
+        aieStructure.sharedContent.skillsDirectoryName,
+      ),
     ),
   };
 }

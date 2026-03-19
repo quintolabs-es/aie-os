@@ -3,19 +3,16 @@ import fs from "node:fs/promises";
 import { stdout as output } from "node:process";
 import { getAdapter } from "../agentAdapters";
 import { agentArtifactWriter } from "../artifacts/agentArtifactWriter";
+import { aieRelativePaths } from "../context/aieStructure";
 import { buildAgentContext } from "../context/build";
 import { fileExists, writeText } from "../context/filesystem";
 import { loadManifest } from "../context/manifest";
 import type { BuildExecutionOptions } from "./types";
 
-const PROJECT_AIE_DIRECTORY = ".aie-os";
-const BUILD_DIRECTORY = "build";
-const MANIFEST_NAME = "aie-os.json";
-
 export async function buildProject(options: BuildExecutionOptions): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
 
-  const manifestPath = path.join(options.projectPath, PROJECT_AIE_DIRECTORY, MANIFEST_NAME);
+  const manifestPath = path.join(options.projectPath, aieRelativePaths.manifestFile);
   if (!(await fileExists(manifestPath))) {
     throw new Error(`Missing manifest: ${manifestPath}. Run "init" from the target project first.`);
   }
@@ -33,18 +30,17 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   });
 
   await writeText(
-    path.join(options.projectPath, PROJECT_AIE_DIRECTORY, BUILD_DIRECTORY, "effective-context.json"),
+    path.join(options.projectPath, aieRelativePaths.effectiveContextFile),
     `${JSON.stringify(buildOutput.effectiveContext, null, 2)}\n`,
   );
-  await fs.rm(
-    path.join(options.projectPath, PROJECT_AIE_DIRECTORY, BUILD_DIRECTORY, "effective-context.md"),
-    { force: true },
-  );
+  await fs.rm(path.join(options.projectPath, aieRelativePaths.legacyEffectiveContextMarkdownFile), {
+    force: true,
+  });
 
   await agentArtifactWriter.write(options.projectPath, adapterOutput);
 
   output.write(
-    `\nBuild complete. Generated .aie-os/build/effective-context.json and ${adapterOutput.primaryArtifact}.\n`,
+    `\nBuild complete. Generated ${aieRelativePaths.effectiveContextFile} and ${adapterOutput.primaryArtifact}.\n`,
   );
 }
 

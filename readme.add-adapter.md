@@ -91,7 +91,7 @@ export const exampleAdapter: Adapter = {
       "",
       "## Persona",
       "",
-      input.effectiveContext.persona.contents,
+      input.effectiveContext.persona.content,
       "",
       "## Critical Rules",
       "",

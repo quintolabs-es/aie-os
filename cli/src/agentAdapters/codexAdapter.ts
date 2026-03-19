@@ -34,7 +34,7 @@ export const codexAdapter: Adapter = {
 };
 
 function renderPersona(effectiveContext: EffectiveContext): string {
-  return ["## Persona", "", effectiveContext.persona.contents].join("\n");
+  return ["## Persona", "", effectiveContext.persona.content].join("\n");
 }
 
 function renderCriticalRules(blocks: EffectiveContextBlock[]): string {
@@ -49,7 +49,7 @@ function renderCriticalRules(blocks: EffectiveContextBlock[]): string {
     parts.push("", `### ${group.sectionLabel}`);
 
     for (const block of group.blocks) {
-      parts.push("", block.contents);
+      parts.push("", block.content);
     }
   }
 
@@ -68,7 +68,7 @@ function renderSections(blocks: EffectiveContextBlock[]): string {
     const parts = [`## ${group.sectionLabel}`];
 
     for (const block of group.blocks) {
-      parts.push("", block.contents);
+      parts.push("", block.content);
     }
 
     renderedGroups.push(parts.join("\n"));

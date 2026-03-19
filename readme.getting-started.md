@@ -1,7 +1,7 @@
 ### First time setup aie-os cli
 ```bash
 cd xample-app
-git clone https://github.com/bustroker/aie-os
+git clone https://github.com/quintolabs-es/aie-os
 npm --prefix aie-os/cli run build
 ```
 ### Create content

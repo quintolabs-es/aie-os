@@ -1,14 +1,14 @@
 export type AdapterTool = "codex";
 
 export type EffectiveContextBlock = {
-  contents: string;
+  content: string;
   layer: string;
   sectionLabel: string;
   source: string;
 };
 
 export type EffectiveContextPersona = {
-  contents: string;
+  content: string;
   source: string;
 };
 

@@ -10,31 +10,13 @@ import {
   listMarkdownBasenames,
   writeText,
 } from "../context/filesystem";
+import { aieRelativePaths, aieStructure } from "../context/aieStructure";
 import { saveManifest, type Manifest } from "../context/manifest";
+import {
+  projectCodingStandardsReadmeTemplate,
+  projectSkillsReadmeTemplate,
+} from "./scaffoldTemplates";
 import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
-
-const PROJECT_AIE_DIRECTORY = ".aie-os";
-const MANIFEST_NAME = "aie-os.json";
-const PROJECT_CODING_STANDARDS_DIRECTORY = "project-coding-standards";
-const PROJECT_SKILLS_DIRECTORY = "project-skills";
-
-const PROJECT_CODING_STANDARDS_README = `# Project Coding Standards
-
-Add project-specific coding standard files here, e.g., rules.md. 
-You can also optionally add critical-rules.md for rules to be added 
-to the top of the context.
-`;
-
-const PROJECT_SKILLS_README = `# Project Skills
-
-Project skills are discovered by folder.
-Skills should follow the Agent Skills packaging specification:
-https://agentskills.io/specification
-
-Add project-specific skills here, for example:
-- create-endpoint/
-- release-process/
-`;
 
 export async function initProject(options: InitExecutionOptions): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
@@ -116,8 +98,8 @@ async function collectManifest(
       agent: agentPath,
       skills: skillsPath,
       knowledgeBase: knowledgeBasePath,
-      projectCodingStandards: path.join(PROJECT_AIE_DIRECTORY, PROJECT_CODING_STANDARDS_DIRECTORY),
-      projectSkills: path.join(PROJECT_AIE_DIRECTORY, PROJECT_SKILLS_DIRECTORY),
+      projectCodingStandards: aieRelativePaths.projectCodingStandardsDirectory,
+      projectSkills: aieRelativePaths.projectSkillsDirectory,
     },
     selection: selections,
   };
@@ -135,10 +117,30 @@ async function collectSelections(
   const resolvedAgentPath = resolveAgainstProject(projectPath, input.agentPath);
   const resolvedKnowledgeBasePath = resolveAgainstProject(projectPath, input.knowledgeBasePath);
 
-  const personaOptions = await listMarkdownBasenames(path.join(resolvedAgentPath, "persona"));
-  const languageOptions = await listDirectoryNames(path.join(resolvedKnowledgeBasePath, "coding-standards", "language"));
-  const applicationTypeOptions = await listDirectoryNames(path.join(resolvedKnowledgeBasePath, "coding-standards", "application-type"));
-  const frameworkOptions = await listDirectoryNames(path.join(resolvedKnowledgeBasePath, "coding-standards", "framework"));
+  const personaOptions = await listMarkdownBasenames(
+    path.join(resolvedAgentPath, aieStructure.agent.personaDirectoryName),
+  );
+  const languageOptions = await listDirectoryNames(
+    path.join(
+      resolvedKnowledgeBasePath,
+      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.languageDirectoryName,
+    ),
+  );
+  const applicationTypeOptions = await listDirectoryNames(
+    path.join(
+      resolvedKnowledgeBasePath,
+      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.applicationTypeDirectoryName,
+    ),
+  );
+  const frameworkOptions = await listDirectoryNames(
+    path.join(
+      resolvedKnowledgeBasePath,
+      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.frameworkDirectoryName,
+    ),
+  );
   const initial = input.initialSelections;
 
   const persona =
@@ -189,7 +191,7 @@ async function collectSelections(
 }
 
 async function scaffoldProject(projectPath: string, manifest: Manifest): Promise<void> {
-  const aieDirectory = path.join(projectPath, PROJECT_AIE_DIRECTORY);
+  const aieDirectory = path.join(projectPath, aieStructure.project.directoryName);
   await ensureDirectory(aieDirectory);
 
   const projectCodingStandardsPath = resolveAgainstProject(projectPath, manifest.paths.projectCodingStandards);
@@ -197,10 +199,16 @@ async function scaffoldProject(projectPath: string, manifest: Manifest): Promise
 
   await ensureDirectory(projectCodingStandardsPath);
   await ensureDirectory(projectSkillsPath);
-  await writeTemplateIfMissing(path.join(projectCodingStandardsPath, "README.md"), PROJECT_CODING_STANDARDS_README);
-  await writeTemplateIfMissing(path.join(projectSkillsPath, "README.md"), PROJECT_SKILLS_README);
+  await writeTemplateIfMissing(
+    path.join(projectCodingStandardsPath, aieStructure.files.readmeFileName),
+    projectCodingStandardsReadmeTemplate,
+  );
+  await writeTemplateIfMissing(
+    path.join(projectSkillsPath, aieStructure.files.readmeFileName),
+    projectSkillsReadmeTemplate,
+  );
 
-  await saveManifest(manifest, path.join(aieDirectory, MANIFEST_NAME));
+  await saveManifest(manifest, path.join(aieDirectory, aieStructure.project.manifestFileName));
   output.write(`
               .-"""-.
              / .===. \\
@@ -220,16 +228,16 @@ async function scaffoldProject(projectPath: string, manifest: Manifest): Promise
           *      /  |  \\     .
         .    *      .      *     .
 
-AIE OS project created at ${path.join(projectPath, PROJECT_AIE_DIRECTORY)}.
+AIE OS project created at ${path.join(projectPath, aieStructure.project.directoryName)}.
 `);
 }
 
-async function writeTemplateIfMissing(targetPath: string, contents: string): Promise<void> {
+async function writeTemplateIfMissing(targetPath: string, content: string): Promise<void> {
   if (await fileExists(targetPath)) {
     return;
   }
 
-  await writeText(targetPath, contents);
+  await writeText(targetPath, content);
 }
 
 async function promptPath(
