@@ -6,14 +6,8 @@ import {
   type Key,
 } from "node:readline";
 import { stdin as input, stdout as output } from "node:process";
+import { terminalStyle } from "./terminalStyle";
 import type { CommandName } from "./types";
-
-const ANSI_RESET = "\u001B[0m";
-const ANSI_DIM = "\u001B[2m";
-const ANSI_ERROR = "\u001B[31m";
-const ANSI_SELECTED = "\u001B[38;2;22;146;209m";
-const ANSI_HIDE_CURSOR = "\u001B[?25l";
-const ANSI_SHOW_CURSOR = "\u001B[?25h";
 
 export class CommandCanceledError extends Error {
   readonly command: CommandName;
@@ -93,22 +87,26 @@ export async function promptTextInput(inputOptions: TextPromptInput): Promise<st
       return {};
     },
     render() {
-      const lines = [
+      const headerLines = terminalStyle.promptHeaderBox(
         `Set ${inputOptions.promptLabel} (${inputOptions.optionName})`,
+      );
+      const lines = [
+        "",
+        ...headerLines,
         "",
         `> ${value}`,
       ];
 
       if (inputOptions.errorMessage) {
-        lines.push("", colorize(inputOptions.errorMessage, ANSI_ERROR));
+        lines.push("", terminalStyle.error(inputOptions.errorMessage));
       }
 
-      lines.push("", colorize(inputOptions.submitHint, ANSI_DIM));
+      lines.push("", terminalStyle.hint(inputOptions.submitHint));
 
       return {
         cursor: {
           column: 2 + value.length,
-          lineIndex: 2,
+          lineIndex: headerLines.length + 2,
         },
         lines,
       };
@@ -146,6 +144,7 @@ export async function promptSingleSelect(inputOptions: SingleSelectPromptInput):
       return {};
     },
     render() {
+      const headerLines = terminalStyle.promptHeaderBox(inputOptions.label);
       return {
         hideCursor: true,
         cursor: {
@@ -153,7 +152,8 @@ export async function promptSingleSelect(inputOptions: SingleSelectPromptInput):
           lineIndex: 0,
         },
         lines: [
-          inputOptions.label,
+          "",
+          ...headerLines,
           "",
           ...inputOptions.options.map((option, index) =>
             formatOptionLine({
@@ -161,7 +161,7 @@ export async function promptSingleSelect(inputOptions: SingleSelectPromptInput):
               label: `${index + 1}) ${option}`,
             })),
           "",
-          colorize("Use ↑/↓ to move, Enter to confirm, Esc to cancel.", ANSI_DIM),
+          terminalStyle.hint("Use ↑/↓ to move, Enter to confirm, Esc to cancel."),
         ],
       };
     },
@@ -214,8 +214,10 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
       return {};
     },
     render() {
+      const headerLines = terminalStyle.promptHeaderBox(inputOptions.label);
       const lines = [
-        inputOptions.label,
+        "",
+        ...headerLines,
         "",
         ...inputOptions.options.map((option, index) =>
           formatOptionLine({
@@ -225,10 +227,10 @@ export async function promptMultiSelect(inputOptions: MultiSelectPromptInput): P
       ];
 
       if (errorMessage) {
-        lines.push("", colorize(errorMessage, ANSI_ERROR));
+        lines.push("", terminalStyle.error(errorMessage));
       }
 
-      lines.push("", colorize("Use ↑/↓ to move, Space to toggle, Enter to confirm, Esc to cancel.", ANSI_DIM));
+      lines.push("", terminalStyle.hint("Use ↑/↓ to move, Space to toggle, Enter to confirm, Esc to cancel."));
 
       return {
         hideCursor: true,
@@ -261,7 +263,7 @@ async function runInteractivePrompt<T>(
     const cleanup = () => {
       input.off("keypress", onKeypress);
       clearRenderedBlock(lastCursorRowOffset, hasRendered);
-      showCursor();
+      terminalStyle.showCursor();
       if (rawModeEnabled && input.isTTY) {
         input.setRawMode(false);
       }
@@ -313,11 +315,11 @@ function positionCursor(renderedPrompt: RenderedPrompt): number {
   const totalRows = countBlockRows(renderedPrompt.lines, terminalWidth);
 
   if (renderedPrompt.hideCursor) {
-    hideCursor();
+    terminalStyle.hideCursor();
     return totalRows - 1;
   }
 
-  showCursor();
+  terminalStyle.showCursor();
   const rowsBeforeCursor = renderedPrompt.lines
     .slice(0, renderedPrompt.cursor.lineIndex)
     .reduce((total, line) => total + countDisplayRows(line, terminalWidth), 0);
@@ -354,27 +356,7 @@ function formatOptionLine(inputOptions: { active: boolean; label: string }): str
   const prefix = inputOptions.active ? ">" : " ";
   const line = `${prefix} ${inputOptions.label}`;
 
-  return inputOptions.active ? colorize(line, ANSI_SELECTED) : line;
-}
-
-function colorize(value: string, ansiCode: string): string {
-  if (!canUseColor()) {
-    return value;
-  }
-
-  return `${ansiCode}${value}${ANSI_RESET}`;
-}
-
-function canUseColor(): boolean {
-  return Boolean(output.isTTY && !("NO_COLOR" in process.env));
-}
-
-function hideCursor(): void {
-  output.write(ANSI_HIDE_CURSOR);
-}
-
-function showCursor(): void {
-  output.write(ANSI_SHOW_CURSOR);
+  return inputOptions.active ? terminalStyle.selected(line) : line;
 }
 
 function isEnterKey(key: Key): boolean {

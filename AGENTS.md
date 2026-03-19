@@ -85,6 +85,14 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Changes must pass the strongest available compile-time or static validation
   for the stack before they are considered complete.
 - Make side effects visible at the edges of the system.
+- Separate decision logic from side-effect execution to keep business logic
+  testable. Return side-effect plans as data, then apply them in a dedicated
+  executor when practical.
+
+  ```ts
+  const plan = shouldCreateFile ? { filePath: "out.txt", fileContent: "..." } : null;
+  await fileWriter.apply(plan);
+  ```
 - Keep public interfaces small and stable.
 - Use structured error values or exceptions consistently within a module.
 - README files must explain setup, run, and deployment with direct commands.
