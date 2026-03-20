@@ -18,7 +18,6 @@ Check `docs/readme.create-content.md` for instructions to create content.
 
 ## Getting started
 Check `docs/readme.getting-started.md` for installation and target-project usage.
-Check `readme.run-locally.md` for running the CLI from this repository during development.
 
 ## Target project structure
 AIE OS must be installed in the target project as a package. The target project stores only project-local AIE OS configuration and generated artifacts under `.aie-os/`.
