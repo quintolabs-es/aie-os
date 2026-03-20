@@ -9,7 +9,7 @@ pnpm --dir aie-os/cli run build
 **Add `aie-os` folder to `.gitignore`.**
 
 ### Create content
-Check `readme.create-content.md` for instructions on how to add principles, standards, skills, agent universal rules, and agent personas.
+Use `/content` as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed. See `readme.create-content.md` for the content structure and authoring rules.
 
 ### Initialize AIE-OS
 
