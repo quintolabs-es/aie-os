@@ -23,7 +23,6 @@ Check `docs/readme.getting-started.md` for instructions on usage.
 Below the general agent-agnostic structure. Agent specific artefacts are added by the build execution after the effective-context file.
 ```text
 xample-app/
-  aie-os/
   .aie-os/
     aie-os.json
     project-coding-standards/
@@ -32,7 +31,6 @@ xample-app/
       effective-context.json
 ```
 
-- `aie-os/` is the local clone of this repo. ignore it in `.gitignore`.
 - `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo.
 
 
@@ -50,6 +48,7 @@ xample-app/
 - `effective-context.json` is the machine-readable canonical build artifact and adapter contract.
 - `effective-context.json` includes `metadata.inputs` as provenance about which persona, languages, application types, and frameworks were used to build the context.
 - Adapters write tool-specific artifacts only.
+- After `build`, AIE OS prints the adapter-specific bootstrap prompt to use when starting a new agent session.
 
 ## Agent Adapters
 - Adapters transform the canonical effective context into the agent-specific files each tool expects.

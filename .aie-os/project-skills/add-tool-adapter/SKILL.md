@@ -81,6 +81,7 @@ export const <adapterSymbol>: Adapter = {
   tool: "<toolKey>",
   async build(_input): Promise<AdapterOutput> {
     return {
+      bootstrapPrompt: "TODO: add the session bootstrap prompt for <toolKey>.",
       files: [
         {
           path: "TODO-<toolKey>-artifact.txt",
@@ -203,7 +204,7 @@ After the scaffold is created, report:
 - the generated adapter file path
 - these exact next steps for the contributor:
   1. implement the tool-specific rendering logic in `src/agentAdapters/<adapterBaseName>Adapter.ts`
-  2. replace the placeholder output path and contents in that adapter file
+  2. replace the placeholder output path, contents, and bootstrap prompt in that adapter file
   3. run `pnpm run build`
   4. run `bash bin/aie-os build --tool <toolKey> --project-path <path-to-test-project>`
   5. inspect the generated artifact written by the new adapter

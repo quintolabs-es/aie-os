@@ -41,6 +41,8 @@ The extension model is:
 
 ### Adapter output
 
+- `bootstrapPrompt`
+  - agent-specific session bootstrap prompt printed by `build` after successful artifact generation
 - `files`
   - file path and contents for each generated agent artifact
 - `primaryArtifact`
@@ -75,7 +77,7 @@ The skill owns the deterministic contributor workflow:
 After the skill scaffolds the new tool, the contributor still needs to:
 
 - implement the tool-specific rendering logic in the generated adapter file
-- replace the placeholder output path and contents
+- replace the placeholder output path, contents, and bootstrap prompt
 - build and test the new adapter
 
 ### Minimal example
@@ -102,8 +104,10 @@ export const exampleAdapter: Adapter = {
     ].join("\n");
 
     return {
+      bootstrapPrompt: "Read `EXAMPLE.md` before starting work.",
       files: [{ path: "EXAMPLE.md", contents }],
       primaryArtifact: "EXAMPLE.md",
+      warnings: [],
     };
   },
 };

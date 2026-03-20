@@ -2,7 +2,7 @@
 
 ## Summary
 
-Add a new adapter-owned `bootstrapPrompt` output so `build` can print an agent-specific prompt immediately after a successful build. For codex, keep the supplied prompt text verbatim except for replacing the hardcoded `AGENTS.md` references with a single adapter-local filename variable. Remove the standalone bootstrap prompt file so the adapter becomes the only source of truth.
+Add a new adapter-owned `bootstrapPrompt` output so `build` can print an agent-specific prompt immediately after a successful build. For codex, preserve the exact current prompt text from `bootstrap-prompt.md`, replacing only the hardcoded `AGENTS.md` references with a single adapter-local filename variable. Remove the standalone bootstrap prompt file only after the adapter becomes the new source of truth.
 
 ## Public Interface Changes
 
@@ -19,6 +19,7 @@ Add a new adapter-owned `bootstrapPrompt` output so `build` can print an agent-s
 
 ### 2. Move the codex prompt into the codex adapter
 
+- Use `bootstrap-prompt.md` as the exact source text to preserve.
 - In `src/agentAdapters/codexAdapter.ts`, introduce one filename constant, for example `instructionsFileName = "AGENTS.md"`.
 - Reuse that same constant for:
   - the generated file path
@@ -41,6 +42,7 @@ Add a new adapter-owned `bootstrapPrompt` output so `build` can print an agent-s
 - Delete `bootstrap-prompt.md` so the codex adapter is the only authoritative source for that prompt.
 - Update `docs/readme.getting-started.md` to say that `build` now prints the agent-specific bootstrap prompt after generation, instead of telling users to read a checked-in prompt file.
 - Update `docs/readme.add-adapter.md` to document that adapters must return `bootstrapPrompt` along with their generated artifacts.
+- Update `.aie-os/project-skills/add-tool-adapter/SKILL.md` so newly scaffolded adapters include `bootstrapPrompt` in the required `AdapterOutput` shape.
 - Optionally add one short note in `README.md` that `build` prints an adapter-specific session bootstrap prompt.
 
 ## Test Cases And Scenarios
@@ -59,7 +61,7 @@ Add a new adapter-owned `bootstrapPrompt` output so `build` can print an agent-s
 
 ## Assumptions And Defaults
 
-- Implement the codex prompt exactly as supplied by the user, except replacing hardcoded `AGENTS.md` references with a single filename variable in the adapter.
+- Implement the codex prompt exactly as it currently exists in `bootstrap-prompt.md`, except replacing hardcoded `AGENTS.md` references with a single filename variable in the adapter.
 - The prompt is printed to stdout only on successful build completion.
 - No `--quiet` or suppression flag is added in this change.
 - The adapter remains the only place that knows the agent-specific bootstrap prompt.

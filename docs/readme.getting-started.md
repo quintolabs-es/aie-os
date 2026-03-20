@@ -1,37 +1,27 @@
-### Install `aie-os-cli` package as dev dependency
+
+### Create content
+Use `/content` folder here as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed. 
+See `docs/readme.create-content.md` for the content structure and authoring rules.
+
+### Add `aie-os-cli` package as dev dependency
 ```bash
 cd xample-app
 pnpm add -D github:quintolabs-es/aie-os-cli#<ref>
 pnpm aie-os-cli init [--project-path <value>]
-pnpm aie-os-cli init [--project-path <value>] --kb-path <value> --agent-path <value> --agent-persona <value> [--languages <value1,value2>] [--application-type <value1,value2>] [--frameworks <value1,value2>] [--skills-path <value>]
-pnpm aie-os-cli build --tool codex [--project-path <value>]
+pnpm aie-os-cli init 
+                --kb-path <value> \
+                --agent-path <value> \
+                --agent-persona <value> \
+                [--languages <value1,value2>] \
+                [--application-type <value1,value2>] \
+                [--frameworks <value1,value2>] \
+                [--skills-path <value>] \
+                [--project-path <defaults-to-cwd>]
+  
+pnpm aie-os-cli build --tool codex [--project-path <defaults-to-cwd>]
 ```
 
-### Clone the `aie-os-cli` repo and use it locally
-```bash
-cd xample-app
-git clone https://github.com/quintolabs-es/aie-os-cli aie-os
-pnpm --dir aie-os run build
-bash aie-os/bin/aie-os init [--project-path <value>]
-bash aie-os/bin/aie-os init [--project-path <value>] --kb-path <value> --agent-path <value> --agent-persona <value> [--languages <value1,value2>] [--application-type <value1,value2>] [--frameworks <value1,value2>] [--skills-path <value>]
-bash aie-os/bin/aie-os build --tool codex [--project-path <value>]
-```
-
-**Add `aie-os/` to `.gitignore` only for the local-clone workflow.**
-
-### Create content
-Use `/content` as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed. See `docs/readme.create-content.md` for the content structure and authoring rules.
-
-### Initialize AIE-OS
-
-```bash
-pnpm aie-os-cli init [--project-path <value>]
-pnpm aie-os-cli init [--project-path <value>] --kb-path <value> --agent-path <value> --agent-persona <value> [--languages <value1,value2>] [--application-type <value1,value2>] [--frameworks <value1,value2>] [--skills-path <value>]
-bash aie-os/bin/aie-os init [--project-path <value>]
-bash aie-os/bin/aie-os init [--project-path <value>] --kb-path <value> --agent-path <value> --agent-persona <value> [--languages <value1,value2>] [--application-type <value1,value2>] [--frameworks <value1,value2>] [--skills-path <value>]
-```
-
-#### `init` takes options:
+#### `init` command options:
 * `--project-path /path/to/app/project/dir`: optional, defaults to current directory;
 * `--kb-path /path/to/knowledge-base/dir`: required in explicit mode; prompted in interactive mode;
 * `--agent-path /path/to/agent/dir`: required in explicit mode; prompted in interactive mode;
@@ -69,7 +59,7 @@ bash aie-os/bin/aie-os build --tool codex
 
 ### Bootstrap agent sessions
 
-For the local-clone workflow, use `aie-os/bootstrap-prompt.md` as the first prompt in a new agent session so the agent reloads and follows the generated repository instructions from `AGENTS.md` before starting task work.
+After `build`, AIE OS prints the adapter-specific bootstrap prompt. Use that printed prompt as the first prompt in a new agent session so the agent reloads and follows the generated repository instructions from `AGENTS.md` before starting task work.
 
 ### Ignore AIE OS tool
 

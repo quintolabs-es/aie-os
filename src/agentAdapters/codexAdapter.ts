@@ -1,6 +1,8 @@
 import { codexSkillAdapter } from "./codexSkillAdapter";
 import type { Adapter, AdapterOutput, EffectiveContext, EffectiveContextBlock } from "./types";
 
+const instructionsFileName = "AGENTS.md";
+
 export const codexAdapter: Adapter = {
   async build(input): Promise<AdapterOutput> {
     const skillAdapterOutput = codexSkillAdapter.build(input);
@@ -19,19 +21,31 @@ export const codexAdapter: Adapter = {
       .concat("\n");
 
     return {
+      bootstrapPrompt: renderBootstrapPrompt(instructionsFileName),
       files: [
         {
           contents,
-          path: "AGENTS.md",
+          path: instructionsFileName,
         },
       ],
-      primaryArtifact: "AGENTS.md",
+      primaryArtifact: instructionsFileName,
       skillAdapterOutput,
       warnings,
     };
   },
   tool: "codex",
 };
+
+function renderBootstrapPrompt(instructionsFileName: string): string {
+  return [
+    "Before doing any task work in this repository, load and follow the generated repository instructions.",
+    "",
+    `Read \`${instructionsFileName}\` at the repo root and treat it as the authoritative instruction set for this repo for the rest of the session.`,
+    "If a task conflicts with those instructions, state the conflict and follow the higher-priority rule.",
+    `If context is summarized, compacted, or partially lost, reload \`${instructionsFileName}\` from disk before continuing instead of relying on memory.`,
+    "After loading the instructions, continue with the user’s task without restating the full file unless asked.",
+  ].join("\n");
+}
 
 function renderPersona(effectiveContext: EffectiveContext): string {
   return ["## Persona", "", effectiveContext.persona.content].join("\n");

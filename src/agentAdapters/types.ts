@@ -64,6 +64,7 @@ export type SkillAdapterOutput = {
 };
 
 export type AdapterOutput = {
+  bootstrapPrompt: string;
   files: AdapterOutputFile[];
   primaryArtifact: string;
   skillAdapterOutput?: SkillAdapterOutput;

@@ -40,7 +40,14 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   await agentArtifactWriter.write(options.projectPath, adapterOutput);
 
   output.write(
-    `\nBuild complete. Generated ${aieRelativePaths.effectiveContextFile} and ${adapterOutput.primaryArtifact}.\n`,
+    [
+      "",
+      `Build complete. Generated ${aieRelativePaths.effectiveContextFile} and ${adapterOutput.primaryArtifact}.`,
+      "",
+      "Bootstrap prompt:",
+      adapterOutput.bootstrapPrompt,
+      "",
+    ].join("\n"),
   );
 }
 
