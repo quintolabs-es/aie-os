@@ -1,6 +1,6 @@
 # Run cli locally from the repo
 
-Use the local wrapper at `./bin/aie-os-cli`.
+Use the local wrapper at `./bin/cli`.
 
 ```bash
 git clone https://www.github.com/quintolabs-es/aie-os-cli
@@ -9,9 +9,9 @@ pnpm run build
 pnpm run test
 
 # init interactive
-bash ./bin/aie-os-cli init [--project-path defaults/to/cwd]
+bash ./bin/cli init [--project-path defaults/to/cwd]
 # init explicit 
-bash ./bin/aie-os-cli init \
+bash ./bin/cli init \
   --kb-path ./content/knowledge-base \
   --agent-path ./content/agent \
   --skills-path ./content/skills \
@@ -19,6 +19,6 @@ bash ./bin/aie-os-cli init \
   --languages typescript \
   --application-type cli
 
-bash bin/aie-os-cli build --tool codex [--project-path defaults/to/cwd]
+bash bin/cli build --tool codex [--project-path defaults/to/cwd]
 
 ```

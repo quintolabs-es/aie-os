@@ -141,7 +141,7 @@ Examples:
 Use this for true cross-dimension rules such as:
 
 - defaults for new C# APIs
-- rules for TypeScript CLI tools consumed through `bin/<app-name>`
+- rules for TypeScript CLI tools consumed through a repo-local wrapper such as `aie-os/bin/cli`
 - rules that apply only to TypeScript mobile apps
 
 Do not use `conditional/` for normal language-only, application-type-only, or framework-only rules.

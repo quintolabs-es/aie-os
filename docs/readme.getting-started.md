@@ -4,13 +4,13 @@ Use [`/content`](../content) folder as the starting point for shared principles,
 See [`docs/readme.create-content.md`](./readme.create-content.md) for the content structure and authoring rules.
 
 ### Clone `aie-os-cli` into the target project
-The repo also includes a ready-to-use [/content](../content) folder to help getting started quickly.
+The repo also includes a ready-to-use [`/content`](../content) folder for getting started.
 ```bash
 cd xample-app
 git clone https://github.com/quintolabs-es/aie-os-cli aie-os
 pnpm --dir aie-os run build
 ```
-**Ignore `aie-os-cli` in `.gitignore`.**
+**Ignore `aie-os` in `.gitignore`.**
 
 ### Initialize AIE OS
 The commands below assume the local clone workflow.
@@ -19,10 +19,10 @@ The commands below assume the local clone workflow.
 cd xample-app
 
 # interactive
-bash aie-os/bin/aie-os init [--project-path <defaults-to-cwd>]
+bash aie-os/bin/cli init [--project-path <defaults-to-cwd>]
 
 # OR explicit
-bash aie-os/bin/aie-os init \
+bash aie-os/bin/cli init \
   --kb-path <value> \
   --agent-path <value> \
   --agent-persona <value> \
@@ -51,7 +51,7 @@ bash aie-os/bin/aie-os init \
 
 E.g.
 ```bash
-bash aie-os/bin/aie-os init \
+bash aie-os/bin/cli init \
   --project-path ./xample-app \
   --kb-path ./content/knowledge-base \
   --agent-path ./content/agent \
@@ -63,32 +63,13 @@ bash aie-os/bin/aie-os init \
 
 ### Build agent context.
 ```bash
-bash aie-os/bin/aie-os build --tool codex
-bash aie-os/bin/aie-os build --tool codex [--project-path <defaults-to-cwd>]
+bash aie-os/bin/cli build --tool codex [--project-path <defaults-to-cwd>]
 ```
 * `--tool`: mandatory. Accepts `codex`. More adapters can be added.
 * `--project-path /path/to/project` optional, defaults to current directory.
 
-For running the CLI from this repository during development, see `readme.run-locally.md`.
-
-### What is added to the app project repository
-
-Commit to the target project repository:
-- `.aie-os/aie-os.json`
-- `.aie-os/project-coding-standards/`
-- `.aie-os/project-skills/`
-- `.aie-os/build/effective-context.json`
-- `.aie-os/build/skills/`
-- agent-specific generated artefacts (e.g. `AGENTS.md`)
-
-For `--tool codex`:
-- AIE OS indexes all shared and project skills in `AGENTS.md`
-- each skill entry includes the skill name, copied `SKILL.md` path, and usage description
-- shared and project skills are copied into `.aie-os/build/skills/` so `AGENTS.md` references only project-local paths
-
-
 ### Alternative to clone and build: run with `npx`
-Use this only when shared knowledge base, agent, and skills content (`/content` folder) already exist somewhere locally, to avodi having the cli code locally.
+Use this only when shared knowledge base, agent, and skills content (`/content` folder) already exist somewhere locally, to avoid having the CLI code locally.
 
 ```bash
 cd xample-app
