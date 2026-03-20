@@ -2,10 +2,10 @@
 
 **Make every coding agent, in every project, follow the same engineering and coding standards.**
 
-- Define coding principles, standards, and skills in a simple, maintainable structure.
-- Maintain those standards centrally and reuse them across multiple projects.
-- Add project-specific rules only where local variation is needed.
-- Build deterministic agent context from the same shared rules and skills.
+- Define coding **principles**, **standards**, and **skills** in a simple, maintainable structure.
+- Maintain those standards centrally and **reuse them** across multiple projects and agents.
+- Add **project-specific** rules and skills **only** where local variation is needed.
+- Build deterministic **agent context** from the same shared rules and skills.
 
 ## Problem
 I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding standards I set.
