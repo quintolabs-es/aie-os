@@ -1,16 +1,19 @@
 
 ### Create content
-Use `/content` folder here as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed. 
-See `docs/readme.create-content.md` for the content structure and authoring rules.
+Use [`/content`](../content) folder as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed.
+See [`docs/readme.create-content.md`](./readme.create-content.md) for the content structure and authoring rules.
 
 ### Clone `aie-os-cli` into the target project
+The repo also includes a ready-to-use [/content](../content) folder to help getting started quickly.
 ```bash
 cd xample-app
 git clone https://github.com/quintolabs-es/aie-os-cli aie-os
 pnpm --dir aie-os run build
 ```
+**Ignore `aie-os-cli` in `.gitignore`.**
 
 ### Initialize AIE OS
+The commands below assume the local clone workflow.
 
 ```bash
 cd xample-app
@@ -68,18 +71,6 @@ bash aie-os/bin/aie-os build --tool codex [--project-path <defaults-to-cwd>]
 
 For running the CLI from this repository during development, see `readme.run-locally.md`.
 
-### Ignore the local clone
-
-Do not commit the local `aie-os/` clone inside the target project. Add it to the target project's `.gitignore`.
-
-```gitignore
-aie-os/
-```
-
-### Bootstrap agent sessions
-
-After `build`, AIE OS prints the adapter-specific bootstrap prompt. Use that printed prompt as the first prompt in a new agent session so the agent reloads and follows the generated repository instructions from `AGENTS.md` before starting task work.
-
 ### What is added to the app project repository
 
 Commit to the target project repository:
@@ -94,3 +85,13 @@ For `--tool codex`:
 - AIE OS indexes all shared and project skills in `AGENTS.md`
 - each skill entry includes the skill name, copied `SKILL.md` path, and usage description
 - shared and project skills are copied into `.aie-os/build/skills/` so `AGENTS.md` references only project-local paths
+
+
+### Alternative to clone and build: run with `npx`
+Use this only when shared knowledge base, agent, and skills content (`/content` folder) already exist somewhere locally, to avodi having the cli code locally.
+
+```bash
+cd xample-app
+npx github:quintolabs-es/aie-os-cli init
+npx github:quintolabs-es/aie-os-cli build --tool codex
+```
