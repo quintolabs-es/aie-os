@@ -14,6 +14,16 @@ test("CLI help command prints usage text", async () => {
   assert.match(stdout, /^AIE OS\r?\n/u);
   assert.match(stdout, /Usage:\r?\n/u);
   assert.match(stdout, /aie-os-cli build --tool codex/u);
+  assert.match(stdout, /--kb-path\s+Knowledge-base path\./u);
+  assert.match(stdout, /--skills-path\s+\(optional\) Skills path\./u);
+  assert.match(
+    stdout,
+    /--agent-persona\s+Persona\. Accepted values are markdown file names from \[agent-path\]\/persona without \.md\./u,
+  );
+  assert.match(
+    stdout,
+    /--languages\s+\(optional\) Comma-separated language folder names from \[kb-path\]\/coding-standards\/language\./u,
+  );
 });
 
 test("CLI without a command shows a command-required error and help", async () => {

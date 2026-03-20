@@ -21,15 +21,21 @@ Commands:
   build
     Build the effective context and generate tool-specific artifacts. Build is non-interactive.
 
+Notes:
+  - init prompts only when no init configuration arguments are provided.
+  - Passing any init configuration argument switches init to explicit mode.
+  - In explicit mode, omitted optional values are treated as empty and required values must be provided.
+  - build never prompts and fails explicitly when required values are missing.
+
 Init options:
   --project-path                    Target repository. Defaults to the current directory.
-  --kb-path                         Shared knowledge-base path.
-  --agent-path                      Shared agent path.
-  --skills-path                     Shared skills path.
-  --agent-persona                   Agent persona.
-  --languages                       Comma-separated languages.
-  --application-type                Comma-separated application types.
-  --frameworks                      Comma-separated frameworks.
+  --kb-path                         Knowledge-base path.
+  --agent-path                      Agent path.
+  --skills-path                     (optional) Skills path.
+  --agent-persona                   Persona. Accepted values are markdown file names from [agent-path]/persona without .md.
+  --languages                       (optional) Comma-separated language folder names from [kb-path]/coding-standards/language.
+  --application-type                (optional) Comma-separated application-type folder names from [kb-path]/coding-standards/application-type.
+  --frameworks                      (optional) Comma-separated framework folder names from [kb-path]/coding-standards/framework.
 
 Build options:
   --project-path                    Target repository. Defaults to the current directory.
@@ -43,13 +49,7 @@ Examples:
   ${commandName} init --project-path /repo
   ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer
   ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --languages typescript --application-type cli
-  ${commandName} build --tool codex
-
-Notes:
-  - init prompts only when no init configuration arguments are provided.
-  - Passing any init configuration argument switches init to explicit mode.
-  - In explicit mode, omitted optional values are treated as empty and required values must be provided.
-  - build never prompts and fails explicitly when required values are missing.`;
+  ${commandName} build --tool codex`;
 
 export function parseCommandInput(argv: string[]): ParsedOptions {
   const [command, ...rest] = argv;

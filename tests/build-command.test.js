@@ -43,7 +43,7 @@ test("Build prints the codex bootstrap prompt after a successful build", async (
   );
   assert.match(
     normalizedStdout,
-    /│ Build complete\. Generated canonical context file \.aie-os\/build\/effective-context\.json and tool-specific file AGENTS\.md\. │/u,
+    /│ Build complete\. Generated canonical context file \.aie-os\/build\/effective-context\.json and AGENTS\.md\. │/u,
   );
   assert.match(
     normalizedStdout,
