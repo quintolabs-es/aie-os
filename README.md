@@ -1,6 +1,11 @@
 # AIE OS
 
-`AIE OS` defines a simple and easy to maintain standard way of creating coding principles and standards, as well as targetting skills in a way they can be used to build a deterministic context delivery for coding agents.
+**Make every coding agent, in every project, follow the same engineering and coding standards.**
+
+- Define coding principles, standards, and skills in a simple, maintainable structure.
+- Maintain those standards centrally and reuse them across multiple projects.
+- Add project-specific rules only where local variation is needed.
+- Build deterministic agent context from the same shared rules and skills.
 
 ## Problem
 I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding standards I set.
