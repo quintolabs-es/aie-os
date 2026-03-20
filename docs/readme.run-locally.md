@@ -6,6 +6,7 @@ Use the local wrapper at `./bin/aie-os-cli`.
 git clone https://www.github.com/quintolabs-es/aie-os-cli
 cd aie-os-cli
 pnpm run build
+pnpm run test
 
 # init interactive
 bash ./bin/aie-os-cli init [--project-path defaults/to/cwd]

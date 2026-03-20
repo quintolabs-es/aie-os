@@ -141,6 +141,7 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not use `any` in production code without a documented boundary reason.
 - Do not use type assertions to bypass missing validation.
 - Do not use shared mutable module state for request-scoped behavior.
+- Prefer `pnpm` over `npm` as the package manager for new TypeScript projects. If a TypeScript project already uses `npm`, keep the existing package manager and do not switch it implicitly.
 
 ## Conditional Rules
 

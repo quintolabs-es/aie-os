@@ -1,10 +1,13 @@
-import fsSync from "node:fs";
 import path from "node:path";
-import { aieStructure } from "../context/aieStructure";
 import { commandName } from "./commandName";
 import type { ExecutionOptions, InitExecutionOptions, ParsedOptions, ToolName } from "./types";
 
 const TOOL_NAME: ToolName = "codex";
+const INIT_DEFAULTS = {
+  agentPath: "content/agent",
+  kbPath: "content/knowledge-base",
+  skillsPath: "content/skills",
+} as const;
 
 export const usageText = `AIE OS
 
@@ -123,7 +126,7 @@ export function resolveExecutionOptions(
     return parsed.command === "init"
       ? {
           command: "init",
-          defaults: detectInitDefaults(projectPath),
+          defaults: { ...INIT_DEFAULTS },
           initialSelections: {},
           mode: "interactive",
           providedPaths: {},
@@ -166,12 +169,12 @@ export function resolveExecutionOptions(
     "--frameworks",
   ]);
 
-  const detectedDefaults = detectInitDefaults(projectPath);
+  const defaults = { ...INIT_DEFAULTS };
   const mode = hasExplicitInitConfig(parsed.options) ? "explicit" : "interactive";
 
   const initOptions: InitExecutionOptions = {
     command: "init",
-    defaults: detectedDefaults,
+    defaults,
     initialSelections: {
       applicationTypes: parseCsvSelections(parsed.options["--application-type"]),
       frameworks: parseCsvSelections(parsed.options["--frameworks"]),
@@ -200,36 +203,6 @@ function hasExplicitInitConfig(options: Record<string, string>): boolean {
     "--application-type",
     "--frameworks",
   ].some((optionName) => Object.prototype.hasOwnProperty.call(options, optionName));
-}
-
-function detectInitDefaults(projectPath: string) {
-  const projectLocalContentPath = path.join(
-    projectPath,
-    aieStructure.localTool.directoryName,
-    aieStructure.sharedContent.rootDirectoryName,
-  );
-  const skillsPath = path.join(
-    projectLocalContentPath,
-    aieStructure.sharedContent.skillsDirectoryName,
-  );
-
-  return {
-    kbPath: toProjectRelative(
-      projectPath,
-      path.join(
-        projectLocalContentPath,
-        aieStructure.sharedContent.knowledgeBaseDirectoryName,
-      ),
-    ),
-    agentPath: toProjectRelative(
-      projectPath,
-      path.join(
-        projectLocalContentPath,
-        aieStructure.sharedContent.agentDirectoryName,
-      ),
-    ),
-    skillsPath: pathExists(skillsPath) ? toProjectRelative(projectPath, skillsPath) : "",
-  };
 }
 
 function resolveProjectPath(cwd: string, explicitPath?: string): string {
@@ -305,8 +278,4 @@ function toProjectRelative(projectPath: string, absolutePath: string): string {
   }
 
   return absolutePath;
-}
-
-function pathExists(targetPath: string): boolean {
-  return fsSync.existsSync(targetPath);
 }

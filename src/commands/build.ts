@@ -1,5 +1,4 @@
 import path from "node:path";
-import fs from "node:fs/promises";
 import { stdout as output } from "node:process";
 import { getAdapter } from "../agentAdapters";
 import { agentArtifactWriter } from "../artifacts/agentArtifactWriter";
@@ -33,10 +32,6 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
     path.join(options.projectPath, aieRelativePaths.effectiveContextFile),
     `${JSON.stringify(buildOutput.effectiveContext, null, 2)}\n`,
   );
-  await fs.rm(path.join(options.projectPath, aieRelativePaths.legacyEffectiveContextMarkdownFile), {
-    force: true,
-  });
-
   await agentArtifactWriter.write(options.projectPath, adapterOutput);
 
   output.write(
