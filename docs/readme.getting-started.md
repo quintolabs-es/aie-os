@@ -92,6 +92,6 @@ Use this only when shared knowledge base, agent, and skills content (`/content` 
 
 ```bash
 cd xample-app
-npx github:quintolabs-es/aie-os-cli init
-npx github:quintolabs-es/aie-os-cli build --tool codex
+npx github:quintolabs-es/aie-os-cli init ...
+npx github:quintolabs-es/aie-os-cli build --tool codex ...
 ```
