@@ -5,6 +5,8 @@
 - Prefer unit tests for domain logic.
 - Prefer integration tests for persistence, network, or framework boundaries.
 - Prefer regression tests for previously broken behavior.
+- Name test files after the command or subsystem under test, using `<subject>.test.js`. Reserve `smoke` for a small set of end-to-end sanity checks only.
+- Always keep a small `smoke` test suite that covers only core end-to-end sanity checks, such as basic command invocation, help output, and required-argument failures.
 - Do not rely on snapshot-heavy tests without focused assertions.
 - Do not write tests that only verify mocks interacted in a certain order.
 - Do not use broad end-to-end coverage as the only test layer.

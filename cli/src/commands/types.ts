@@ -32,6 +32,7 @@ export type InitExecutionOptions = {
   command: "init";
   defaults: InitPromptDefaults;
   initialSelections: Partial<InitSelections>;
+  mode: "interactive" | "explicit";
   providedPaths: Partial<InitPromptDefaults>;
   projectPath: string;
 };

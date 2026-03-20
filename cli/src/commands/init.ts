@@ -25,12 +25,17 @@ import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from ".
 
 export async function initProject(options: InitExecutionOptions): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
+  const canPrompt = options.mode === "interactive" && canPromptInteractively();
+  if (options.mode === "interactive" && !canPrompt) {
+    throw new Error("Init requires a terminal when no init configuration arguments are provided.");
+  }
   const manifest = await collectManifest(
     options.projectPath,
     options.defaults,
     options.initialSelections,
+    options.mode,
     options.providedPaths,
-    canPromptInteractively(),
+    canPrompt,
   );
   await scaffoldProject(options.projectPath, manifest);
 }
@@ -39,10 +44,11 @@ async function collectManifest(
   projectPath: string,
   defaults: InitPromptDefaults,
   initialSelections: Partial<InitSelections>,
+  mode: InitExecutionOptions["mode"],
   providedPaths: Partial<InitPromptDefaults>,
   interactive: boolean,
 ): Promise<Manifest> {
-  const knowledgeBasePath = providedPaths.kbPath
+  const knowledgeBasePath = providedPaths.kbPath !== undefined
     ? providedPaths.kbPath
     : interactive
       ? await promptPath({
@@ -52,10 +58,10 @@ async function collectManifest(
           optionName: "--kb-path",
           projectPath,
         })
-      : defaults.kbPath;
+      : missingRequiredInitOption("--kb-path", mode);
   await ensureDirectoryType(resolveAgainstProject(projectPath, knowledgeBasePath), "Knowledge base path");
 
-  const agentPath = providedPaths.agentPath
+  const agentPath = providedPaths.agentPath !== undefined
     ? providedPaths.agentPath
     : interactive
       ? await promptPath({
@@ -65,7 +71,7 @@ async function collectManifest(
           optionName: "--agent-path",
           projectPath,
         })
-      : defaults.agentPath;
+      : missingRequiredInitOption("--agent-path", mode);
   await ensureDirectoryType(resolveAgainstProject(projectPath, agentPath), "Agent path");
 
   const skillsPath = providedPaths.skillsPath !== undefined
@@ -78,7 +84,7 @@ async function collectManifest(
           optionName: "--skills-path",
           projectPath,
         })
-      : defaults.skillsPath;
+      : "";
   if (skillsPath.trim() !== "") {
     await ensureDirectoryType(resolveAgainstProject(projectPath, skillsPath), "Skills path");
   }
@@ -89,6 +95,7 @@ async function collectManifest(
       agentPath,
       initialSelections,
       knowledgeBasePath,
+      mode,
     },
     interactive,
   );
@@ -112,6 +119,7 @@ async function collectSelections(
     agentPath: string;
     initialSelections: Partial<InitSelections>;
     knowledgeBasePath: string;
+    mode: InitExecutionOptions["mode"];
   },
   interactive: boolean,
 ): Promise<InitSelections> {
@@ -156,7 +164,7 @@ async function collectSelections(
           label: "Select persona",
           options: personaOptions,
         })
-      : missingRequiredInitOption("--agent-persona"));
+      : missingRequiredInitOption("--agent-persona", input.mode));
 
   const languages =
     validateMultiSelection(initial.languages, languageOptions, "languages", false) ??
@@ -169,7 +177,7 @@ async function collectSelections(
           label: "Select languages",
           options: languageOptions,
         })
-      : missingRequiredInitOption("--languages"));
+      : missingRequiredInitOption("--languages", input.mode));
 
   const applicationTypes =
     validateMultiSelection(initial.applicationTypes, applicationTypeOptions, "application types", true) ??
@@ -357,10 +365,17 @@ function validateSingleSelection(
   return selectedValue;
 }
 
-function missingRequiredInitOption(optionName: string): never {
-  throw new Error(
-    `Missing required option ${optionName}. Run "aie-os init" in a terminal to be prompted interactively.`,
-  );
+function missingRequiredInitOption(
+  optionName: string,
+  mode: InitExecutionOptions["mode"],
+): never {
+  if (mode === "explicit") {
+    throw new Error(
+      `Missing required option ${optionName}. Because init was started with explicit configuration arguments, all required init options must be provided.`,
+    );
+  }
+
+  throw new Error(`Missing required option ${optionName}. Run "aie-os init" in a terminal.`);
 }
 
 function capitalizeLabel(label: string): string {

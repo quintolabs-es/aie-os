@@ -13,7 +13,7 @@ Usage:
 
 Commands:
   init
-    Initialize AIE OS for the target project. Missing init values can be prompted interactively in a terminal.
+    Initialize AIE OS for the target project. With no init config arguments, init prompts interactively. If any init config argument is provided, init becomes explicit and requires all mandatory init options.
   build
     Build the effective context and generate tool-specific artifacts. Build is non-interactive.
 
@@ -36,11 +36,15 @@ Other options:
 
 Examples:
   aie-os init
-  aie-os init --agent-persona software-developer --languages typescript --application-type cli
+  aie-os init --project-path /repo
+  aie-os init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --languages typescript
+  aie-os init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --languages typescript --application-type cli
   aie-os build --tool codex
 
 Notes:
-  - init prompts for missing values only when running in a terminal.
+  - init prompts only when no init configuration arguments are provided.
+  - Passing any init configuration argument switches init to explicit mode.
+  - In explicit mode, omitted optional values are treated as empty and required values must be provided.
   - build never prompts and fails explicitly when required values are missing.`;
 
 export function parseCommandInput(argv: string[]): ParsedOptions {
@@ -120,6 +124,7 @@ export function resolveExecutionOptions(
           command: "init",
           defaults: detectInitDefaults(projectPath),
           initialSelections: {},
+          mode: "interactive",
           providedPaths: {},
           projectPath,
         }
@@ -161,21 +166,18 @@ export function resolveExecutionOptions(
   ]);
 
   const detectedDefaults = detectInitDefaults(projectPath);
+  const mode = hasExplicitInitConfig(parsed.options) ? "explicit" : "interactive";
 
   const initOptions: InitExecutionOptions = {
     command: "init",
-    defaults: {
-      ...detectedDefaults,
-      agentPath: coalesceOption(parsed.options["--agent-path"], detectedDefaults.agentPath),
-      skillsPath: coalesceOption(parsed.options["--skills-path"], detectedDefaults.skillsPath),
-      kbPath: coalesceOption(parsed.options["--kb-path"], detectedDefaults.kbPath),
-    },
+    defaults: detectedDefaults,
     initialSelections: {
       applicationTypes: parseCsvSelections(parsed.options["--application-type"]),
       frameworks: parseCsvSelections(parsed.options["--frameworks"]),
       languages: parseCsvSelections(parsed.options["--languages"]),
       persona: normalizeOptionalSelection(parsed.options["--agent-persona"]),
     },
+    mode,
     providedPaths: {
       agentPath: normalizeCliPathOption(cwd, projectPath, parsed.options["--agent-path"]),
       kbPath: normalizeCliPathOption(cwd, projectPath, parsed.options["--kb-path"]),
@@ -185,6 +187,18 @@ export function resolveExecutionOptions(
   };
 
   return initOptions;
+}
+
+function hasExplicitInitConfig(options: Record<string, string>): boolean {
+  return [
+    "--kb-path",
+    "--agent-path",
+    "--skills-path",
+    "--agent-persona",
+    "--languages",
+    "--application-type",
+    "--frameworks",
+  ].some((optionName) => Object.prototype.hasOwnProperty.call(options, optionName));
 }
 
 function detectInitDefaults(projectPath: string) {
@@ -264,10 +278,6 @@ function resolveProjectPath(cwd: string, explicitPath?: string): string {
   }
 
   return path.resolve(cwd, explicitPath);
-}
-
-function coalesceOption(value: string | undefined, fallback: string): string {
-  return value ? value : fallback;
 }
 
 function rejectUnsupportedOptions(

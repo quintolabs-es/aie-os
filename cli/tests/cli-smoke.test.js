@@ -5,9 +5,9 @@ const { promisify } = require("node:util");
 const test = require("node:test");
 
 const execFileAsync = promisify(execFile);
+const cliEntry = path.join(__dirname, "..", "dist", "index.js");
 
 test("CLI help command prints usage text", async () => {
-  const cliEntry = path.join(__dirname, "..", "dist", "index.js");
   const { stdout, stderr } = await execFileAsync(process.execPath, [cliEntry, "--help"]);
 
   assert.equal(stderr, "");
@@ -17,8 +17,6 @@ test("CLI help command prints usage text", async () => {
 });
 
 test("CLI without a command shows a command-required error and help", async () => {
-  const cliEntry = path.join(__dirname, "..", "dist", "index.js");
-
   await assert.rejects(
     execFileAsync(process.execPath, [cliEntry]),
     (error) => {
@@ -31,8 +29,6 @@ test("CLI without a command shows a command-required error and help", async () =
 });
 
 test("Build command requires --tool", async () => {
-  const cliEntry = path.join(__dirname, "..", "dist", "index.js");
-
   await assert.rejects(
     execFileAsync(process.execPath, [cliEntry, "build"]),
     (error) => {
