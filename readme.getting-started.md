@@ -4,6 +4,9 @@ cd xample-app
 git clone https://github.com/quintolabs-es/aie-os
 npm --prefix aie-os/cli run build
 ```
+
+**Add `aie-os` folder to `.gitignore`.**
+
 ### Create content
 Check `readme.create-content.md` for instructions on how to add principles, standards, skills, agent universal rules, and agent personas.
 
