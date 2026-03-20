@@ -14,10 +14,10 @@ Skills are copied to project folder (.aie-os) and referenced in the aggregated c
 ## Create content
 The content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
 
-Check `docs/readme.create-content.md` for instructions to create content.
+Check [docs/readme.create-content.md](docs/readme.create-content.md) for instructions to create content.
 
 ## Getting started
-Check `docs/readme.getting-started.md` for installation and target-project usage.
+Check [docs/readme.getting-started.md](docs/readme.getting-started.md) for installation and target-project usage.
 
 ## Target project structure
 AIE OS must be installed in the target project as a package. The target project stores only project-local AIE OS configuration and generated artifacts under `.aie-os/`.

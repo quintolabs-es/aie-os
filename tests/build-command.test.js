@@ -8,6 +8,7 @@ const { createInitFixture } = require("./init-test-helpers");
 
 const execFileAsync = promisify(execFile);
 const cliEntry = path.join(__dirname, "..", "dist", "index.js");
+const ansiPattern = /\u001B\[[0-9;]*m/gu;
 
 test("Build prints the codex bootstrap prompt after a successful build", async () => {
   const fixture = await createInitFixture();
@@ -33,19 +34,24 @@ test("Build prints the codex bootstrap prompt after a successful build", async (
     "--project-path",
     fixture.projectPath,
   ]);
+  const normalizedStdout = stdout.replace(ansiPattern, "");
 
   assert.equal(stderr, "");
   assert.match(
-    stdout,
+    normalizedStdout,
     /Build complete\. Generated \.aie-os\/build\/effective-context\.json and AGENTS\.md\./u,
   );
-  assert.match(stdout, /Bootstrap prompt:/u);
+  assert.match(normalizedStdout, /Bootstrap prompt/u);
   assert.match(
-    stdout,
+    normalizedStdout,
+    /Use this first prompt in the next agent session to make sure the agent reloads and follows the instructions from the context you just built\./u,
+  );
+  assert.match(
+    normalizedStdout,
     /Read `AGENTS\.md` at the repo root and treat it as the authoritative instruction set/u,
   );
   assert.match(
-    stdout,
+    normalizedStdout,
     /reload `AGENTS\.md` from disk before continuing instead of relying on memory\./u,
   );
 

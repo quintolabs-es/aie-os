@@ -8,6 +8,15 @@ import { fileExists, writeText } from "../context/filesystem";
 import { loadManifest } from "../context/manifest";
 import type { BuildExecutionOptions } from "./types";
 
+const ansi = {
+  bold: "\u001B[1m",
+  cyan: "\u001B[36m",
+  dim: "\u001B[2m",
+  green: "\u001B[32m",
+  reset: "\u001B[0m",
+  yellow: "\u001B[33m",
+} as const;
+
 export async function buildProject(options: BuildExecutionOptions): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
 
@@ -39,8 +48,10 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
       "",
       `Build complete. Generated ${aieRelativePaths.effectiveContextFile} and ${adapterOutput.primaryArtifact}.`,
       "",
-      "Bootstrap prompt:",
-      adapterOutput.bootstrapPrompt,
+      `${ansi.bold}${ansi.cyan}Bootstrap prompt${ansi.reset}`,
+      "Use this first prompt in the next agent session to make sure the agent reloads and follows the instructions from the context you just built.",
+      "",
+      `${ansi.dim}${ansi.green}${adapterOutput.bootstrapPrompt}${ansi.reset}`,
       "",
     ].join("\n"),
   );
