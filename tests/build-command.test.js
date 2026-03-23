@@ -10,7 +10,7 @@ const execFileAsync = promisify(execFile);
 const cliEntry = path.join(__dirname, "..", "dist", "index.js");
 const ansiPattern = /\u001B\[[0-9;]*m/gu;
 
-test("Build prints the codex bootstrap prompt after a successful build", async () => {
+test("Build uses the default adapter and prints the bootstrap prompt after a successful build", async () => {
   const fixture = await createInitFixture();
 
   await execFileAsync(process.execPath, [
@@ -29,8 +29,6 @@ test("Build prints the codex bootstrap prompt after a successful build", async (
   const { stderr, stdout } = await execFileAsync(process.execPath, [
     cliEntry,
     "build",
-    "--tool",
-    "codex",
     "--project-path",
     fixture.projectPath,
   ]);

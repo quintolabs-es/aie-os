@@ -1,11 +1,11 @@
 {
-  "name": "aie-os-cli",
+  "name": "aie-os",
   "version": "0.1.0",
   "description": "CLI for building and delivering AIE OS agent context",
   "license": "UNLICENSED",
   "packageManager": "pnpm@10.8.1",
   "bin": {
-    "aie-os-cli": "./dist/index.js"
+    "aie-os": "./dist/index.js"
   },
   "main": "./dist/index.js",
   "files": [

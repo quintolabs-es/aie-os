@@ -19,10 +19,10 @@ The commands below assume the local clone workflow.
 cd xample-app
 
 # interactive
-bash aie-os/bin/cli init [--project-path <defaults-to-cwd>]
+bash aie-os/bin/aie-os init 
 
 # OR explicit
-bash aie-os/bin/cli init \
+bash aie-os/bin/aie-os init \
   --kb-path <value> \
   --agent-path <value> \
   --agent-persona <value> \
@@ -30,7 +30,6 @@ bash aie-os/bin/cli init \
   [--application-type <value1,value2>] \
   [--frameworks <value1,value2>] \
   [--skills-path <value>] \
-  [--project-path <defaults-to-cwd>]
 ```
 
 #### `init` command options:
@@ -49,23 +48,12 @@ bash aie-os/bin/cli init \
 - `--project-path` alone does not switch `init` to explicit mode
 - in explicit mode, omitted optional values become empty/unset and `init` does not prompt
 
-E.g.
-```bash
-bash aie-os/bin/cli init \
-  --project-path ./xample-app \
-  --kb-path ./content/knowledge-base \
-  --agent-path ./content/agent \
-  --skills-path ./content/skills \
-  --agent-persona software-developer \
-  --application-type api,mobile \
-  --frameworks react-native
-```
-
 ### Build agent context.
+Build context and generate the adapter artifacts. `build` uses the `default` adapter when `--tool` is omitted.
 ```bash
-bash aie-os/bin/cli build --tool codex [--project-path <defaults-to-cwd>]
+bash aie-os/bin/aie-os build [--project-path <value>] [--tool default]
 ```
-* `--tool`: mandatory. Accepts `codex`. More adapters can be added.
+* `--tool`: optional. Defaults to `default`.
 * `--project-path /path/to/project` optional, defaults to current directory.
 
 ### Alternative to clone and build: run with `npx`
@@ -74,5 +62,5 @@ Use this only when shared knowledge base, agent, and skills content (`/content` 
 ```bash
 cd xample-app
 npx github:quintolabs-es/aie-os init ...
-npx github:quintolabs-es/aie-os build --tool codex ...
+npx github:quintolabs-es/aie-os build ...
 ```

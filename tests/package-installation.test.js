@@ -9,20 +9,20 @@ const test = require("node:test");
 const execFileAsync = promisify(execFile);
 const repoRoot = path.join(__dirname, "..");
 
-test("Package metadata exposes the installed aie-os-cli command", async () => {
+test("Package metadata exposes the installed aie-os command", async () => {
   const packageJson = JSON.parse(
     await fs.readFile(path.join(repoRoot, "package.json"), "utf8"),
   );
 
   assert.deepEqual(packageJson.bin, {
-    "aie-os-cli": "./dist/index.js",
+    "aie-os": "./dist/index.js",
   });
   assert.equal(packageJson.scripts.compile, "tsc -p tsconfig.json");
   assert.equal(packageJson.scripts.build, "pnpm install && pnpm compile");
   assert.equal(packageJson.scripts.prepare, "pnpm compile");
 });
 
-test("Packed install exposes pnpm aie-os-cli", async () => {
+test("Packed install exposes pnpm aie-os", async () => {
   const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), "aie-os-package-"));
   const consumerPath = path.join(rootPath, "consumer");
   const npmCachePath = path.join(rootPath, ".npm-cache");
@@ -59,12 +59,12 @@ test("Packed install exposes pnpm aie-os-cli", async () => {
     maxBuffer: 10 * 1024 * 1024,
   });
 
-  const { stdout, stderr } = await execFileAsync("pnpm", ["aie-os-cli", "--help"], {
+  const { stdout, stderr } = await execFileAsync("pnpm", ["aie-os", "--help"], {
     cwd: consumerPath,
     maxBuffer: 10 * 1024 * 1024,
   });
 
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
-  assert.match(stdout, /aie-os-cli build --tool codex/u);
+  assert.match(stdout, /aie-os build \[options\]/u);
 });

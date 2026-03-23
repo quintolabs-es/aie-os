@@ -13,7 +13,7 @@ test("CLI help command prints usage text", async () => {
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
   assert.match(stdout, /Usage:\r?\n/u);
-  assert.match(stdout, /aie-os-cli build --tool codex/u);
+  assert.match(stdout, /aie-os build \[options\]/u);
   assert.match(stdout, /--kb-path\s+Knowledge-base path\./u);
   assert.match(stdout, /--skills-path\s+\(optional\) Skills path\./u);
   assert.match(
@@ -38,12 +38,12 @@ test("CLI without a command shows a command-required error and help", async () =
   );
 });
 
-test("Build command requires --tool", async () => {
+test("Build command rejects unsupported tools", async () => {
   await assert.rejects(
-    execFileAsync(process.execPath, [cliEntry, "build"]),
+    execFileAsync(process.execPath, [cliEntry, "build", "--tool", "codex"]),
     (error) => {
       assert.equal(error.code, 1);
-      assert.match(error.stderr, /Missing required option --tool/u);
+      assert.match(error.stderr, /Unsupported tool: codex/u);
       return true;
     },
   );

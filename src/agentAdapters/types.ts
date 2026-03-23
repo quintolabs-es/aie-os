@@ -1,4 +1,4 @@
-export type AdapterTool = "codex";
+export type AdapterTool = "default";
 
 export type EffectiveContextBlock = {
   content: string;

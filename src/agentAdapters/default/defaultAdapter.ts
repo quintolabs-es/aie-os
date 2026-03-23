@@ -1,11 +1,16 @@
-import { codexSkillAdapter } from "./codexSkillAdapter";
-import type { Adapter, AdapterOutput, EffectiveContext, EffectiveContextBlock } from "./types";
+import { defaultSkillAdapter } from "./defaultSkillAdapter";
+import type {
+  Adapter,
+  AdapterOutput,
+  EffectiveContext,
+  EffectiveContextBlock,
+} from "../types";
 
 const instructionsFileName = "AGENTS.md";
 
-export const codexAdapter: Adapter = {
+export const defaultAdapter: Adapter = {
   async build(input): Promise<AdapterOutput> {
-    const skillAdapterOutput = codexSkillAdapter.build(input);
+    const skillAdapterOutput = defaultSkillAdapter.build(input);
     const warnings = input.effectiveContext.skills.flatMap((skill) => skill.warnings);
 
     const contents = [
@@ -33,7 +38,7 @@ export const codexAdapter: Adapter = {
       warnings,
     };
   },
-  tool: "codex",
+  tool: "default",
 };
 
 function renderBootstrapPrompt(instructionsFileName: string): string {

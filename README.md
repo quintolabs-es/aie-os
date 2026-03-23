@@ -13,7 +13,7 @@ I want to build this knowledge base of standards, and be able to use them to cre
 
 ## How AIE-OS works in a nutshell
 On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
-On `build` it aggregates all the relevant rules from the specified locations and builds a final agent-specific (codex, claude..) context file.
+On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
 Skills are copied to project folder (.aie-os) and referenced in the aggregated context file. Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
 
 ## Create content
@@ -63,5 +63,5 @@ xample-app/
 
 ## Agent Adapters
 - Adapters transform the canonical effective context into the agent-specific files each tool expects.
-- `codex` writes `AGENTS.md` at the target project root using the canonical effective context built in `.aie-os/build/effective-context.json`.
-- `codex` also snapshots all configured skills under `.aie-os/build/skills/` and renders an `Available Skills` section in `AGENTS.md` with the copied `SKILL.md` paths and usage descriptions.
+- `default` writes `AGENTS.md` at the target project root using the canonical effective context built in `.aie-os/build/effective-context.json`.
+- `default` also snapshots all configured skills under `.aie-os/build/skills/` and renders an `Available Skills` section in `AGENTS.md` with the copied `SKILL.md` paths and usage descriptions.

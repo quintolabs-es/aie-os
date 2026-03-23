@@ -63,7 +63,7 @@ Given the user-provided tool name:
     - `cursorAdapter`
 
 - `adapterFile`
-  - `src/agentAdapters/${adapterBaseName}Adapter.ts`
+  - `src/agentAdapters/${toolKey}/${adapterBaseName}Adapter.ts`
 
 ## Workflow
 
@@ -75,7 +75,7 @@ Given the user-provided tool name:
 2. Create `adapterFile` with this exact scaffold, replacing the placeholders:
 
 ```ts
-import type { Adapter, AdapterOutput } from "./types";
+import type { Adapter, AdapterOutput } from "../types";
 
 export const <adapterSymbol>: Adapter = {
   tool: "<toolKey>",
@@ -90,7 +90,7 @@ export const <adapterSymbol>: Adapter = {
       ],
       primaryArtifact: "TODO-<toolKey>-artifact.txt",
       warnings: [
-        "Implement tool-specific artifact rendering in src/agentAdapters/<adapterBaseName>Adapter.ts.",
+        "Implement tool-specific artifact rendering in src/agentAdapters/<toolKey>/<adapterBaseName>Adapter.ts.",
       ],
     };
   },
@@ -102,13 +102,13 @@ export const <adapterSymbol>: Adapter = {
 Change:
 
 ```ts
-export type AdapterTool = "codex";
+export type AdapterTool = "default";
 ```
 
 To:
 
 ```ts
-export type AdapterTool = "codex" | "<toolKey>";
+export type AdapterTool = "default" | "<toolKey>";
 ```
 
 If more tools already exist, append `| "<toolKey>"` to the union instead of rewriting unrelated values.
@@ -118,7 +118,7 @@ If more tools already exist, append `| "<toolKey>"` to the union instead of rewr
 Add the import:
 
 ```ts
-import { <adapterSymbol> } from "./<adapterBaseName>Adapter";
+import { <adapterSymbol> } from "./<toolKey>/<adapterBaseName>Adapter";
 ```
 
 Add the registry entry:
@@ -142,14 +142,14 @@ import type { ToolName } from "./types";
 - replace the single-tool constant:
 
 ```ts
-const TOOL_NAME = "codex";
+const DEFAULT_TOOL_NAME = "default";
 ```
 
 With:
 
 ```ts
-const DEFAULT_TOOL_NAME: ToolName = "codex";
-const SUPPORTED_TOOLS: ToolName[] = ["codex", "<toolKey>"];
+const DEFAULT_TOOL_NAME: ToolName = "default";
+const SUPPORTED_TOOLS: ToolName[] = ["default", "<toolKey>"];
 const SUPPORTED_TOOLS_CLI = SUPPORTED_TOOLS.join("|");
 const SUPPORTED_TOOLS_TEXT = SUPPORTED_TOOLS.join(", ");
 ```
@@ -157,7 +157,7 @@ const SUPPORTED_TOOLS_TEXT = SUPPORTED_TOOLS.join(", ");
 - update `usageText` so the build usage line becomes:
 
 ```ts
-  build --tool <${SUPPORTED_TOOLS_CLI}> [--project-path <path>]
+  build [--project-path <path>] [--tool <${SUPPORTED_TOOLS_CLI}>]
 ```
 
 - update the `--tool` option description to:
@@ -169,7 +169,7 @@ const SUPPORTED_TOOLS_TEXT = SUPPORTED_TOOLS.join(", ");
 - update the help fallback build tool from:
 
 ```ts
-tool: TOOL_NAME,
+tool: DEFAULT_TOOL_NAME,
 ```
 
 To:
@@ -184,6 +184,12 @@ tool: DEFAULT_TOOL_NAME,
 if (!SUPPORTED_TOOLS.includes(tool as ToolName)) {
   throw new Error(`Unsupported tool: ${tool}`);
 }
+```
+
+- default the tool when omitted:
+
+```ts
+const tool = parsed.options["--tool"] ?? DEFAULT_TOOL_NAME;
 ```
 
 - update the final build execution options return to:
@@ -203,8 +209,8 @@ After the scaffold is created, report:
 - the files added or updated
 - the generated adapter file path
 - these exact next steps for the contributor:
-  1. implement the tool-specific rendering logic in `src/agentAdapters/<adapterBaseName>Adapter.ts`
+  1. implement the tool-specific rendering logic in `src/agentAdapters/<toolKey>/<adapterBaseName>Adapter.ts`
   2. replace the placeholder output path, contents, and bootstrap prompt in that adapter file
   3. run `pnpm run build`
-  4. run `bash bin/aie-os build --tool <toolKey> --project-path <path-to-test-project>`
+  4. run `bash bin/aie-os build --project-path <path-to-test-project> --tool <toolKey>`
   5. inspect the generated artifact written by the new adapter

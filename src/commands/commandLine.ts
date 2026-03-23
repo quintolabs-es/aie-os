@@ -2,7 +2,8 @@ import path from "node:path";
 import { commandName } from "./commandName";
 import type { ExecutionOptions, InitExecutionOptions, ParsedOptions, ToolName } from "./types";
 
-const TOOL_NAME: ToolName = "codex";
+const DEFAULT_TOOL_NAME: ToolName = "default";
+const SUPPORTED_TOOLS: ToolName[] = [DEFAULT_TOOL_NAME];
 const INIT_DEFAULTS = {
   agentPath: "aie-os/content/agent",
   kbPath: "aie-os/content/knowledge-base",
@@ -13,7 +14,7 @@ export const usageText = `AIE OS
 
 Usage:
   ${commandName} init [options]
-  ${commandName} build --tool codex [options]
+  ${commandName} build [options]
 
 Commands:
   init
@@ -39,7 +40,7 @@ Init options:
 
 Build options:
   --project-path                    Target repository. Defaults to the current directory.
-  --tool                            Delivery adapter target. Required. Only codex is supported in v1.
+  --tool                            Delivery adapter target. Defaults to default.
 
 Other options:
   -h, --help                        Show help.
@@ -49,7 +50,8 @@ Examples:
   ${commandName} init --project-path /repo
   ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer
   ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --languages typescript --application-type cli
-  ${commandName} build --tool codex`;
+  ${commandName} build
+  ${commandName} build --tool default`;
 
 export function parseCommandInput(argv: string[]): ParsedOptions {
   const [command, ...rest] = argv;
@@ -135,26 +137,23 @@ export function resolveExecutionOptions(
       : {
           command: "build",
           projectPath,
-          tool: TOOL_NAME,
+          tool: DEFAULT_TOOL_NAME,
         };
   }
 
   if (parsed.command === "build") {
     rejectUnsupportedOptions(parsed.options, ["--tool", "--project-path"]);
 
-    const tool = parsed.options["--tool"];
-    if (!tool) {
-      throw new Error("Missing required option --tool");
-    }
+    const tool = parsed.options["--tool"] ?? DEFAULT_TOOL_NAME;
 
-    if (tool !== TOOL_NAME) {
+    if (!SUPPORTED_TOOLS.includes(tool as ToolName)) {
       throw new Error(`Unsupported tool: ${tool}`);
     }
 
     return {
       command: "build",
       projectPath,
-      tool: TOOL_NAME,
+      tool: tool as ToolName,
     };
   }
 

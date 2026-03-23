@@ -17,13 +17,16 @@ An adapter must not:
 
 The extension model is:
 
-1. one adapter file under:
-   - `src/agentAdapters/<tool>Adapter.ts`
-2. one static registry entry in:
+1. one adapter folder under:
+   - `src/agentAdapters/<tool>/`
+2. the adapter implementation file inside that folder:
+   - `src/agentAdapters/<tool>/<tool>Adapter.ts`
+3. optional adapter-local helpers in the same folder
+4. one static registry entry in:
    - `src/agentAdapters/index.ts`
-3. one supported tool type update in:
+5. one supported tool type update in:
    - `src/agentAdapters/types.ts`
-4. CLI support in:
+6. CLI support in:
    - `src/commands/commandLine.ts`
 
 ### Adapter input
@@ -83,7 +86,7 @@ After the skill scaffolds the new tool, the contributor still needs to:
 ### Minimal example
 
 ```ts
-import type { Adapter } from "./types";
+import type { Adapter } from "../types";
 
 export const exampleAdapter: Adapter = {
   tool: "example",
@@ -116,13 +119,13 @@ export const exampleAdapter: Adapter = {
 ### Registry example
 
 ```ts
-import { codexAdapter } from "./codexAdapter";
-import { exampleAdapter } from "./exampleAdapter";
+import { defaultAdapter } from "./default/defaultAdapter";
+import { exampleAdapter } from "./example/exampleAdapter";
 
 const adapters = {
-  codex: codexAdapter,
+  default: defaultAdapter,
   example: exampleAdapter,
 };
 ```
 
-One adapter file plus one registry line is the intended extension path. The project skill automates the rest of the deterministic setup.
+One adapter folder plus one registry line is the intended extension path. The project skill automates the rest of the deterministic setup.

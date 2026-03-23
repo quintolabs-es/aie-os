@@ -12,12 +12,11 @@ test("Init defaults are fixed project-local content paths", () => {
 
   assert.equal(executionOptions.command, "init");
   assert.deepEqual(executionOptions.defaults, {
-    agentPath: "content/agent",
-    kbPath: "content/knowledge-base",
-    skillsPath: "content/skills",
+    agentPath: "aie-os/content/agent",
+    kbPath: "aie-os/content/knowledge-base",
+    skillsPath: "aie-os/content/skills",
   });
   assert.equal(executionOptions.mode, "interactive");
-  assert.doesNotMatch(JSON.stringify(executionOptions.defaults), /aie-os/u);
 });
 
 test("Init defaults stay the same when --project-path is provided", () => {
@@ -29,8 +28,16 @@ test("Init defaults stay the same when --project-path is provided", () => {
   assert.equal(executionOptions.command, "init");
   assert.equal(executionOptions.projectPath, "/tmp/workspace/nested/project");
   assert.deepEqual(executionOptions.defaults, {
-    agentPath: "content/agent",
-    kbPath: "content/knowledge-base",
-    skillsPath: "content/skills",
+    agentPath: "aie-os/content/agent",
+    kbPath: "aie-os/content/knowledge-base",
+    skillsPath: "aie-os/content/skills",
   });
+});
+
+test("Build defaults to the default adapter when --tool is omitted", () => {
+  const executionOptions = resolveExecutionOptions(parseCommandInput(["build"]), "/tmp/example-project");
+
+  assert.equal(executionOptions.command, "build");
+  assert.equal(executionOptions.projectPath, "/tmp/example-project");
+  assert.equal(executionOptions.tool, "default");
 });

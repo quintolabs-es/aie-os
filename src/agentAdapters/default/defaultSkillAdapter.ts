@@ -1,10 +1,10 @@
 import path from "node:path";
-import { aieRelativePaths, aieStructure } from "../context/aieStructure";
-import type { AdapterInput, SkillAdapterOutput } from "./types";
+import { aieRelativePaths, aieStructure } from "../../context/aieStructure";
+import type { AdapterInput, SkillAdapterOutput } from "../types";
 
 const BUILD_SKILLS_DIRECTORY = aieRelativePaths.buildSkillsDirectory;
 
-export const codexSkillAdapter = {
+export const defaultSkillAdapter = {
   build(input: AdapterInput): SkillAdapterOutput {
     const copies = input.effectiveContext.skills.map((skill) => ({
       destination: path.join(BUILD_SKILLS_DIRECTORY, skill.scope, skill.name),

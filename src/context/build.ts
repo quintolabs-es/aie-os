@@ -8,6 +8,7 @@ import {
 import { aieStructure } from "./aieStructure";
 import type { Manifest } from "./manifest";
 import type {
+  AdapterTool,
   EffectiveContext,
   EffectiveContextBlock,
   EffectiveContextInputs,
@@ -19,12 +20,12 @@ import type {
 export type BuildInput = {
   manifest: Manifest;
   projectPath: string;
-  tool: "codex";
+  tool: AdapterTool;
 };
 
 export type BuildOutput = {
   effectiveContext: EffectiveContext;
-  tool: "codex";
+  tool: AdapterTool;
 };
 
 type ConditionalAppliesTo = {
