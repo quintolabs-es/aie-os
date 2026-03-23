@@ -69,7 +69,7 @@ bash aie-os/bin/cli build --tool codex [--project-path <defaults-to-cwd>]
 * `--project-path /path/to/project` optional, defaults to current directory.
 
 ### Alternative to clone and build: run with `npx`
-Use this only when shared knowledge base, agent, and skills content (`/content` folder) already exist somewhere locally, to avoid having the CLI code locally.
+Use this only when shared knowledge base, agent, and skills content (`/content` folder) already exist somewhere locally, and you don't need to have/clone the CLI code locally.
 
 ```bash
 cd xample-app
