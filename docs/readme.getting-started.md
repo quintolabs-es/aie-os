@@ -19,10 +19,10 @@ The commands below assume the local clone workflow.
 cd xample-app
 
 # interactive
-bash aie-os/bin/aie-os init 
+bash aie-os/bin/cli init 
 
 # OR explicit
-bash aie-os/bin/aie-os init \
+bash aie-os/bin/cli init \
   --kb-path <value> \
   --agent-path <value> \
   --agent-persona <value> \
@@ -51,7 +51,7 @@ bash aie-os/bin/aie-os init \
 ### Build agent context.
 Build context and generate the adapter artifacts. `build` uses the `default` adapter when `--tool` is omitted.
 ```bash
-bash aie-os/bin/aie-os build [--project-path <value>] [--tool default]
+bash aie-os/bin/cli build [--project-path <value>] [--tool default]
 ```
 * `--tool`: optional. Defaults to `default`.
 * `--project-path /path/to/project` optional, defaults to current directory.

@@ -18,7 +18,7 @@
   },
   "criticalRules": [
     {
-      "content": "- When the user's entire message is exactly `knock knock`, reply with exactly `Vendo enanitos verdes.` and output nothing else.\n- Before implementation, confirm the requested change is clear and there are no open questions.\n- For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.\n- For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.\n- Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.\n- When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.\n- Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.\n- Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.",
+      "content": "- When the user's entire message is exactly `knock knock`, reply with exactly `Vendo enanitos verdes.` and output nothing else.\n- Before implementation, confirm the requested change is clear and there are no open questions.\n- For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.\n- For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.\n- Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.\n- Do not edit `AGENTS.md` directly. Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-standards/`, then rebuild.\n- When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.\n- Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.\n- Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.",
       "layer": "Agent Rules",
       "sectionLabel": "Agent Rules",
       "source": "/Users/luismesa/Documents/src/aie-os/content/agent/universal/critical-rules.md"
@@ -62,7 +62,7 @@
       "source": "/Users/luismesa/Documents/src/aie-os/content/knowledge-base/coding-standards/language/typescript/typescript.md"
     },
     {
-      "content": "- Expose the real installed CLI through the package `bin` field.\n- Prefer a short repo-local wrapper when the tool folder already provides the namespace, for example `aie-os/bin/aie-os`.\n- Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.\n- Put command implementations under `src/commands/`.\n- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.\n- Prefer one real executable entrypoint even when local and installed command surfaces differ.\n- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.\n- Prefer command parsing and command execution implemented in TypeScript source.\n- Do not put business logic in shell wrappers.\n- Do not create generic catch-all files such as `utils.ts` for unrelated behavior.",
+      "content": "- Expose the real installed CLI through the package `bin` field.\n- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.\n- Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.\n- Put command implementations under `src/commands/`.\n- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.\n- Prefer one real executable entrypoint even when local and installed command surfaces differ.\n- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.\n- Prefer command parsing and command execution implemented in TypeScript source.\n- Do not put business logic in shell wrappers.\n- Do not create generic catch-all files such as `utils.ts` for unrelated behavior.",
       "layer": "Conditional Coding Standards",
       "sectionLabel": "Conditional Rules",
       "source": "/Users/luismesa/Documents/src/aie-os/content/knowledge-base/coding-standards/conditional/typescript-cli.md"
@@ -70,11 +70,27 @@
   ],
   "skills": [
     {
+      "description": "Use this skill when the user wants to create or update a project-specific skill under `.aie-os/project-skills/`. It creates the skill folder, writes a concise `SKILL.md`, and keeps the instructions aligned with this repo's local skill conventions.",
+      "entrypoint": "SKILL.md",
+      "name": "create-project-skill",
+      "scope": "shared",
+      "source": "/Users/luismesa/Documents/src/aie-os/content/skills/create-project-skill",
+      "warnings": []
+    },
+    {
       "description": "Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates all deterministic registration points, and then tells the contributor exactly what remains to implement in the adapter file.",
       "entrypoint": "SKILL.md",
       "name": "add-tool-adapter",
       "scope": "project",
       "source": ".aie-os/project-skills/add-tool-adapter",
+      "warnings": []
+    },
+    {
+      "description": "Use this skill when the user wants to create or update a shared universal skill under `content/skills/` in this repository. It creates the shared skill folder and writes a concise `SKILL.md` aligned with this repo's shared skill conventions.",
+      "entrypoint": "SKILL.md",
+      "name": "create-universal-skill",
+      "scope": "project",
+      "source": ".aie-os/project-skills/create-universal-skill",
       "warnings": []
     }
   ]

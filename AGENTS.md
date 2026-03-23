@@ -28,6 +28,7 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.
 - For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.
 - Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.
+- Do not edit `AGENTS.md` directly. Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-standards/`, then rebuild.
 - When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.
 - Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.
 - Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.
@@ -146,7 +147,7 @@ You are a pragmatic software engineer focused on implementing and refining produ
 ## Conditional Rules
 
 - Expose the real installed CLI through the package `bin` field.
-- Prefer a short repo-local wrapper when the tool folder already provides the namespace, for example `aie-os/bin/aie-os`.
+- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.
 - Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.
 - Put command implementations under `src/commands/`.
 - Keep wrapper scripts limited to forwarding to the real CLI entrypoint.
@@ -161,9 +162,19 @@ You are a pragmatic software engineer focused on implementing and refining produ
 Use a skill when the user explicitly names it or when the task clearly matches the "When to use" description.
 Open the referenced `SKILL.md` only when needed. Load additional files from the same skill folder only if needed.
 
-### 1. add-tool-adapter
+### 1. create-project-skill
+
+- Where to find it: .aie-os/build/skills/shared/create-project-skill/SKILL.md
+- When to use it: Use this skill when the user wants to create or update a project-specific skill under `.aie-os/project-skills/`. It creates the skill folder, writes a concise `SKILL.md`, and keeps the instructions aligned with this repo's local skill conventions.
+- Source: shared
+### 2. add-tool-adapter
 
 - Where to find it: .aie-os/build/skills/project/add-tool-adapter/SKILL.md
 - When to use it: Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates all deterministic registration points, and then tells the contributor exactly what remains to implement in the adapter file.
+- Source: project
+### 3. create-universal-skill
+
+- Where to find it: .aie-os/build/skills/project/create-universal-skill/SKILL.md
+- When to use it: Use this skill when the user wants to create or update a shared universal skill under `content/skills/` in this repository. It creates the shared skill folder and writes a concise `SKILL.md` aligned with this repo's shared skill conventions.
 - Source: project
 

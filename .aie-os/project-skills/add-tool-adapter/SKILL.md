@@ -212,5 +212,5 @@ After the scaffold is created, report:
   1. implement the tool-specific rendering logic in `src/agentAdapters/<toolKey>/<adapterBaseName>Adapter.ts`
   2. replace the placeholder output path, contents, and bootstrap prompt in that adapter file
   3. run `pnpm run build`
-  4. run `bash bin/aie-os build --project-path <path-to-test-project> --tool <toolKey>`
+  4. run `bash bin/cli build --project-path <path-to-test-project> --tool <toolKey>`
   5. inspect the generated artifact written by the new adapter

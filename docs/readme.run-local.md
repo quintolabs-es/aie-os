@@ -5,7 +5,7 @@
 ```bash
 cd aie-os
 pnpm run build
-bash bin/aie-os init \
+bash bin/cli init \
   --kb-path content/knowledge-base \
   --agent-path content/agent \
   --agent-persona software-developer \
@@ -13,5 +13,5 @@ bash bin/aie-os init \
   --languages typescript \
   --application-type cli 
 
-bash bin/aie-os build
+bash bin/cli build
 ```
