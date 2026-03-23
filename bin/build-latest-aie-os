@@ -2,7 +2,7 @@
 
 # Usage
 #   cd <target-project-root>
-#   bash aie-os/tools/build-latest-aie-os.sh
+#   bash aie-os/bin/build-latest-aie-os
 
 set -euo pipefail
 
