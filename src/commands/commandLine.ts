@@ -4,9 +4,9 @@ import type { ExecutionOptions, InitExecutionOptions, ParsedOptions, ToolName } 
 
 const TOOL_NAME: ToolName = "codex";
 const INIT_DEFAULTS = {
-  agentPath: "content/agent",
-  kbPath: "content/knowledge-base",
-  skillsPath: "content/skills",
+  agentPath: "aie-os/content/agent",
+  kbPath: "aie-os/content/knowledge-base",
+  skillsPath: "aie-os/content/skills",
 } as const;
 
 export const usageText = `AIE OS

@@ -1,7 +1,4 @@
-
-### Create content
-Use [`/content`](../content) folder as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed.
-See [`docs/readme.create-content.md`](./readme.create-content.md) for the content structure and authoring rules.
+### Use in `aie-os` project
 
 ### Clone `aie-os` into the target project
 The repo also includes a ready-to-use [`/content`](../content) folder for getting started.
