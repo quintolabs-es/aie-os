@@ -3,12 +3,12 @@ import { aieStructure } from "../context/aieStructure";
 const { criticalRulesFileName, readmeFileName, skillFileName } = aieStructure.files;
 const { directoryName: projectDirectoryName, projectSkillsDirectoryName } = aieStructure.project;
 
-export const projectCodingStandardsReadmeTemplate = `# Project Coding Standards
+export const projectCodingRulesReadmeTemplate = `# Project Coding Rules
 
 Add repo-specific markdown files here.
 
 - \`${criticalRulesFileName}\` is lifted into the top \`Critical Rules\` section.
-- Any other \`*.md\` file is appended under \`Project Coding Standards\`.
+- Any other \`*.md\` file is appended under \`Project Coding Rules\`.
 - \`${readmeFileName}\` is ignored by build.
 
 ## \`${criticalRulesFileName}\`

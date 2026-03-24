@@ -34,9 +34,9 @@ Init options:
   --agent-path                      Agent path.
   --skills-path                     (optional) Skills path.
   --agent-persona                   Persona. Accepted values are markdown file names from [agent-path]/persona without .md.
-  --languages                       (optional) Comma-separated language folder names from [kb-path]/coding-standards/language.
-  --application-type                (optional) Comma-separated application-type folder names from [kb-path]/coding-standards/application-type.
-  --frameworks                      (optional) Comma-separated framework folder names from [kb-path]/coding-standards/framework.
+  --languages                       (optional) Comma-separated language folder names from [kb-path]/coding-rules/language.
+  --application-type                (optional) Comma-separated application-type folder names from [kb-path]/coding-rules/application-type.
+  --frameworks                      (optional) Comma-separated framework folder names from [kb-path]/coding-rules/framework.
 
 Build options:
   --project-path                    Target repository. Defaults to the current directory.

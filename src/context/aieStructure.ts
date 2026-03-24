@@ -13,7 +13,7 @@ export const aieStructure = {
   },
   knowledgeBase: {
     applicationTypeDirectoryName: "application-type",
-    codingStandardsDirectoryName: "coding-standards",
+    codingRulesDirectoryName: "coding-rules",
     conditionalDirectoryName: "conditional",
     engineeringPrinciplesDirectoryName: "engineering-principles",
     frameworkDirectoryName: "framework",
@@ -26,7 +26,7 @@ export const aieStructure = {
     directoryName: ".aie-os",
     effectiveContextFileName: "effective-context.json",
     manifestFileName: "aie-os.json",
-    projectCodingStandardsDirectoryName: "project-coding-standards",
+    projectCodingRulesDirectoryName: "project-coding-rules",
     projectSkillsDirectoryName: "project-skills",
   },
 } as const;
@@ -50,9 +50,9 @@ export const aieRelativePaths = {
     aieStructure.project.directoryName,
     aieStructure.project.manifestFileName,
   ),
-  projectCodingStandardsDirectory: path.join(
+  projectCodingRulesDirectory: path.join(
     aieStructure.project.directoryName,
-    aieStructure.project.projectCodingStandardsDirectoryName,
+    aieStructure.project.projectCodingRulesDirectoryName,
   ),
   projectSkillsDirectory: path.join(
     aieStructure.project.directoryName,

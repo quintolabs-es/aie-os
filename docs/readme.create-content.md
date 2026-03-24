@@ -12,7 +12,7 @@ Expected structure
   engineering-principles/
     universal/
       *.md
-  coding-standards/
+  coding-rules/
     universal/
       *.md
     language/
@@ -55,7 +55,7 @@ Expected structure
 
 ```text
 .aie-os/
-  project-coding-standards/
+  project-coding-rules/
     *.md
   project-skills/
     <skill-name>/
@@ -63,18 +63,18 @@ Expected structure
 
 Rules:
 - `<name>` folder names under `language/`, `application-type/`, and `framework/` are the option names discovered by `init`.
-- The available languages are exactly the folder names under `[kb-path]/coding-standards/language/`.
-- The available application types are exactly the folder names under `[kb-path]/coding-standards/application-type/`.
-- The available frameworks are exactly the folder names under `[kb-path]/coding-standards/framework/`.
+- The available languages are exactly the folder names under `[kb-path]/coding-rules/language/`.
+- The available application types are exactly the folder names under `[kb-path]/coding-rules/application-type/`.
+- The available frameworks are exactly the folder names under `[kb-path]/coding-rules/framework/`.
 - Make discovered option names legible, e.g., `language/csharp/*.md`, `application-type/console/*.md`, etc.
-- Shared content should stay reusable across many repositories. Put repo-specific commands and conventions in `.aie-os/project-coding-standards/`.
+- Shared content should stay reusable across many repositories. Put repo-specific commands and conventions in `.aie-os/project-coding-rules/`.
 - An application-type folder may exist only to expose a valid option name to `init`; use `conditional/` when the actual rules depend on a language + application-type combination.
 - Universal agent files should hold agent-wide operational rules that apply across all personas.
 - Persona files should define both the agent role and the communication style for that persona.
 - Skills should follow the Agent Skills packaging specification: https://agentskills.io/specification
 - AIE OS integrates skills by folder and does not validate skill internals beyond discovering the skill directory.
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
-- Project-specific coding standards and skills may override shared ones.
+- Project-specific coding rules and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
 
 ### How context is built
@@ -90,10 +90,10 @@ Section labels in the final context are derived from the folder structure where 
 
 Examples:
 - `[kb-path]/engineering-principles/universal/*.md` -> `Engineering Principles`
-- `[kb-path]/coding-standards/language/typescript/*.md` -> `Language: typescript`
-- `[kb-path]/coding-standards/application-type/api/*.md` -> `Application Type: api`
+- `[kb-path]/coding-rules/language/typescript/*.md` -> `Language: typescript`
+- `[kb-path]/coding-rules/application-type/api/*.md` -> `Application Type: api`
 - `[agent-path]/universal/*.md` -> `Agent Rules`
-- `.aie-os/project-coding-standards/*.md` -> `Project Coding Standards`
+- `.aie-os/project-coding-rules/*.md` -> `Project Coding Rules`
 
 ### Writing files
 
@@ -107,9 +107,9 @@ Examples:
 - Keep context small. Prefer several short files over one large file.
 - Do not depend on markdown headings for behavior. Folder location controls inclusion and final section labeling.
 
-### Conditional coding standards
+### Conditional coding rules
 
-Use `coding-standards/conditional/` only for advanced cases where one file should apply only when multiple selected dimensions match together.
+Use `coding-rules/conditional/` only for advanced cases where one file should apply only when multiple selected dimensions match together.
 
 This is optional. A basic knowledge base does not need it.
 

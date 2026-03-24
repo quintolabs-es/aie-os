@@ -5,7 +5,7 @@ export type Manifest = {
     agent: string;
     skills: string;
     knowledgeBase: string;
-    projectCodingStandards: string;
+    projectCodingRules: string;
     projectSkills: string;
   };
   selection: {
@@ -51,9 +51,9 @@ function normalizeManifest(rawManifest: unknown, manifestPath: string): Manifest
       knowledgeBase: expectString(paths.knowledgeBase, "paths.knowledgeBase", manifestPath),
       agent: expectString(paths.agent, "paths.agent", manifestPath),
       skills: expectString(paths.skills, "paths.skills", manifestPath),
-      projectCodingStandards: expectString(
-        paths.projectCodingStandards,
-        "paths.projectCodingStandards",
+      projectCodingRules: expectString(
+        paths.projectCodingRules,
+        "paths.projectCodingRules",
         manifestPath,
       ),
       projectSkills: expectString(paths.projectSkills, "paths.projectSkills", manifestPath),

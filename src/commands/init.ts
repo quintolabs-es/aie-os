@@ -12,7 +12,7 @@ import {
 import { aieRelativePaths, aieStructure } from "../context/aieStructure";
 import { saveManifest, type Manifest } from "../context/manifest";
 import {
-  projectCodingStandardsReadmeTemplate,
+  projectCodingRulesReadmeTemplate,
   projectSkillsReadmeTemplate,
 } from "./scaffoldTemplates";
 import {
@@ -54,7 +54,7 @@ async function collectManifest(
     : interactive
       ? await promptPath({
           defaultValue: defaults.kbPath,
-          description: "AIE OS reads shared engineering principles and coding standards from this folder.",
+          description: "AIE OS reads shared engineering principles and coding rules from this folder.",
           promptLabel: "knowledge base path",
           optionName: "--kb-path",
           projectPath,
@@ -107,7 +107,7 @@ async function collectManifest(
       agent: agentPath,
       skills: skillsPath,
       knowledgeBase: knowledgeBasePath,
-      projectCodingStandards: aieRelativePaths.projectCodingStandardsDirectory,
+      projectCodingRules: aieRelativePaths.projectCodingRulesDirectory,
       projectSkills: aieRelativePaths.projectSkillsDirectory,
     },
     selection: selections,
@@ -133,21 +133,21 @@ async function collectSelections(
   const languageOptions = await listDirectoryNames(
     path.join(
       resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.codingRulesDirectoryName,
       aieStructure.knowledgeBase.languageDirectoryName,
     ),
   );
   const applicationTypeOptions = await listDirectoryNames(
     path.join(
       resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.codingRulesDirectoryName,
       aieStructure.knowledgeBase.applicationTypeDirectoryName,
     ),
   );
   const frameworkOptions = await listDirectoryNames(
     path.join(
       resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingStandardsDirectoryName,
+      aieStructure.knowledgeBase.codingRulesDirectoryName,
       aieStructure.knowledgeBase.frameworkDirectoryName,
     ),
   );
@@ -187,7 +187,7 @@ async function collectSelections(
           allowEmpty: true,
           command: "init",
           defaultValue: [],
-          explanation: "Application type selects standards for the shape of the application, such as api or cli.",
+          explanation: "Application type selects rules for the shape of the application, such as api or cli.",
           label: "Select application types",
           options: applicationTypeOptions,
         })
@@ -200,7 +200,7 @@ async function collectSelections(
           allowEmpty: true,
           command: "init",
           defaultValue: [],
-          explanation: "Framework overlays add framework-specific coding standards.",
+          explanation: "Framework overlays add framework-specific coding rules.",
           label: "Select frameworks",
           options: frameworkOptions,
         })
@@ -218,14 +218,14 @@ async function scaffoldProject(projectPath: string, manifest: Manifest): Promise
   const aieDirectory = path.join(projectPath, aieStructure.project.directoryName);
   await ensureDirectory(aieDirectory);
 
-  const projectCodingStandardsPath = resolveAgainstProject(projectPath, manifest.paths.projectCodingStandards);
+  const projectCodingRulesPath = resolveAgainstProject(projectPath, manifest.paths.projectCodingRules);
   const projectSkillsPath = resolveAgainstProject(projectPath, manifest.paths.projectSkills);
 
-  await ensureDirectory(projectCodingStandardsPath);
+  await ensureDirectory(projectCodingRulesPath);
   await ensureDirectory(projectSkillsPath);
   await writeTemplateIfMissing(
-    path.join(projectCodingStandardsPath, aieStructure.files.readmeFileName),
-    projectCodingStandardsReadmeTemplate,
+    path.join(projectCodingRulesPath, aieStructure.files.readmeFileName),
+    projectCodingRulesReadmeTemplate,
   );
   await writeTemplateIfMissing(
     path.join(projectSkillsPath, aieStructure.files.readmeFileName),

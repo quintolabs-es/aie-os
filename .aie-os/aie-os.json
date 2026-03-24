@@ -4,7 +4,7 @@
     "agent": "content/agent",
     "skills": "content/skills",
     "knowledgeBase": "content/knowledge-base",
-    "projectCodingStandards": ".aie-os/project-coding-standards",
+    "projectCodingRules": ".aie-os/project-coding-rules",
     "projectSkills": ".aie-os/project-skills"
   },
   "selection": {

@@ -6,4 +6,4 @@ Keep generic CLI rules out of this folder unless they are reusable across many l
 
 For TypeScript CLI rules used in this repo shape, prefer:
 
-- `coding-standards/conditional/typescript-cli.md`
+- `coding-rules/conditional/typescript-cli.md`

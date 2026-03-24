@@ -1,6 +1,6 @@
 
 ### Create content
-Use [`/content`](../content) folder as the starting point for shared principles, standards, skills, and personas. Add new content or update the existing files and folders as needed.
+Use [`/content`](../content) folder as the starting point for shared principles, rules, skills, and personas. Add new content or update the existing files and folders as needed.
 See [`docs/readme.create-content.md`](./readme.create-content.md) for the content structure and authoring rules.
 
 ### Clone `aie-os` into the target project
@@ -38,9 +38,9 @@ bash aie-os/bin/cli init \
 * `--agent-path /path/to/agent/dir`: required in explicit mode; prompted in interactive mode;
 * `--skills-path /path/to/skills/dir`: optional, empty disables shared skills;
 * `--agent-persona <name>`: required in explicit mode; prompted in interactive mode. Available values come from markdown file names under `[agent-path]/persona/`;
-* `--languages <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-standards/language/`;
-* `--application-type <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-standards/application-type/`;
-* `--frameworks <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-standards/framework/`.
+* `--languages <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/language/`;
+* `--application-type <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/application-type/`;
+* `--frameworks <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/framework/`.
 
 `init` modes:
 - no init config arguments: interactive mode

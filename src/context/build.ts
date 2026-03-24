@@ -71,9 +71,9 @@ async function resolveContext(input: BuildInput): Promise<{
   const knowledgeBasePath = resolveProjectPath(projectPath, input.manifest.paths.knowledgeBase);
   const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
   const skillsPath = resolveOptionalProjectPath(projectPath, input.manifest.paths.skills);
-  const projectCodingStandardsPath = resolveProjectPath(
+  const projectCodingRulesPath = resolveProjectPath(
     projectPath,
-    input.manifest.paths.projectCodingStandards,
+    input.manifest.paths.projectCodingRules,
   );
   const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
@@ -115,12 +115,12 @@ async function resolveContext(input: BuildInput): Promise<{
     await loadDirectoryBlocks(
       path.join(
         knowledgeBasePath,
-        aieStructure.knowledgeBase.codingStandardsDirectoryName,
+        aieStructure.knowledgeBase.codingRulesDirectoryName,
         aieStructure.knowledgeBase.universalDirectoryName,
       ),
       projectPath,
-      "Shared Coding Standards",
-      "Coding Standards",
+      "Shared Coding Rules",
+      "Coding Rules",
     ),
   );
 
@@ -130,12 +130,12 @@ async function resolveContext(input: BuildInput): Promise<{
       await loadDirectoryBlocks(
         path.join(
           knowledgeBasePath,
-          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
           aieStructure.knowledgeBase.languageDirectoryName,
           language,
         ),
         projectPath,
-        "Language Standards",
+        "Language Rules",
         `Language: ${language}`,
       ),
     );
@@ -147,12 +147,12 @@ async function resolveContext(input: BuildInput): Promise<{
       await loadDirectoryBlocks(
         path.join(
           knowledgeBasePath,
-          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
           aieStructure.knowledgeBase.applicationTypeDirectoryName,
           applicationType,
         ),
         projectPath,
-        "Application-Type Standards",
+        "Application-Type Rules",
         `Application Type: ${applicationType}`,
       ),
     );
@@ -164,12 +164,12 @@ async function resolveContext(input: BuildInput): Promise<{
       await loadDirectoryBlocks(
         path.join(
           knowledgeBasePath,
-          aieStructure.knowledgeBase.codingStandardsDirectoryName,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
           aieStructure.knowledgeBase.frameworkDirectoryName,
           framework,
         ),
         projectPath,
-        "Framework Standards",
+        "Framework Rules",
         `Framework: ${framework}`,
       ),
     );
@@ -180,12 +180,12 @@ async function resolveContext(input: BuildInput): Promise<{
     await loadConditionalBlocks(
       path.join(
         knowledgeBasePath,
-        aieStructure.knowledgeBase.codingStandardsDirectoryName,
+        aieStructure.knowledgeBase.codingRulesDirectoryName,
         aieStructure.knowledgeBase.conditionalDirectoryName,
       ),
       projectPath,
       input.manifest.selection,
-      "Conditional Coding Standards",
+      "Conditional Coding Rules",
       "Conditional Rules",
     ),
   );
@@ -197,10 +197,10 @@ async function resolveContext(input: BuildInput): Promise<{
   pushLoadedBlocks(
     { criticalRules, sections },
     await loadDirectoryBlocks(
-      projectCodingStandardsPath,
+      projectCodingRulesPath,
       projectPath,
-      "Project Coding Standards",
-      "Project Coding Standards",
+      "Project Coding Rules",
+      "Project Coding Rules",
     ),
   );
 
@@ -480,7 +480,7 @@ function parseConditionalAppliesTo(
 
   if (rawAppliesToLine && rawAppliesToLine.trim() !== "applies_to:") {
     throw new Error(
-      `Expected applies_to to use a nested block in conditional coding standard: ${filePath}`,
+      `Expected applies_to to use a nested block in conditional coding rule: ${filePath}`,
     );
   }
 
@@ -524,7 +524,7 @@ function parseConditionalAppliesTo(
 
     if (!match) {
       throw new Error(
-        `Invalid applies_to entry in conditional coding standard: ${filePath}`,
+        `Invalid applies_to entry in conditional coding rule: ${filePath}`,
       );
     }
 
@@ -542,7 +542,7 @@ function parseConditionalAppliesTo(
         break;
       default:
         throw new Error(
-          `Unsupported applies_to dimension in conditional coding standard: ${filePath}`,
+          `Unsupported applies_to dimension in conditional coding rule: ${filePath}`,
         );
     }
   }
@@ -568,7 +568,7 @@ function parseInlineStringArray(value: string, filePath: string): string[] {
 
   if (!match) {
     throw new Error(
-      `Expected applies_to values to be inline string arrays in conditional coding standard: ${filePath}`,
+      `Expected applies_to values to be inline string arrays in conditional coding rule: ${filePath}`,
     );
   }
 

@@ -1,0 +1,1 @@
+- Automated tests must never mutate shared or real external resources. Only use disposable isolated test resources; otherwise tests must be read-only or mocked.

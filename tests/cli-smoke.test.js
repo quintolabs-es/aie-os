@@ -22,7 +22,7 @@ test("CLI help command prints usage text", async () => {
   );
   assert.match(
     stdout,
-    /--languages\s+\(optional\) Comma-separated language folder names from \[kb-path\]\/coding-standards\/language\./u,
+    /--languages\s+\(optional\) Comma-separated language folder names from \[kb-path\]\/coding-rules\/language\./u,
   );
 });
 

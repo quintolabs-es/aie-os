@@ -1,8 +1,8 @@
-# Conditional Coding Standards
+# Conditional Coding Rules
 
 This folder is optional.
 
-Use it only for standards that apply when multiple selected dimensions match together, for example:
+Use it only for rules that apply when multiple selected dimensions match together, for example:
 
 - language + application type
 - language + framework

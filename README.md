@@ -1,15 +1,15 @@
 # AIE OS
 
-**Make every coding agent, in every project, follow the same engineering and coding standards.**
+**Make every coding agent, in every project, follow the same engineering and coding rules.**
 
-- Define coding **principles**, **standards**, and **skills** in a simple, maintainable structure.
-- Maintain those standards centrally and **reuse them** across multiple projects and agents.
+- Define coding **principles**, **rules**, and **skills** in a simple, maintainable structure.
+- Maintain those rules centrally and **reuse them** across multiple projects and agents.
 - Add **project-specific** rules and skills **only** where local variation is needed.
 - Build deterministic **agent context** from the same shared rules and skills.
 
 ## Problem
-I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding standards I set.
-I want to build this knowledge base of standards, and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
+I want all the coding agents I use across all my projects/repositories, create code according to a common set of engineering principles and coding rules I set.
+I want to build this knowledge base of rules and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
 ## How AIE-OS works in a nutshell
 On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
@@ -33,7 +33,7 @@ xample-app/
   aie-os/
   .aie-os/
     aie-os.json
-    project-coding-standards/
+    project-coding-rules/
     project-skills/
     build/
       effective-context.json
@@ -47,7 +47,7 @@ xample-app/
 
 ## Building Context
 
-- `build` resolves shared knowledge, agent configuration, shared skills, project coding standards, and project skills into one canonical output.
+- `build` resolves shared knowledge, agent configuration, shared coding rules, shared skills, project coding rules, and project skills into one canonical output.
 - Rendering order:
   - selected persona
   - all matched `critical-rules.md`

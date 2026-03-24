@@ -14,16 +14,16 @@ async function createInitFixture() {
   await fs.mkdir(path.join(knowledgeBasePath, "engineering-principles", "universal"), {
     recursive: true,
   });
-  await fs.mkdir(path.join(knowledgeBasePath, "coding-standards", "universal"), {
+  await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "universal"), {
     recursive: true,
   });
-  await fs.mkdir(path.join(knowledgeBasePath, "coding-standards", "language", "typescript"), {
+  await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "language", "typescript"), {
     recursive: true,
   });
-  await fs.mkdir(path.join(knowledgeBasePath, "coding-standards", "application-type", "cli"), {
+  await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "application-type", "cli"), {
     recursive: true,
   });
-  await fs.mkdir(path.join(knowledgeBasePath, "coding-standards", "framework", "react"), {
+  await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "framework", "react"), {
     recursive: true,
   });
   await fs.mkdir(path.join(agentPath, "persona"), { recursive: true });
