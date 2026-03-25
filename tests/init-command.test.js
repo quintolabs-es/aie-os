@@ -77,6 +77,31 @@ test("Explicit init succeeds with required args and defaults optional values to 
   assert.equal(manifest.selection.persona, "software-developer");
 });
 
+test("Explicit init accepts an explicitly empty knowledge-base path", async () => {
+  const fixture = await createInitFixture();
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    "",
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+  ]);
+
+  const manifestPath = path.join(fixture.projectPath, ".aie-os", "aie-os.json");
+  const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
+
+  assert.equal(manifest.paths.knowledgeBase, "");
+  assert.deepEqual(manifest.selection.languages, []);
+  assert.deepEqual(manifest.selection.applicationTypes, []);
+  assert.deepEqual(manifest.selection.frameworks, []);
+});
+
 test("Explicit init rejects invalid provided languages", async () => {
   const fixture = await createInitFixture();
 

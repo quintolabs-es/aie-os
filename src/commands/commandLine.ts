@@ -103,7 +103,7 @@ export function parseCommandInput(argv: string[]): ParsedOptions {
     }
 
     const value = rest[index + 1];
-    if (!value || value.startsWith("--")) {
+    if (value === undefined || value.startsWith("--")) {
       throw new Error(`Missing value for option ${argument}`);
     }
 

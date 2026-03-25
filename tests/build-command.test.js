@@ -64,3 +64,46 @@ test("Build uses the default adapter and prints the bootstrap prompt after a suc
   await fs.access(path.join(fixture.projectPath, "AGENTS.md"));
   await fs.access(path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"));
 });
+
+test("Build succeeds when the knowledge-base layer is disabled", async () => {
+  const fixture = await createInitFixture();
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    "",
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const effectiveContext = JSON.parse(
+    await fs.readFile(
+      path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"),
+      "utf8",
+    ),
+  );
+
+  assert.equal(effectiveContext.persona.source, path.join(fixture.agentPath, "persona", "software-developer.md"));
+  assert.equal(
+    effectiveContext.sections.some((section) =>
+      section.layer === "Engineering Principles" ||
+      section.layer === "Shared Coding Rules" ||
+      section.layer === "Language Rules" ||
+      section.layer === "Application-Type Rules" ||
+      section.layer === "Framework Rules" ||
+      section.layer === "Conditional Coding Rules"),
+    false,
+  );
+});

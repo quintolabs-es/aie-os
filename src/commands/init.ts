@@ -22,6 +22,7 @@ import {
   promptTextInput,
 } from "./terminalPrompts";
 import { commandName } from "./commandName";
+import { planInitManifest } from "./planInitManifest";
 import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
 
 export async function initProject(options: InitExecutionOptions): Promise<void> {
@@ -53,14 +54,17 @@ async function collectManifest(
     ? providedPaths.kbPath
     : interactive
       ? await promptPath({
+          allowEmpty: true,
           defaultValue: defaults.kbPath,
-          description: "AIE OS reads shared engineering principles and coding rules from this folder.",
+          description: "AIE OS reads shared engineering principles and coding rules from this folder. Leave it empty to disable the knowledge-base layer.",
           promptLabel: "knowledge base path",
           optionName: "--kb-path",
           projectPath,
         })
       : missingRequiredInitOption("--kb-path", mode);
-  await ensureDirectoryType(resolveAgainstProject(projectPath, knowledgeBasePath), "Knowledge base path");
+  if (knowledgeBasePath.trim() !== "") {
+    await ensureDirectoryType(resolveAgainstProject(projectPath, knowledgeBasePath), "Knowledge base path");
+  }
 
   const agentPath = providedPaths.agentPath !== undefined
     ? providedPaths.agentPath
@@ -101,17 +105,16 @@ async function collectManifest(
     interactive,
   );
 
-  return {
-    version: "0.1",
+  return planInitManifest({
+    defaults,
+    mode,
     paths: {
-      agent: agentPath,
-      skills: skillsPath,
-      knowledgeBase: knowledgeBasePath,
-      projectCodingRules: aieRelativePaths.projectCodingRulesDirectory,
-      projectSkills: aieRelativePaths.projectSkillsDirectory,
+      agentPath,
+      kbPath: knowledgeBasePath,
+      skillsPath,
     },
-    selection: selections,
-  };
+    selections,
+  });
 }
 
 async function collectSelections(
@@ -125,32 +128,40 @@ async function collectSelections(
   interactive: boolean,
 ): Promise<InitSelections> {
   const resolvedAgentPath = resolveAgainstProject(projectPath, input.agentPath);
-  const resolvedKnowledgeBasePath = resolveAgainstProject(projectPath, input.knowledgeBasePath);
+  const resolvedKnowledgeBasePath = input.knowledgeBasePath.trim() === ""
+    ? null
+    : resolveAgainstProject(projectPath, input.knowledgeBasePath);
 
   const personaOptions = await listMarkdownBasenames(
     path.join(resolvedAgentPath, aieStructure.agent.personaDirectoryName),
   );
-  const languageOptions = await listDirectoryNames(
-    path.join(
-      resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingRulesDirectoryName,
-      aieStructure.knowledgeBase.languageDirectoryName,
-    ),
-  );
-  const applicationTypeOptions = await listDirectoryNames(
-    path.join(
-      resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingRulesDirectoryName,
-      aieStructure.knowledgeBase.applicationTypeDirectoryName,
-    ),
-  );
-  const frameworkOptions = await listDirectoryNames(
-    path.join(
-      resolvedKnowledgeBasePath,
-      aieStructure.knowledgeBase.codingRulesDirectoryName,
-      aieStructure.knowledgeBase.frameworkDirectoryName,
-    ),
-  );
+  const languageOptions = resolvedKnowledgeBasePath
+    ? await listDirectoryNames(
+        path.join(
+          resolvedKnowledgeBasePath,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
+          aieStructure.knowledgeBase.languageDirectoryName,
+        ),
+      )
+    : [];
+  const applicationTypeOptions = resolvedKnowledgeBasePath
+    ? await listDirectoryNames(
+        path.join(
+          resolvedKnowledgeBasePath,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
+          aieStructure.knowledgeBase.applicationTypeDirectoryName,
+        ),
+      )
+    : [];
+  const frameworkOptions = resolvedKnowledgeBasePath
+    ? await listDirectoryNames(
+        path.join(
+          resolvedKnowledgeBasePath,
+          aieStructure.knowledgeBase.codingRulesDirectoryName,
+          aieStructure.knowledgeBase.frameworkDirectoryName,
+        ),
+      )
+    : [];
   const initial = input.initialSelections;
 
   const persona =
@@ -167,44 +178,47 @@ async function collectSelections(
         })
       : missingRequiredInitOption("--agent-persona", input.mode));
 
-  const languages =
-    validateMultiSelection(initial.languages, languageOptions, "languages", true) ??
-    (interactive
-      ? await promptMultiSelect({
-          allowEmpty: true,
-          command: "init",
-          defaultValue: languageOptions.length === 1 ? [languageOptions[0]] : [],
-          explanation: "Select one or more languages. This supports monorepos.",
-          label: "Select languages",
-          options: languageOptions,
-        })
-      : []);
+  const languages = resolvedKnowledgeBasePath
+    ? validateMultiSelection(initial.languages, languageOptions, "languages", true) ??
+      (interactive
+        ? await promptMultiSelect({
+            allowEmpty: true,
+            command: "init",
+            defaultValue: languageOptions.length === 1 ? [languageOptions[0]] : [],
+            explanation: "Select one or more languages. This supports monorepos.",
+            label: "Select languages",
+            options: languageOptions,
+          })
+        : [])
+    : validateMultiSelection(initial.languages, [], "languages", true) ?? [];
 
-  const applicationTypes =
-    validateMultiSelection(initial.applicationTypes, applicationTypeOptions, "application types", true) ??
-    (interactive
-      ? await promptMultiSelect({
-          allowEmpty: true,
-          command: "init",
-          defaultValue: [],
-          explanation: "Application type selects rules for the shape of the application, such as api or cli.",
-          label: "Select application types",
-          options: applicationTypeOptions,
-        })
-      : []);
+  const applicationTypes = resolvedKnowledgeBasePath
+    ? validateMultiSelection(initial.applicationTypes, applicationTypeOptions, "application types", true) ??
+      (interactive
+        ? await promptMultiSelect({
+            allowEmpty: true,
+            command: "init",
+            defaultValue: [],
+            explanation: "Application type selects rules for the shape of the application, such as api or cli.",
+            label: "Select application types",
+            options: applicationTypeOptions,
+          })
+        : [])
+    : validateMultiSelection(initial.applicationTypes, [], "application types", true) ?? [];
 
-  const frameworks =
-    validateMultiSelection(initial.frameworks, frameworkOptions, "frameworks", true) ??
-    (interactive
-      ? await promptMultiSelect({
-          allowEmpty: true,
-          command: "init",
-          defaultValue: [],
-          explanation: "Framework overlays add framework-specific coding rules.",
-          label: "Select frameworks",
-          options: frameworkOptions,
-        })
-      : []);
+  const frameworks = resolvedKnowledgeBasePath
+    ? validateMultiSelection(initial.frameworks, frameworkOptions, "frameworks", true) ??
+      (interactive
+        ? await promptMultiSelect({
+            allowEmpty: true,
+            command: "init",
+            defaultValue: [],
+            explanation: "Framework overlays add framework-specific coding rules.",
+            label: "Select frameworks",
+            options: frameworkOptions,
+          })
+        : [])
+    : validateMultiSelection(initial.frameworks, [], "frameworks", true) ?? [];
 
   return {
     applicationTypes,
@@ -266,6 +280,7 @@ async function writeTemplateIfMissing(targetPath: string, content: string): Prom
 }
 
 async function promptPath(inputOptions: {
+  allowEmpty?: boolean;
   defaultValue: string;
   description: string;
   promptLabel: string;
@@ -283,13 +298,19 @@ async function promptPath(inputOptions: {
       errorMessage,
       optionName: inputOptions.optionName,
       promptLabel: inputOptions.promptLabel,
-      submitHint: "Press Enter to accept the default, type a new value, or press Esc to cancel.",
+      submitHint: inputOptions.allowEmpty
+        ? "Enter to accept, delete to empty and disable, type to replace, or press Esc to cancel."
+        : "Press Enter to accept the default, type a new value, or press Esc to cancel.",
     });
 
-    const normalizedValue = normalizeConfiguredPath(
-      inputOptions.projectPath,
-      rawValue.trim() === "" ? inputOptions.defaultValue : rawValue.trim(),
-    );
+    const trimmedValue = rawValue.trim();
+    const normalizedValue = trimmedValue === ""
+      ? (inputOptions.allowEmpty ? "" : inputOptions.defaultValue)
+      : normalizeConfiguredPath(inputOptions.projectPath, trimmedValue);
+
+    if (normalizedValue === "") {
+      return "";
+    }
 
     try {
       await ensureDirectoryType(

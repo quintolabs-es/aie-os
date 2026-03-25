@@ -68,7 +68,7 @@ async function resolveContext(input: BuildInput): Promise<{
   const sections: EffectiveContextBlock[] = [];
   const skills: EffectiveContextSkill[] = [];
   const projectPath = input.projectPath;
-  const knowledgeBasePath = resolveProjectPath(projectPath, input.manifest.paths.knowledgeBase);
+  const knowledgeBasePath = resolveOptionalProjectPath(projectPath, input.manifest.paths.knowledgeBase);
   const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
   const skillsPath = resolveOptionalProjectPath(projectPath, input.manifest.paths.skills);
   const projectCodingRulesPath = resolveProjectPath(
@@ -96,99 +96,101 @@ async function resolveContext(input: BuildInput): Promise<{
     ),
   );
 
-  pushLoadedBlocks(
-    { criticalRules, sections },
-    await loadDirectoryBlocks(
-      path.join(
-        knowledgeBasePath,
-        aieStructure.knowledgeBase.engineeringPrinciplesDirectoryName,
-        aieStructure.knowledgeBase.universalDirectoryName,
+  if (knowledgeBasePath) {
+    pushLoadedBlocks(
+      { criticalRules, sections },
+      await loadDirectoryBlocks(
+        path.join(
+          knowledgeBasePath,
+          aieStructure.knowledgeBase.engineeringPrinciplesDirectoryName,
+          aieStructure.knowledgeBase.universalDirectoryName,
+        ),
+        projectPath,
+        "Engineering Principles",
+        "Engineering Principles",
       ),
-      projectPath,
-      "Engineering Principles",
-      "Engineering Principles",
-    ),
-  );
+    );
 
-  pushLoadedBlocks(
-    { criticalRules, sections },
-    await loadDirectoryBlocks(
-      path.join(
-        knowledgeBasePath,
-        aieStructure.knowledgeBase.codingRulesDirectoryName,
-        aieStructure.knowledgeBase.universalDirectoryName,
-      ),
-      projectPath,
-      "Shared Coding Rules",
-      "Coding Rules",
-    ),
-  );
-
-  for (const language of input.manifest.selection.languages) {
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
         path.join(
           knowledgeBasePath,
           aieStructure.knowledgeBase.codingRulesDirectoryName,
-          aieStructure.knowledgeBase.languageDirectoryName,
-          language,
+          aieStructure.knowledgeBase.universalDirectoryName,
         ),
         projectPath,
-        "Language Rules",
-        `Language: ${language}`,
+        "Shared Coding Rules",
+        "Coding Rules",
       ),
     );
-  }
 
-  for (const applicationType of input.manifest.selection.applicationTypes) {
+    for (const language of input.manifest.selection.languages) {
+      pushLoadedBlocks(
+        { criticalRules, sections },
+        await loadDirectoryBlocks(
+          path.join(
+            knowledgeBasePath,
+            aieStructure.knowledgeBase.codingRulesDirectoryName,
+            aieStructure.knowledgeBase.languageDirectoryName,
+            language,
+          ),
+          projectPath,
+          "Language Rules",
+          `Language: ${language}`,
+        ),
+      );
+    }
+
+    for (const applicationType of input.manifest.selection.applicationTypes) {
+      pushLoadedBlocks(
+        { criticalRules, sections },
+        await loadDirectoryBlocks(
+          path.join(
+            knowledgeBasePath,
+            aieStructure.knowledgeBase.codingRulesDirectoryName,
+            aieStructure.knowledgeBase.applicationTypeDirectoryName,
+            applicationType,
+          ),
+          projectPath,
+          "Application-Type Rules",
+          `Application Type: ${applicationType}`,
+        ),
+      );
+    }
+
+    for (const framework of input.manifest.selection.frameworks) {
+      pushLoadedBlocks(
+        { criticalRules, sections },
+        await loadDirectoryBlocks(
+          path.join(
+            knowledgeBasePath,
+            aieStructure.knowledgeBase.codingRulesDirectoryName,
+            aieStructure.knowledgeBase.frameworkDirectoryName,
+            framework,
+          ),
+          projectPath,
+          "Framework Rules",
+          `Framework: ${framework}`,
+        ),
+      );
+    }
+
     pushLoadedBlocks(
       { criticalRules, sections },
-      await loadDirectoryBlocks(
+      await loadConditionalBlocks(
         path.join(
           knowledgeBasePath,
           aieStructure.knowledgeBase.codingRulesDirectoryName,
-          aieStructure.knowledgeBase.applicationTypeDirectoryName,
-          applicationType,
+          aieStructure.knowledgeBase.conditionalDirectoryName,
         ),
         projectPath,
-        "Application-Type Rules",
-        `Application Type: ${applicationType}`,
+        input.manifest.selection,
+        "Conditional Coding Rules",
+        "Conditional Rules",
       ),
     );
   }
-
-  for (const framework of input.manifest.selection.frameworks) {
-    pushLoadedBlocks(
-      { criticalRules, sections },
-      await loadDirectoryBlocks(
-        path.join(
-          knowledgeBasePath,
-          aieStructure.knowledgeBase.codingRulesDirectoryName,
-          aieStructure.knowledgeBase.frameworkDirectoryName,
-          framework,
-        ),
-        projectPath,
-        "Framework Rules",
-        `Framework: ${framework}`,
-      ),
-    );
-  }
-
-  pushLoadedBlocks(
-    { criticalRules, sections },
-    await loadConditionalBlocks(
-      path.join(
-        knowledgeBasePath,
-        aieStructure.knowledgeBase.codingRulesDirectoryName,
-        aieStructure.knowledgeBase.conditionalDirectoryName,
-      ),
-      projectPath,
-      input.manifest.selection,
-      "Conditional Coding Rules",
-      "Conditional Rules",
-    ),
-  );
 
   if (skillsPath) {
     skills.push(...(await loadSkillDefinitions(skillsPath, projectPath, "shared")));

@@ -41,3 +41,23 @@ test("Build defaults to the default adapter when --tool is omitted", () => {
   assert.equal(executionOptions.projectPath, "/tmp/example-project");
   assert.equal(executionOptions.tool, "default");
 });
+
+test("Explicit init preserves an explicitly empty knowledge-base path in the execution model", () => {
+  const executionOptions = resolveExecutionOptions(
+    parseCommandInput([
+      "init",
+      "--project-path",
+      "./nested/project",
+      "--kb-path",
+      "",
+      "--agent-path",
+      "content/agent",
+      "--agent-persona",
+      "software-developer",
+    ]),
+    "/tmp/workspace",
+  );
+
+  assert.equal(executionOptions.command, "init");
+  assert.equal(executionOptions.providedPaths.kbPath, "");
+});
