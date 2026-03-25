@@ -1,2 +1,0 @@
-- review the structure of `effective-context.json`
-- how project specific rules are applied? add to readme.

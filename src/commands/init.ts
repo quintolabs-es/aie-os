@@ -253,6 +253,7 @@ async function scaffoldProject(projectPath: string, manifest: Manifest): Promise
         .    *      .      *     .
 
 AIE OS project created at ${path.join(projectPath, aieStructure.project.directoryName)}.
+Existing project-specific rules in ${manifest.paths.projectCodingRules} are kept.
 `);
 }
 
