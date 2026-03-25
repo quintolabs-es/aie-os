@@ -161,6 +161,35 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not put business logic in shell wrappers.
 - Do not create generic catch-all files such as `utils.ts` for unrelated behavior.
 
+## Project Coding Rules
+
+- Treat article structure and formatting as a contract. Preserve the agreed template unless the user explicitly changes it.
+- Every article must start with YAML frontmatter containing `title`, `tags`, and `date` in that order.
+- Use `YYYY-MM-DD` for the `date` value.
+- The `tags` field must be a YAML list.
+- After frontmatter, start the body with `## <Title>`. Do not use `#` headings in article bodies.
+- The frontmatter `title` value and the first `##` heading must match.
+- Use `---` separators consistently between major sections and structural blocks.
+- Use `###` for major sections under the article title.
+- Use fenced code blocks with a language tag whenever possible.
+- Prefer section titles that describe the operational concern.
+- Prefer tags that are short, concrete, and topic-based.
+- Review both existing and new articles for format compliance, technical correctness, reproducibility, and consistency with the article set.
+- Keep edits minimal when reviewing existing articles. Preserve the original technical intent unless it is incorrect or unclear.
+- Flag missing prerequisites, broken examples, unverifiable claims, inconsistent terminology, and unclear sequencing.
+- Check metadata, heading hierarchy, separators, and example formatting before refining wording.
+- Enforce consistency across articles so the same kind of content is presented the same way.
+- Review articles for technical correctness, broken examples, heading consistency, metadata correctness, and Markdown structure before refining wording.
+- Validate frontmatter first.
+- Use short, directive review feedback tied to exact formatting or technical issues.
+- Do not reorder required metadata fields.
+- Do not use `#` headings inside the body.
+- Do not use inconsistent separators.
+- Do not write large narrative sections where a command or example would be clearer.
+- Do not use unlabeled code fences when a language can be specified.
+- Do not leave broken commands or code samples in place.
+- Do not leave examples that cannot be copied or reproduced without guessing missing steps.
+
 ## Available Skills
 
 Use a skill when the user explicitly names it or when the task clearly matches the "When to use" description.

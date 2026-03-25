@@ -72,6 +72,12 @@
       "layer": "Conditional Coding Rules",
       "sectionLabel": "Conditional Rules",
       "source": "/Users/luismesa/Documents/src/aie-os/content/knowledge-base/coding-rules/conditional/typescript-cli.md"
+    },
+    {
+      "content": "- Treat article structure and formatting as a contract. Preserve the agreed template unless the user explicitly changes it.\n- Every article must start with YAML frontmatter containing `title`, `tags`, and `date` in that order.\n- Use `YYYY-MM-DD` for the `date` value.\n- The `tags` field must be a YAML list.\n- After frontmatter, start the body with `## <Title>`. Do not use `#` headings in article bodies.\n- The frontmatter `title` value and the first `##` heading must match.\n- Use `---` separators consistently between major sections and structural blocks.\n- Use `###` for major sections under the article title.\n- Use fenced code blocks with a language tag whenever possible.\n- Prefer section titles that describe the operational concern.\n- Prefer tags that are short, concrete, and topic-based.\n- Review both existing and new articles for format compliance, technical correctness, reproducibility, and consistency with the article set.\n- Keep edits minimal when reviewing existing articles. Preserve the original technical intent unless it is incorrect or unclear.\n- Flag missing prerequisites, broken examples, unverifiable claims, inconsistent terminology, and unclear sequencing.\n- Check metadata, heading hierarchy, separators, and example formatting before refining wording.\n- Enforce consistency across articles so the same kind of content is presented the same way.\n- Review articles for technical correctness, broken examples, heading consistency, metadata correctness, and Markdown structure before refining wording.\n- Validate frontmatter first.\n- Use short, directive review feedback tied to exact formatting or technical issues.\n- Do not reorder required metadata fields.\n- Do not use `#` headings inside the body.\n- Do not use inconsistent separators.\n- Do not write large narrative sections where a command or example would be clearer.\n- Do not use unlabeled code fences when a language can be specified.\n- Do not leave broken commands or code samples in place.\n- Do not leave examples that cannot be copied or reproduced without guessing missing steps.",
+      "layer": "Project Coding Rules",
+      "sectionLabel": "Project Coding Rules",
+      "source": ".aie-os/project-coding-rules/article-writing-rules.md"
     }
   ],
   "skills": [

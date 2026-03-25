@@ -8,9 +8,16 @@ The repo also includes a ready-to-use [`/content`](../content) folder for gettin
 ```bash
 cd xample-app
 git clone https://github.com/quintolabs-es/aie-os
-pnpm --dir aie-os run build
 ```
-**Ignore `aie-os` in `.gitignore`.**
+Then build
+```bash
+pnpm --dir aie-os run build
+
+# OR catch up with latest
+bash aie-os/bin/build-latest-aie-os 
+```
+
+**Make sure to gnore `aie-os` in `.gitignore`.**
 
 ### Initialize AIE OS
 The commands below assume the local clone workflow.
