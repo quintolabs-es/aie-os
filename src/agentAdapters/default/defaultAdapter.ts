@@ -81,7 +81,7 @@ function renderSections(blocks: EffectiveContextBlock[]): string {
     return "";
   }
 
-  const groups = groupBlocksBySectionLabel(blocks);
+  const groups = groupBlocksBySectionLabel(blocks, toRenderedSectionLabel);
   const renderedGroups: string[] = [];
 
   for (const group of groups) {
@@ -99,12 +99,14 @@ function renderSections(blocks: EffectiveContextBlock[]): string {
 
 function groupBlocksBySectionLabel(
   blocks: EffectiveContextBlock[],
+  normalizeSectionLabel: (sectionLabel: string) => string = (sectionLabel) => sectionLabel,
 ): Array<{ blocks: EffectiveContextBlock[]; sectionLabel: string }> {
   const groups: Array<{ blocks: EffectiveContextBlock[]; sectionLabel: string }> = [];
   const seen = new Map<string, { blocks: EffectiveContextBlock[]; sectionLabel: string }>();
 
   for (const block of blocks) {
-    const existing = seen.get(block.sectionLabel);
+    const sectionLabel = normalizeSectionLabel(block.sectionLabel);
+    const existing = seen.get(sectionLabel);
 
     if (existing) {
       existing.blocks.push(block);
@@ -113,12 +115,20 @@ function groupBlocksBySectionLabel(
 
     const group = {
       blocks: [block],
-      sectionLabel: block.sectionLabel,
+      sectionLabel,
     };
 
-    seen.set(block.sectionLabel, group);
+    seen.set(sectionLabel, group);
     groups.push(group);
   }
 
   return groups;
+}
+
+function toRenderedSectionLabel(sectionLabel: string): string {
+  if (sectionLabel === "Conditional Rules") {
+    return "Coding Rules";
+  }
+
+  return sectionLabel;
 }

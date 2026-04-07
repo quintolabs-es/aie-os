@@ -65,6 +65,55 @@ test("Build uses the default adapter and prints the bootstrap prompt after a suc
   await fs.access(path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"));
 });
 
+test("Build keeps Conditional Rules in effective context but merges them into Coding Rules in AGENTS output", async () => {
+  const fixture = await createInitFixture();
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+    "--languages",
+    "typescript",
+    "--application-type",
+    "cli",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const effectiveContext = JSON.parse(
+    await fs.readFile(
+      path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"),
+      "utf8",
+    ),
+  );
+  const agentsContents = await fs.readFile(
+    path.join(fixture.projectPath, "AGENTS.md"),
+    "utf8",
+  );
+
+  assert.equal(
+    effectiveContext.sections.some((section) =>
+      section.sectionLabel === "Conditional Rules" &&
+      section.content.includes("Conditional CLI TypeScript rule.")),
+    true,
+  );
+  assert.doesNotMatch(agentsContents, /^## Conditional Rules$/mu);
+  assert.match(agentsContents, /^## Coding Rules$/mu);
+  assert.match(agentsContents, /Conditional CLI TypeScript rule\./u);
+});
+
 test("Build succeeds when the knowledge-base layer is disabled", async () => {
   const fixture = await createInitFixture();
 

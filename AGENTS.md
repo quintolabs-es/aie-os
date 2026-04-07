@@ -37,7 +37,7 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.
 - For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.
 - Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.
-- Do not edit `AGENTS.md` directly. Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-rules/`, then rebuild.
+- Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-rules/`. Do not edit any agent specific file like `AGENTS.md` or any other directly.
 - When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.
 - Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.
 - Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.
@@ -127,6 +127,17 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not write tests that only verify mocks interacted in a certain order.
 - Do not use broad end-to-end coverage as the only test layer.
 
+- Expose the real installed CLI through the package `bin` field.
+- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.
+- Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.
+- Put command implementations under `src/commands/`.
+- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.
+- Prefer one real executable entrypoint even when local and installed command surfaces differ.
+- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.
+- Prefer command parsing and command execution implemented in TypeScript source.
+- Do not put business logic in shell wrappers.
+- Do not create generic catch-all files such as `utils.ts` for unrelated behavior.
+
 ## Language: typescript
 
 - Use strict compiler settings and keep type errors at zero.
@@ -146,19 +157,6 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not use type assertions to bypass missing validation.
 - Do not use shared mutable module state for request-scoped behavior.
 - Prefer `pnpm` over `npm` as the package manager for new TypeScript projects. If a TypeScript project already uses `npm`, keep the existing package manager and do not switch it implicitly.
-
-## Conditional Rules
-
-- Expose the real installed CLI through the package `bin` field.
-- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.
-- Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.
-- Put command implementations under `src/commands/`.
-- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.
-- Prefer one real executable entrypoint even when local and installed command surfaces differ.
-- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.
-- Prefer command parsing and command execution implemented in TypeScript source.
-- Do not put business logic in shell wrappers.
-- Do not create generic catch-all files such as `utils.ts` for unrelated behavior.
 
 ## Project Coding Rules
 

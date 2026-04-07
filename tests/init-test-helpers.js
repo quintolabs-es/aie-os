@@ -26,11 +26,25 @@ async function createInitFixture() {
   await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "framework", "react"), {
     recursive: true,
   });
+  await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "conditional"), {
+    recursive: true,
+  });
   await fs.mkdir(path.join(agentPath, "persona"), { recursive: true });
 
   await fs.writeFile(
     path.join(agentPath, "persona", "software-developer.md"),
     "You are a software developer.\n",
+  );
+  await fs.writeFile(
+    path.join(knowledgeBasePath, "coding-rules", "conditional", "cli-typescript.md"),
+    `---
+applies_to:
+  application_types: [cli]
+  languages: [typescript]
+---
+
+- Conditional CLI TypeScript rule.
+`,
   );
 
   return {
