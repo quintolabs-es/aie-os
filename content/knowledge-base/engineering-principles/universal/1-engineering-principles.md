@@ -1,0 +1,12 @@
+- **Ship small and fast, in the right direction.** Put the smallest valuable change in front of a customer. Real usage teaches more than planning.
+- **Break things on purpose, early and small.** Test failure in the lab before the market finds it for you.
+- **Ask before you build.** Someone else may already have it - check before duplicating the work.
+- **Keep a person accountable for consequential outcomes.** Let AI handle the routine, but keep clear human ownership where judgment, risk, or impact matters.
+- **Keep things simple; let complexity emerge only where it proves necessary.** Complexity is a cost everyone downstream keeps paying. Contain it to where it delivers clear value.
+- **Stay flexible where it's hard to undo; commit fast otherwise.** Keep options open and make it cheap to adjust.
+- **Favor measurable improvement over process theater.** Adopt process only when it makes things clearer, safer, or faster. Otherwise it's ceremony, not engineering.
+- **Preserve clear ownership.** Every system and responsibility needs an explicit owner. Problems go unaddressed where ownership is ambiguous.
+- **Prefer proven standards over building custom.** You get compatibility and a shared vocabulary for free. Adopt selectively - use what fits, skip the rest.
+- **Capture repeated work as reusable agent artifacts.** A prompt, skill, or instruction that worked once should be available to anyone, not rediscovered each time.
+- **Design for eventual agent autonomy.** Build workflows so agents can take on the work end to end over time. Treat human intervention as a temporary scaffold, not a permanent dependency.
+- **Make documentation a working artifact, not a paper trail.** What's relied on stays current; what's merely descriptive goes stale.

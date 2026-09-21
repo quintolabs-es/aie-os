@@ -1,0 +1,13 @@
+- **Keep boundaries clean; leaking them compounds cost.** Letting one layer's implementation details (e.g. business/billing logic) leak into another (e.g. the data layer or the UI) turns small changes into large migrations. Enforce separation of concerns as a cost-control measure, not a style preference.
+- **Build the common case natively; leave a clean extension point for the rest.** Solve the majority of need directly, and let an explicit extension mechanism (first-party or ecosystem) cover the remainder - avoid overbuilding for edge cases upfront.
+- **Design for networks, not fixed hierarchies.** Relationships between components/entities should be able to form and dissolve without requiring re-architecture.
+- **Be foundational without being obstructive.** Infrastructure that others build on should feel indispensable but invisible - never interrupt the workflows it supports.
+- **Favor pushing relevant signals over waiting to be queried.** Systems that proactively surface what matters are more valuable than ones that only answer when asked.
+- **Expose every capability programmatically before wrapping it in an interface.** Contracts (APIs) come first; any UI is a consumer of the underlying capability, never a substitute for it.
+- **Treat APIs and interfaces as products; evolve them without breaking consumers unnecessarily.** Make contracts explicit and version them deliberately. A breaking change forces every consumer to do unplanned work on your timeline, not theirs.
+- **Standardize integration contracts across use cases.** The same shape, semantics, and error handling for every "kind" of integration reduces the cost of each new one.
+- **Prefer an event-driven extension mechanism over bespoke integrations.** Webhooks, callbacks, and workflow triggers let external parties extend the system without owning custom infrastructure per integration.
+- **Design data models to absorb new shapes without a migration project.** New entities, event types, or attributes should be addable without a schema rewrite.
+- **SDKs and helper libraries should be the path of least resistance.** If the "proper" library is more friction than calling the raw API directly, it will be bypassed - treat that as a defect.
+- **Observability is first-class from day one, not a day-two add-on.** If the system cannot show what happened inside it, you cannot defend any claim about its correctness or integrity.
+- **Tie non-functional targets (performance, scale) to the product's core promise.** Treat them as strategic proof points to validate against, not arbitrary numbers - and review tradeoffs against that target explicitly.

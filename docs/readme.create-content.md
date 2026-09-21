@@ -11,7 +11,8 @@ Expected structure
 [kb-path]/
   engineering-principles/
     universal/
-      *.md
+      1-engineering-principles.md
+      2-architecture-principles.md
   coding-rules/
     universal/
       *.md
@@ -76,6 +77,7 @@ Rules:
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
 - Project-specific coding rules and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
+- Architecture principles live beside engineering principles in `engineering-principles/universal/`; they are technology-agnostic design principles, not stack-specific coding rules.
 
 ### How context is built
 
@@ -87,6 +89,20 @@ Build uses a simple file-based contract:
 4. ignore every `README.md`
 
 Section labels in the final context are derived from the folder structure where the file is found.
+
+When one section label matches several files, the section renders as one `##` heading. The first file becomes the section body, and every file after it gets a `###` sub-heading derived from its filename, with any `N-` prefix removed and dashes turned into spaced words.
+
+Example, for `engineering-principles/universal/1-engineering-principles.md` and `2-architecture-principles.md`:
+
+```md
+## Engineering Principles
+
+<contents of 1-engineering-principles.md>
+
+### Architecture Principles
+
+<contents of 2-architecture-principles.md>
+```
 
 Examples:
 - `[kb-path]/engineering-principles/universal/*.md` -> `Engineering Principles`
@@ -106,6 +122,8 @@ Examples:
 - If a rule could fit in several places, put it in the most specific valid layer.
 - Keep context small. Prefer several short files over one large file.
 - Do not depend on markdown headings for behavior. Folder location controls inclusion and final section labeling.
+- Do not use `#` or `##` headings inside content files. The build emits `##` for the section and `###` for each additional file in it. Start at `###` when a file needs internal structure.
+- Files are ordered alphabetically within a folder. Use a numeric `N-` prefix when the order matters, as in `1-engineering-principles.md` and `2-architecture-principles.md`.
 
 ### Conditional coding rules
 

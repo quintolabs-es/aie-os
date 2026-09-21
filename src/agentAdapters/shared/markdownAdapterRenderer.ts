@@ -1,3 +1,4 @@
+import path from "node:path";
 import { defaultSkillAdapter } from "../default/defaultSkillAdapter";
 import type {
   AdapterInput,
@@ -85,7 +86,11 @@ function renderSections(blocks: EffectiveContextBlock[]): string {
   for (const group of groups) {
     const parts = [`## ${group.sectionLabel}`];
 
-    for (const block of group.blocks) {
+    for (const [index, block] of group.blocks.entries()) {
+      if (index > 0) {
+        parts.push("", `### ${toBlockHeading(block.source)}`);
+      }
+
       parts.push("", block.content);
     }
 
@@ -93,6 +98,17 @@ function renderSections(blocks: EffectiveContextBlock[]): string {
   }
 
   return renderedGroups.join("\n\n");
+}
+
+function toBlockHeading(source: string): string {
+  const baseName = path.basename(source, path.extname(source));
+
+  return baseName
+    .replace(/^\d+-/u, "")
+    .split("-")
+    .filter((word) => word !== "")
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(" ");
 }
 
 function groupBlocksBySectionLabel(

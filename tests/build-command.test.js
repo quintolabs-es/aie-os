@@ -276,3 +276,55 @@ test("Build succeeds when the knowledge-base layer is disabled", async () => {
     false,
   );
 });
+
+test("Build renders one section heading per layer and a sub-heading for every file after the first", async () => {
+  const fixture = await createInitFixture();
+  const principlesPath = path.join(
+    fixture.knowledgeBasePath,
+    "engineering-principles",
+    "universal",
+  );
+
+  await fs.writeFile(
+    path.join(principlesPath, "1-engineering-principles.md"),
+    "- Ship small and fast.\n",
+  );
+  await fs.writeFile(
+    path.join(principlesPath, "2-architecture-principles.md"),
+    "- Keep boundaries clean.\n",
+  );
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "coding-rules", "universal", "coding-rules.md"),
+    "- Keep modules focused.\n",
+  );
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const agents = await fs.readFile(path.join(fixture.projectPath, "AGENTS.md"), "utf8");
+
+  assert.match(
+    agents,
+    /## Engineering Principles\n\n- Ship small and fast\.\n\n### Architecture Principles\n\n- Keep boundaries clean\./u,
+  );
+  assert.equal(agents.includes("### Engineering Principles"), false);
+  assert.match(agents, /## Coding Rules\n\n- Keep modules focused\./u);
+  assert.equal(agents.includes("### Coding Rules\n\n- Keep modules focused."), false);
+});
