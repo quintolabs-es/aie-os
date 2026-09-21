@@ -146,14 +146,6 @@
       "warnings": []
     },
     {
-      "description": "Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates all deterministic registration points, and then tells the contributor exactly what remains to implement in the adapter file.",
-      "entrypoint": "SKILL.md",
-      "name": "add-tool-adapter",
-      "scope": "project",
-      "source": ".aie-os/project-skills/add-tool-adapter",
-      "warnings": []
-    },
-    {
       "description": "Use this skill when the user wants to create or update a shared universal skill under `content/skills/` in this repository. It creates the shared skill folder and writes a concise `SKILL.md` aligned with this repo's shared skill conventions.",
       "entrypoint": "SKILL.md",
       "name": "create-universal-skill",

@@ -63,34 +63,14 @@ Add an adapter only when the rendering itself differs: a different file format, 
 
 The CLI passes this output to the artifact writer, which is the only component that writes files to disk.
 
-### Project skill
+### What the contributor implements
 
-This project already has a local skill for adding a new adapter:
+Adding an adapter is a manual contribution. For the new tool:
 
-- `.aie-os/project-skills/add-tool-adapter/SKILL.md`
-
-Use that skill when the intent is to add support for a new tool in this repo.
-
-Typical trigger phrasing:
-
-- add a new adapter for a new tool
-- support a new tool
-- add a tool adapter
-
-The skill owns the deterministic contributor workflow:
-
-- scaffold the adapter file
-- update the static registry
-- update the supported tool type
-- update CLI tool wiring
-- update CLI help text
-
-### What remains manual
-
-After the skill scaffolds the new tool, the contributor still needs to:
-
-- implement the tool-specific rendering logic in the generated adapter file
-- replace the placeholder output path, contents, and bootstrap prompt
+- create the adapter file under `src/agentAdapters/<toolKey>/`
+- add its key to `AdapterTool` in `src/agentAdapters/types.ts`
+- add its registry entry in `src/agentAdapters/index.ts`
+- implement the rendering logic, the generated file contents, and the bootstrap prompt
 - build and test the new adapter
 
 ### Minimal example

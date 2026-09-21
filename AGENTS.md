@@ -239,12 +239,7 @@ Open the referenced `SKILL.md` only when needed. Load additional files from the 
 - Where to find it: .aie-os/build/skills/shared/setup-project-agent-context/SKILL.md
 - When to use it: Use this skill when the user wants to set up AIE OS, configure agent context, or generate agent instruction files such as AGENTS.md or CLAUDE.md for a project. It gathers missing configuration, runs the AIE OS CLI, and verifies the generated artifacts.
 - Source: shared
-### 9. add-tool-adapter
-
-- Where to find it: .aie-os/build/skills/project/add-tool-adapter/SKILL.md
-- When to use it: Use this skill when the user wants to add support for a new tool by creating a new AIE OS adapter. It scaffolds the adapter contribution wiring for the named tool, updates all deterministic registration points, and then tells the contributor exactly what remains to implement in the adapter file.
-- Source: project
-### 10. create-universal-skill
+### 9. create-universal-skill
 
 - Where to find it: .aie-os/build/skills/project/create-universal-skill/SKILL.md
 - When to use it: Use this skill when the user wants to create or update a shared universal skill under `content/skills/` in this repository. It creates the shared skill folder and writes a concise `SKILL.md` aligned with this repo's shared skill conventions.
