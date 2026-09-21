@@ -1,9 +1,7 @@
-import { claudeAdapter } from "./claude/claudeAdapter";
 import { defaultAdapter } from "./default/defaultAdapter";
 import type { Adapter, AdapterTool } from "./types";
 
 const adapters = {
-  claude: claudeAdapter,
   default: defaultAdapter,
 } satisfies Record<AdapterTool, Adapter>;
 
@@ -16,6 +14,8 @@ export function getAdapter(tool: AdapterTool): Adapter {
 
   return adapter;
 }
+
+export { generatedFileMarker } from "./shared/markdownAdapterRenderer";
 
 export type {
   Adapter,

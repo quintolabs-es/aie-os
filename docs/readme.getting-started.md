@@ -57,9 +57,10 @@ docker compose -f aie-os/docker-compose.yaml run --rm aie-os init \
 - in explicit mode, omitted optional values become empty/unset and `init` does not prompt
 
 ### Build agent context.
-Build context and generate the adapter artifacts. `build` targets the `default` adapter when `--target-agent` is omitted.
+Build context and generate the agent artifacts. `build` writes `AGENTS.md` when `--output-file` is omitted.
 ```bash
-docker compose -f aie-os/docker-compose.yaml run --rm aie-os build [--project-path <value>] [--target-agent default]
+docker compose -f aie-os/docker-compose.yaml run --rm aie-os build [--project-path <value>] [--output-file <name>] [--force-overwrite]
 ```
-* `--target-agent`: optional. Defaults to `default`. Supported values: `default`, `copilot`, `chatgpt` (write `AGENTS.md`), `claude` (writes `CLAUDE.md`).
+* `--output-file CLAUDE.md`: optional. Defaults to `AGENTS.md`. Must be a file name, not a path. Use it to match the agent you target, or to avoid clashing with a file the repository already owns.
+* `--force-overwrite`: optional. `build` replaces its own generated file freely, but refuses to overwrite a file AIE OS did not generate. Pass this flag to replace such a file anyway.
 * `--project-path /path/to/project` optional, defaults to current directory.

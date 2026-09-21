@@ -1,5 +1,4 @@
 export type CommandName = "init" | "build";
-export type TargetAgentName = "default" | "copilot" | "chatgpt" | "claude";
 
 export type ParsedOptions = {
   command: CommandName | null;
@@ -9,8 +8,9 @@ export type ParsedOptions = {
 
 export type BuildExecutionOptions = {
   command: "build";
+  forceOverwrite: boolean;
+  outputFile: string;
   projectPath: string;
-  targetAgent: TargetAgentName;
 };
 
 export type InitPromptDefaults = {

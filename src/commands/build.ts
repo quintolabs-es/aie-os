@@ -1,21 +1,14 @@
 import path from "node:path";
 import { stdout as output } from "node:process";
 import { getAdapter } from "../agentAdapters";
-import type { AdapterTool } from "../agentAdapters";
 import { agentArtifactWriter } from "../artifacts/agentArtifactWriter";
 import { aieRelativePaths } from "../context/aieStructure";
 import { buildAgentContext } from "../context/build";
+import { ensureOutputFileIsReplaceable } from "../artifacts/outputFileGuard";
 import { fileExists, writeText } from "../context/filesystem";
 import { loadManifest } from "../context/manifest";
 import { terminalStyle } from "./terminalStyle";
-import type { BuildExecutionOptions, TargetAgentName } from "./types";
-
-const TARGET_AGENT_ADAPTER_TOOLS: Record<TargetAgentName, AdapterTool> = {
-  chatgpt: "default",
-  claude: "claude",
-  copilot: "default",
-  default: "default",
-};
+import type { BuildExecutionOptions } from "./types";
 
 const ansi = {
   bold: "\u001B[1m",
@@ -35,15 +28,21 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   }
 
   const manifest = await loadManifest(manifestPath);
-  const adapterTool = TARGET_AGENT_ADAPTER_TOOLS[options.targetAgent];
   const buildOutput = await buildAgentContext({
     manifest,
     projectPath: options.projectPath,
-    tool: adapterTool,
+    tool: "default",
   });
-  const adapter = getAdapter(adapterTool);
+  const adapter = getAdapter("default");
   const adapterOutput = await adapter.build({
     effectiveContext: buildOutput.effectiveContext,
+    instructionsFileName: options.outputFile,
+    projectPath: options.projectPath,
+  });
+
+  await ensureOutputFileIsReplaceable({
+    forceOverwrite: options.forceOverwrite,
+    outputFile: options.outputFile,
     projectPath: options.projectPath,
   });
 

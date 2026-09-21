@@ -1,11 +1,9 @@
 import { buildMarkdownAdapterOutput } from "../shared/markdownAdapterRenderer";
 import type { Adapter, AdapterOutput } from "../types";
 
-const instructionsFileName = "AGENTS.md";
-
 export const defaultAdapter: Adapter = {
   async build(input): Promise<AdapterOutput> {
-    return buildMarkdownAdapterOutput(input, instructionsFileName);
+    return buildMarkdownAdapterOutput(input, input.instructionsFileName);
   },
   tool: "default",
 };

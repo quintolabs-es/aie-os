@@ -37,8 +37,8 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.
 - For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.
 - Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.
-- Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-rules/`. Do not edit any agent specific file like `AGENTS.md` or any other directly.
-- When context is summarized, compacted, or partially lost, preserve the repository instruction contract from `AGENTS.md`.
+- Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-rules/`. Do not edit the generated agent instructions file or any other generated artifact directly.
+- When context is summarized, compacted, or partially lost, preserve the repository instruction contract from the generated agent instructions file.
 - Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.
 - Prefer reloading canonical files from disk over relying on compressed memory of earlier turns.
 
@@ -237,7 +237,7 @@ Open the referenced `SKILL.md` only when needed. Load additional files from the 
 ### 8. setup-project-agent-context
 
 - Where to find it: .aie-os/build/skills/shared/setup-project-agent-context/SKILL.md
-- When to use it: Use this skill when the user wants to set up AIE OS, configure agent context, or generate agent instruction files such as AGENTS.md for a project. It gathers missing configuration, runs the AIE OS CLI, and verifies the generated artifacts.
+- When to use it: Use this skill when the user wants to set up AIE OS, configure agent context, or generate agent instruction files such as AGENTS.md or CLAUDE.md for a project. It gathers missing configuration, runs the AIE OS CLI, and verifies the generated artifacts.
 - Source: shared
 ### 9. add-tool-adapter
 

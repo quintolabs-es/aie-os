@@ -26,15 +26,14 @@ The extension model is:
    - `src/agentAdapters/index.ts`
 5. one supported tool type update in:
    - `src/agentAdapters/types.ts`
-6. CLI support in:
-   - `src/commands/commandLine.ts` (`--target-agent`)
-   - `src/commands/build.ts` (the target-agent-to-adapter-tool alias map)
+6. adapter selection in:
+   - `src/commands/build.ts`
 
-### Target agents vs. adapters
+### When a new adapter is justified
 
-`--target-agent` is a CLI-facing concept (`src/commands/types.ts`'s `TargetAgentName`) and can have more values than `AdapterTool`. Two target agents may need byte-identical output (for example `copilot` and `chatgpt` both render `AGENTS.md`) — in that case, do not scaffold a second adapter folder. Instead, add the new target-agent name to `SUPPORTED_TARGET_AGENTS` in `src/commands/commandLine.ts` and map it to the existing `AdapterTool` in the alias table in `src/commands/build.ts`. Only give a target agent its own adapter folder when its rendering actually differs.
+The output file name is not a reason to add an adapter. `build --output-file <name>` already names the generated file, so a tool that only wants a different file name needs no code at all.
 
-When two adapters render nearly the same content (for example `default` and `claude`, which differ only by output filename), factor the shared rendering logic into a small helper under `src/agentAdapters/shared/` parameterized by the differing inputs, and have both adapter files call it. This is a deliberate deviation from the fully self-contained example below, used only to avoid duplicating a renderer that must stay byte-for-byte in sync across adapters.
+Add an adapter only when the rendering itself differs: a different file format, a different section structure, extra generated files, or a different bootstrap prompt. When two adapters would render nearly the same content, factor the shared rendering into a helper under `src/agentAdapters/shared/` parameterized by the differing inputs, and have both adapter files call it, rather than duplicating a renderer that must stay byte-for-byte in sync.
 
 ### Adapter input
 
@@ -46,6 +45,8 @@ When two adapters render nearly the same content (for example `default` and `cla
     - `criticalRules`
     - `sections`
     - `skills`
+- `instructionsFileName`
+  - name of the generated instructions file, from `--output-file`
 - `projectPath`
   - target project root
 
@@ -57,6 +58,8 @@ When two adapters render nearly the same content (for example `default` and `cla
   - file path and contents for each generated agent artifact
 - `primaryArtifact`
   - main generated file name, for example `AGENTS.md`
+
+`build` refuses to overwrite an existing primary artifact that does not contain the `generatedFileMarker` exported from `src/agentAdapters`, unless `--force-overwrite` is passed. An adapter that writes a markdown instructions file must include that marker so repeated builds do not require the flag.
 
 The CLI passes this output to the artifact writer, which is the only component that writes files to disk.
 

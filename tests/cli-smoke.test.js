@@ -38,12 +38,13 @@ test("CLI without a command shows a command-required error and help", async () =
   );
 });
 
-test("Build command rejects unsupported target agents", async () => {
+test("Build command explains how to replace the removed target-agent option", async () => {
   await assert.rejects(
-    execFileAsync(process.execPath, [cliEntry, "build", "--target-agent", "codex"]),
+    execFileAsync(process.execPath, [cliEntry, "build", "--target-agent", "claude"]),
     (error) => {
       assert.equal(error.code, 1);
-      assert.match(error.stderr, /Unsupported target agent: codex/u);
+      assert.match(error.stderr, /--target-agent has been removed\. Use --output-file <name> instead\./u);
+      assert.match(error.stderr, /build --output-file CLAUDE\.md/u);
       return true;
     },
   );

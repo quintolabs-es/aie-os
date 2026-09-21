@@ -1,4 +1,4 @@
-export type AdapterTool = "default" | "claude";
+export type AdapterTool = "default";
 
 export type EffectiveContextBlock = {
   content: string;
@@ -45,6 +45,7 @@ export type EffectiveContext = {
 
 export type AdapterInput = {
   effectiveContext: EffectiveContext;
+  instructionsFileName: string;
   projectPath: string;
 };
 
