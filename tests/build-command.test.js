@@ -367,6 +367,8 @@ test("Build renders one section heading per layer and a sub-heading for every fi
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--languages",
+    "typescript",
   ]);
 
   await execFileAsync(process.execPath, [
@@ -385,4 +387,87 @@ test("Build renders one section heading per layer and a sub-heading for every fi
   assert.equal(agents.includes("### Engineering Principles"), false);
   assert.match(agents, /## Coding Rules\n\n- Keep modules focused\./u);
   assert.equal(agents.includes("### Coding Rules\n\n- Keep modules focused."), false);
+});
+
+test("Build skips every knowledge-base layer when no language, application type, or framework is selected", async () => {
+  const fixture = await createInitFixture();
+
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "engineering-principles", "universal", "principles.md"),
+    "- Ship small and fast.\n",
+  );
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "coding-rules", "universal", "coding-rules.md"),
+    "- Keep modules focused.\n",
+  );
+  await fs.writeFile(
+    path.join(fixture.agentPath, "universal", "universal.md"),
+    "- Agent rule that always applies.\n",
+  );
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const agents = await fs.readFile(path.join(fixture.projectPath, "AGENTS.md"), "utf8");
+
+  assert.equal(agents.includes("Ship small and fast."), false);
+  assert.equal(agents.includes("Keep modules focused."), false);
+  assert.equal(agents.includes("## Engineering Principles"), false);
+  assert.equal(agents.includes("## Coding Rules"), false);
+
+  assert.match(agents, /## Persona/u);
+  assert.match(agents, /- Agent rule that always applies\./u);
+});
+
+test("Build loads the knowledge base when only a framework is selected", async () => {
+  const fixture = await createInitFixture();
+
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "engineering-principles", "universal", "principles.md"),
+    "- Ship small and fast.\n",
+  );
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+    "--frameworks",
+    "react",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const agents = await fs.readFile(path.join(fixture.projectPath, "AGENTS.md"), "utf8");
+
+  assert.match(agents, /## Engineering Principles/u);
+  assert.match(agents, /- Ship small and fast\./u);
 });

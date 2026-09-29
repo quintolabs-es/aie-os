@@ -50,6 +50,7 @@ xample-app/
 ## Building Context
 
 - `build` resolves shared knowledge, agent configuration, shared coding rules, shared skills, project coding rules, and project skills into one canonical output.
+- The knowledge base is technical content, so it is included only when the project selects at least one language, application type, or framework. With no technical selection, the context is the persona, agent rules, project coding rules, and skills.
 - Rendering order:
   - selected persona
   - all matched `critical-rules.md`

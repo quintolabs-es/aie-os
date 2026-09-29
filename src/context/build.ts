@@ -96,7 +96,7 @@ async function resolveContext(input: BuildInput): Promise<{
     ),
   );
 
-  if (knowledgeBasePath) {
+  if (knowledgeBasePath && hasTechnicalSelection(input.manifest.selection)) {
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
@@ -214,6 +214,14 @@ async function resolveContext(input: BuildInput): Promise<{
     sections,
     skills,
   };
+}
+
+function hasTechnicalSelection(selection: Manifest["selection"]): boolean {
+  return (
+    selection.languages.length > 0 ||
+    selection.applicationTypes.length > 0 ||
+    selection.frameworks.length > 0
+  );
 }
 
 function pushLoadedBlocks(target: LoadedBlocks, loaded: LoadedBlocks): void {

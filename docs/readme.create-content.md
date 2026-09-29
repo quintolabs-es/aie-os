@@ -77,12 +77,14 @@ Rules:
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
 - Project-specific coding rules and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
+- The whole knowledge base is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, project coding rules, and skills only.
 - Architecture principles live beside engineering principles in `engineering-principles/universal/`; they are technology-agnostic design principles, not stack-specific coding rules.
 
 ### How context is built
 
 Build uses a simple file-based contract:
 
+0. skip every `[kb-path]` layer when `selection.languages`, `selection.applicationTypes`, and `selection.frameworks` are all empty
 1. render the selected persona from `[agent-path]/persona/<persona>.md`
 2. collect every matched `critical-rules.md` file into one top `Critical Rules` section
 3. append every other matched markdown file in precedence order
