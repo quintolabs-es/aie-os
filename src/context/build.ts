@@ -96,13 +96,13 @@ async function resolveContext(input: BuildInput): Promise<{
     ),
   );
 
-  if (knowledgeBasePath && hasTechnicalSelection(input.manifest.selection)) {
+  if (knowledgeBasePath) {
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
         path.join(
           knowledgeBasePath,
-          aieStructure.knowledgeBase.engineeringPrinciplesDirectoryName,
+          aieStructure.knowledgeBase.generalPrinciplesDirectoryName,
           aieStructure.knowledgeBase.universalDirectoryName,
         ),
         projectPath,
@@ -110,7 +110,9 @@ async function resolveContext(input: BuildInput): Promise<{
         "Engineering Principles",
       ),
     );
+  }
 
+  if (knowledgeBasePath && hasTechnicalSelection(input.manifest.selection)) {
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(

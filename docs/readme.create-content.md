@@ -9,7 +9,7 @@ Expected structure
 
 ```text
 [kb-path]/
-  engineering-principles/
+  general-principles/
     universal/
       1-engineering-principles.md
       2-architecture-principles.md
@@ -77,14 +77,14 @@ Rules:
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
 - Project-specific coding rules and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
-- The whole knowledge base is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, project coding rules, and skills only.
-- Architecture principles live beside engineering principles in `engineering-principles/universal/`; they are technology-agnostic design principles, not stack-specific coding rules.
+- `general-principles/` always loads. The rest of the knowledge base (`coding-rules/`) is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, principles, project coding rules, and skills.
+- Architecture principles live beside engineering principles in `general-principles/universal/`; they are technology-agnostic design principles, not stack-specific coding rules.
 
 ### How context is built
 
 Build uses a simple file-based contract:
 
-0. skip every `[kb-path]` layer when `selection.languages`, `selection.applicationTypes`, and `selection.frameworks` are all empty
+0. skip every `[kb-path]/coding-rules` layer when `selection.languages`, `selection.applicationTypes`, and `selection.frameworks` are all empty
 1. render the selected persona from `[agent-path]/persona/<persona>.md`
 2. collect every matched `critical-rules.md` file into one top `Critical Rules` section
 3. append every other matched markdown file in precedence order
@@ -94,7 +94,7 @@ Section labels in the final context are derived from the folder structure where 
 
 When one section label matches several files, the section renders as one `##` heading. The first file becomes the section body, and every file after it gets a `###` sub-heading derived from its filename, with any `N-` prefix removed and dashes turned into spaced words.
 
-Example, for `engineering-principles/universal/1-engineering-principles.md` and `2-architecture-principles.md`:
+Example, for `general-principles/universal/1-engineering-principles.md` and `2-architecture-principles.md`:
 
 ```md
 ## Engineering Principles
@@ -107,7 +107,7 @@ Example, for `engineering-principles/universal/1-engineering-principles.md` and 
 ```
 
 Examples:
-- `[kb-path]/engineering-principles/universal/*.md` -> `Engineering Principles`
+- `[kb-path]/general-principles/universal/*.md` -> `Engineering Principles`
 - `[kb-path]/coding-rules/language/typescript/*.md` -> `Language: typescript`
 - `[kb-path]/coding-rules/application-type/api/*.md` -> `Application Type: api`
 - `[agent-path]/universal/*.md` -> `Agent Rules`

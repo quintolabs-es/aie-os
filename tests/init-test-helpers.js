@@ -11,7 +11,7 @@ async function createInitFixture() {
 
   await fs.mkdir(projectPath, { recursive: true });
   await fs.mkdir(path.join(agentPath, "universal"), { recursive: true });
-  await fs.mkdir(path.join(knowledgeBasePath, "engineering-principles", "universal"), {
+  await fs.mkdir(path.join(knowledgeBasePath, "general-principles", "universal"), {
     recursive: true,
   });
   await fs.mkdir(path.join(knowledgeBasePath, "coding-rules", "universal"), {

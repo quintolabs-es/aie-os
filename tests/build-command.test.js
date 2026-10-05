@@ -325,7 +325,6 @@ test("Build succeeds when the knowledge-base layer is disabled", async () => {
   assert.equal(effectiveContext.persona.source, path.join(fixture.agentPath, "persona", "software-developer.md"));
   assert.equal(
     effectiveContext.sections.some((section) =>
-      section.layer === "Engineering Principles" ||
       section.layer === "Shared Coding Rules" ||
       section.layer === "Language Rules" ||
       section.layer === "Application-Type Rules" ||
@@ -339,7 +338,7 @@ test("Build renders one section heading per layer and a sub-heading for every fi
   const fixture = await createInitFixture();
   const principlesPath = path.join(
     fixture.knowledgeBasePath,
-    "engineering-principles",
+    "general-principles",
     "universal",
   );
 
@@ -389,11 +388,11 @@ test("Build renders one section heading per layer and a sub-heading for every fi
   assert.equal(agents.includes("### Coding Rules\n\n- Keep modules focused."), false);
 });
 
-test("Build skips every knowledge-base layer when no language, application type, or framework is selected", async () => {
+test("Build loads only the principles from the knowledge base when no language, application type, or framework is selected", async () => {
   const fixture = await createInitFixture();
 
   await fs.writeFile(
-    path.join(fixture.knowledgeBasePath, "engineering-principles", "universal", "principles.md"),
+    path.join(fixture.knowledgeBasePath, "general-principles", "universal", "principles.md"),
     "- Ship small and fast.\n",
   );
   await fs.writeFile(
@@ -427,20 +426,63 @@ test("Build skips every knowledge-base layer when no language, application type,
 
   const agents = await fs.readFile(path.join(fixture.projectPath, "AGENTS.md"), "utf8");
 
-  assert.equal(agents.includes("Ship small and fast."), false);
+  assert.match(agents, /## Engineering Principles\n\n- Ship small and fast\./u);
   assert.equal(agents.includes("Keep modules focused."), false);
-  assert.equal(agents.includes("## Engineering Principles"), false);
   assert.equal(agents.includes("## Coding Rules"), false);
 
   assert.match(agents, /## Persona/u);
   assert.match(agents, /- Agent rule that always applies\./u);
 });
 
+test("Build gives the solutions-architect persona the principles and no coding rules without a technical selection", async () => {
+  const fixture = await createInitFixture();
+
+  await fs.writeFile(
+    path.join(fixture.agentPath, "persona", "solutions-architect.md"),
+    "You are a solutions architect.\n",
+  );
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "general-principles", "universal", "principles.md"),
+    "- Keep boundaries clean.\n",
+  );
+  await fs.writeFile(
+    path.join(fixture.knowledgeBasePath, "coding-rules", "universal", "coding-rules.md"),
+    "- Keep modules focused.\n",
+  );
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "solutions-architect",
+  ]);
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "build",
+    "--project-path",
+    fixture.projectPath,
+  ]);
+
+  const agents = await fs.readFile(path.join(fixture.projectPath, "AGENTS.md"), "utf8");
+
+  assert.match(agents, /You are a solutions architect\./u);
+  assert.match(agents, /## Engineering Principles\n\n- Keep boundaries clean\./u);
+  assert.equal(agents.includes("Keep modules focused."), false);
+  assert.equal(agents.includes("## Coding Rules"), false);
+});
+
 test("Build loads the knowledge base when only a framework is selected", async () => {
   const fixture = await createInitFixture();
 
   await fs.writeFile(
-    path.join(fixture.knowledgeBasePath, "engineering-principles", "universal", "principles.md"),
+    path.join(fixture.knowledgeBasePath, "general-principles", "universal", "principles.md"),
     "- Ship small and fast.\n",
   );
 

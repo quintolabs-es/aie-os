@@ -56,7 +56,7 @@ async function collectManifest(
       ? await promptPath({
           allowEmpty: true,
           defaultValue: defaults.kbPath,
-          description: "AIE OS reads shared engineering principles and coding rules from this folder. Leave it empty to disable the knowledge-base layer.",
+          description: "AIE OS reads shared engineering principles and coding rules from this folder. Leave it empty to disable the knowledge-base layer. Principles always load; coding rules load only when a language, application type, or framework is selected.",
           promptLabel: "knowledge base path",
           optionName: "--kb-path",
           projectPath,

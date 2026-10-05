@@ -22,7 +22,7 @@ test("Package metadata exposes the installed aie-os command", async () => {
   assert.equal(packageJson.scripts.prepare, "pnpm compile");
 });
 
-test("Packed install exposes pnpm aie-os", async () => {
+test("Packed install exposes the aie-os bin", async () => {
   const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), "aie-os-package-"));
   const consumerPath = path.join(rootPath, "consumer");
   const npmCachePath = path.join(rootPath, ".npm-cache");
@@ -59,10 +59,14 @@ test("Packed install exposes pnpm aie-os", async () => {
     maxBuffer: 10 * 1024 * 1024,
   });
 
-  const { stdout, stderr } = await execFileAsync("pnpm", ["aie-os", "--help"], {
-    cwd: consumerPath,
-    maxBuffer: 10 * 1024 * 1024,
-  });
+  const { stdout, stderr } = await execFileAsync(
+    path.join(consumerPath, "node_modules", ".bin", "aie-os"),
+    ["--help"],
+    {
+      cwd: consumerPath,
+      maxBuffer: 10 * 1024 * 1024,
+    },
+  );
 
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
