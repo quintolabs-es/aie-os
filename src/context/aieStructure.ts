@@ -11,8 +11,13 @@ export const aieStructure = {
     readmeFileName: "README.md",
     skillFileName: "SKILL.md",
   },
+  personaIncludes: {
+    architecturePrinciples: "architecture-principles",
+    fieldName: "includes",
+  },
   knowledgeBase: {
     applicationTypeDirectoryName: "application-type",
+    architectureDirectoryName: "architecture",
     codingRulesDirectoryName: "coding-rules",
     conditionalDirectoryName: "conditional",
     frameworkDirectoryName: "framework",

@@ -12,6 +12,7 @@ Expected structure
   general-principles/
     universal/
       1-engineering-principles.md
+    architecture/
       2-architecture-principles.md
   coding-rules/
     universal/
@@ -77,8 +78,8 @@ Rules:
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
 - Project-specific coding rules and skills may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
-- `general-principles/` always loads. The rest of the knowledge base (`coding-rules/`) is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, principles, project coding rules, and skills.
-- Architecture principles live beside engineering principles in `general-principles/universal/`; they are technology-agnostic design principles, not stack-specific coding rules.
+- `general-principles/universal/` always loads. `general-principles/architecture/` loads with a technical selection or when the persona frontmatter has `includes: [architecture-principles]`. `coding-rules/` is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, principles, project coding rules, and skills.
+- Architecture principles live in `general-principles/architecture/`; they are technology-agnostic design principles, not stack-specific coding rules.
 
 ### How context is built
 
@@ -107,7 +108,7 @@ Example, for `general-principles/universal/1-engineering-principles.md` and `2-a
 ```
 
 Examples:
-- `[kb-path]/general-principles/universal/*.md` -> `Engineering Principles`
+- `[kb-path]/general-principles/universal/*.md` and `architecture/*.md` -> `Engineering Principles`
 - `[kb-path]/coding-rules/language/typescript/*.md` -> `Language: typescript`
 - `[kb-path]/coding-rules/application-type/api/*.md` -> `Application Type: api`
 - `[agent-path]/universal/*.md` -> `Agent Rules`
@@ -118,6 +119,7 @@ Examples:
 - Write normal markdown. No in-file schema is required.
 - `critical-rules.md` is the only special filename.
 - Use `critical-rules.md` only for rules that must always surface at the top of the final agent context.
+- Persona files may declare `includes: [architecture-principles]` in frontmatter to always load the architecture principles. Frontmatter is not rendered.
 - Persona files should start with an identity line such as `You are a software developer...`.
 - Keep files short, explicit, and easy to scan.
 - Prefer bullets and direct wording over narrative explanation.

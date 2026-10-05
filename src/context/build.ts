@@ -77,14 +77,14 @@ async function resolveContext(input: BuildInput): Promise<{
   );
   const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
-  const persona = await loadPersona(
-    path.join(
-      agentPath,
-      aieStructure.agent.personaDirectoryName,
-      `${input.manifest.selection.persona}${aieStructure.files.markdownExtension}`,
-    ),
-    projectPath,
+  const personaPath = path.join(
+    agentPath,
+    aieStructure.agent.personaDirectoryName,
+    `${input.manifest.selection.persona}${aieStructure.files.markdownExtension}`,
   );
+  const personaContents = await readText(personaPath);
+  const persona = toPersona(personaContents, personaPath, projectPath);
+  const personaIncludes = readPersonaIncludes(personaContents, personaPath);
 
   pushLoadedBlocks(
     { criticalRules, sections },
@@ -95,6 +95,11 @@ async function resolveContext(input: BuildInput): Promise<{
       "Agent Rules",
     ),
   );
+
+  const personaIncludesArchitecture = personaIncludes.includes(
+    aieStructure.personaIncludes.architecturePrinciples,
+  );
+  const technicalSelection = hasTechnicalSelection(input.manifest.selection);
 
   if (knowledgeBasePath) {
     pushLoadedBlocks(
@@ -112,7 +117,23 @@ async function resolveContext(input: BuildInput): Promise<{
     );
   }
 
-  if (knowledgeBasePath && hasTechnicalSelection(input.manifest.selection)) {
+  if (knowledgeBasePath && (technicalSelection || personaIncludesArchitecture)) {
+    pushLoadedBlocks(
+      { criticalRules, sections },
+      await loadOptionalDirectoryBlocks(
+        path.join(
+          knowledgeBasePath,
+          aieStructure.knowledgeBase.generalPrinciplesDirectoryName,
+          aieStructure.knowledgeBase.architectureDirectoryName,
+        ),
+        projectPath,
+        "Engineering Principles",
+        "Engineering Principles",
+      ),
+    );
+  }
+
+  if (knowledgeBasePath && technicalSelection) {
     pushLoadedBlocks(
       { criticalRules, sections },
       await loadDirectoryBlocks(
@@ -240,13 +261,25 @@ function toEffectiveContextInputs(manifest: Manifest): EffectiveContextInputs {
   };
 }
 
-async function loadPersona(filePath: string, projectPath: string): Promise<EffectiveContextPersona> {
-  const content = normalizeMarkdownContents(await readText(filePath));
-
+function toPersona(
+  contents: string,
+  filePath: string,
+  projectPath: string,
+): EffectiveContextPersona {
   return {
-    content,
+    content: normalizeMarkdownContents(contents),
     source: toOutputFileReference(projectPath, filePath),
   };
+}
+
+function readPersonaIncludes(contents: string, filePath: string): string[] {
+  const rawValue = readFrontmatterField(contents, aieStructure.personaIncludes.fieldName);
+
+  if (rawValue === "") {
+    return [];
+  }
+
+  return parseInlineStringArray(rawValue, filePath);
 }
 
 async function loadDirectoryBlocks(
@@ -594,7 +627,7 @@ function parseInlineStringArray(value: string, filePath: string): string[] {
 
   if (!match) {
     throw new Error(
-      `Expected applies_to values to be inline string arrays in conditional coding rule: ${filePath}`,
+      `Expected frontmatter values to be inline string arrays: ${filePath}`,
     );
   }
 

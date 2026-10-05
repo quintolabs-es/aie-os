@@ -50,7 +50,7 @@ xample-app/
 ## Building Context
 
 - `build` resolves shared knowledge, agent configuration, shared coding rules, shared skills, project coding rules, and project skills into one canonical output.
-- General principles always load. Coding rules are included only when the project selects at least one language, application type, or framework. With no technical selection, the context is the persona, agent rules, principles, project coding rules, and skills.
+- Engineering principles always load; architecture principles load with a technical selection or a persona `includes: [architecture-principles]`. Coding rules are included only when the project selects at least one language, application type, or framework. With no technical selection, the context is the persona, agent rules, principles, project coding rules, and skills.
 - Rendering order:
   - selected persona
   - all matched `critical-rules.md`
