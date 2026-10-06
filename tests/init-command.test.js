@@ -65,6 +65,8 @@ test("Explicit init succeeds with required args and defaults optional values to 
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   const manifestPath = path.join(fixture.projectPath, ".aie-os", "aie-os.json");
@@ -91,6 +93,8 @@ test("Explicit init accepts an explicitly empty knowledge-base path", async () =
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   const manifestPath = path.join(fixture.projectPath, ".aie-os", "aie-os.json");
@@ -117,6 +121,8 @@ test("Explicit init rejects invalid provided languages", async () => {
       fixture.agentPath,
       "--agent-persona",
       "software-developer",
+      "--tool",
+      "codex",
       "--languages",
       "invalid-language",
     ]),
@@ -143,6 +149,8 @@ test("Explicit init rejects invalid optional selections", async () => {
       fixture.agentPath,
       "--agent-persona",
       "software-developer",
+      "--tool",
+      "codex",
       "--languages",
       "typescript",
       "--frameworks",
@@ -170,6 +178,8 @@ test("Explicit init accepts application types and frameworks from direct Markdow
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
     "--application-type",
     "cli",
     "--frameworks",
@@ -206,6 +216,8 @@ test("Explicit init does not discover nested application-type or framework folde
       fixture.agentPath,
       "--agent-persona",
       "software-developer",
+      "--tool",
+      "codex",
       "--application-type",
       "nested-api",
       "--frameworks",
@@ -230,6 +242,8 @@ test("Explicit init does not discover nested application-type or framework folde
       fixture.agentPath,
       "--agent-persona",
       "software-developer",
+      "--tool",
+      "codex",
       "--application-type",
       "cli",
       "--frameworks",

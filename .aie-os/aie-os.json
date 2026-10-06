@@ -4,8 +4,7 @@
     "agent": "content/agent",
     "skills": "content/skills",
     "knowledgeBase": "content/knowledge-base",
-    "projectCodingRules": ".aie-os/project-coding-rules",
-    "projectSkills": ".aie-os/project-skills"
+    "projectCodingRules": ".aie-os/project-coding-rules"
   },
   "selection": {
     "applicationTypes": [
@@ -15,6 +14,9 @@
     "languages": [
       "typescript"
     ],
-    "persona": "software-developer"
+    "persona": "software-developer",
+    "tools": [
+      "codex"
+    ]
   }
 }

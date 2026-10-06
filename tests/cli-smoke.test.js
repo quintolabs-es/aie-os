@@ -20,6 +20,7 @@ test("CLI help command prints usage text", async () => {
     stdout,
     /--agent-persona\s+Persona\. Accepted values are markdown file names from \[agent-path\]\/persona without \.md\./u,
   );
+  assert.match(stdout, /--tool\s+Comma-separated agent tools\. Accepted values: claude, codex\./u);
   assert.match(
     stdout,
     /--languages\s+\(optional\) Comma-separated language folder names from \[kb-path\]\/coding-rules\/language\./u,
@@ -43,8 +44,8 @@ test("Build command explains how to replace the removed target-agent option", as
     execFileAsync(process.execPath, [cliEntry, "build", "--target-agent", "claude"]),
     (error) => {
       assert.equal(error.code, 1);
-      assert.match(error.stderr, /--target-agent has been removed\. Use --output-file <name> instead\./u);
-      assert.match(error.stderr, /build --output-file CLAUDE\.md/u);
+      assert.match(error.stderr, /--target-agent has been removed\. Select tools with --tool at init instead\./u);
+      assert.match(error.stderr, /init --tool claude/u);
       return true;
     },
   );

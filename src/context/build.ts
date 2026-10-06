@@ -1,31 +1,27 @@
 import path from "node:path";
 import {
   fileExists,
-  listDirectoryNames,
   listMarkdownFiles,
   readText,
 } from "./filesystem";
 import { aieStructure } from "./aieStructure";
+import { frontmatter } from "./frontmatter";
 import type { Manifest } from "./manifest";
 import type {
-  AdapterTool,
   EffectiveContext,
   EffectiveContextBlock,
   EffectiveContextInputs,
   EffectiveContextPersona,
   EffectiveContextSkill,
-  EffectiveContextSkillScope,
 } from "../agentAdapters";
 
 export type BuildInput = {
   manifest: Manifest;
   projectPath: string;
-  tool: AdapterTool;
 };
 
 export type BuildOutput = {
   effectiveContext: EffectiveContext;
-  tool: AdapterTool;
 };
 
 type ConditionalAppliesTo = {
@@ -54,7 +50,6 @@ export async function buildAgentContext(input: BuildInput): Promise<BuildOutput>
 
   return {
     effectiveContext,
-    tool: input.tool,
   };
 }
 
@@ -75,7 +70,6 @@ async function resolveContext(input: BuildInput): Promise<{
     projectPath,
     input.manifest.paths.projectCodingRules,
   );
-  const projectSkillsPath = resolveProjectPath(projectPath, input.manifest.paths.projectSkills);
 
   const personaPath = path.join(
     agentPath,
@@ -84,7 +78,16 @@ async function resolveContext(input: BuildInput): Promise<{
   );
   const personaContents = await readText(personaPath);
   const persona = toPersona(personaContents, personaPath, projectPath);
-  const personaIncludes = readPersonaIncludes(personaContents, personaPath);
+  const personaIncludes = readPersonaList(
+    personaContents,
+    aieStructure.personaFrontmatter.includesField,
+    personaPath,
+  );
+  const personaSkillNames = readPersonaList(
+    personaContents,
+    aieStructure.personaFrontmatter.skillsField,
+    personaPath,
+  );
 
   pushLoadedBlocks(
     { criticalRules, sections },
@@ -97,7 +100,7 @@ async function resolveContext(input: BuildInput): Promise<{
   );
 
   const personaIncludesArchitecture = personaIncludes.includes(
-    aieStructure.personaIncludes.architecturePrinciples,
+    aieStructure.personaFrontmatter.architecturePrinciplesValue,
   );
   const technicalSelection = hasTechnicalSelection(input.manifest.selection);
 
@@ -215,9 +218,14 @@ async function resolveContext(input: BuildInput): Promise<{
     );
   }
 
-  if (skillsPath) {
-    skills.push(...(await loadSkillDefinitions(skillsPath, projectPath, "shared")));
-  }
+  skills.push(
+    ...(await loadPersonaSkills({
+      personaName: input.manifest.selection.persona,
+      projectPath,
+      skillNames: personaSkillNames,
+      skillsPath,
+    })),
+  );
 
   pushLoadedBlocks(
     { criticalRules, sections },
@@ -228,8 +236,6 @@ async function resolveContext(input: BuildInput): Promise<{
       "Project Coding Rules",
     ),
   );
-
-  skills.push(...(await loadSkillDefinitions(projectSkillsPath, projectPath, "project")));
 
   return {
     criticalRules,
@@ -258,6 +264,7 @@ function toEffectiveContextInputs(manifest: Manifest): EffectiveContextInputs {
     frameworks: [...manifest.selection.frameworks],
     languages: [...manifest.selection.languages],
     persona: manifest.selection.persona,
+    tools: [...manifest.selection.tools],
   };
 }
 
@@ -272,14 +279,14 @@ function toPersona(
   };
 }
 
-function readPersonaIncludes(contents: string, filePath: string): string[] {
-  const rawValue = readFrontmatterField(contents, aieStructure.personaIncludes.fieldName);
+function readPersonaList(contents: string, fieldName: string, filePath: string): string[] {
+  const rawValue = frontmatter.readField(contents, fieldName);
 
   if (rawValue === "") {
     return [];
   }
 
-  return parseInlineStringArray(rawValue, filePath);
+  return Array.from(new Set(frontmatter.parseInlineStringArray(rawValue, filePath)));
 }
 
 async function loadDirectoryBlocks(
@@ -426,24 +433,41 @@ function deriveSectionLabel(
   return `${baseSectionLabel}: ${relativeDirectory.split(path.sep).join(" / ")}`;
 }
 
-async function loadSkillDefinitions(
-  directoryPath: string,
-  projectPath: string,
-  scope: EffectiveContextSkillScope,
-): Promise<EffectiveContextSkill[]> {
-  const skillNames = await listDirectoryNames(directoryPath);
+async function loadPersonaSkills(input: {
+  personaName: string;
+  projectPath: string;
+  skillNames: string[];
+  skillsPath: string | null;
+}): Promise<EffectiveContextSkill[]> {
+  if (input.skillNames.length === 0) {
+    return [];
+  }
+
+  if (!input.skillsPath) {
+    throw new Error(
+      `Persona "${input.personaName}" declares skills but no skills path is configured in the manifest.`,
+    );
+  }
+
+  const skillsPath = input.skillsPath;
 
   return Promise.all(
-    skillNames.map(async (skillName) => {
-      const skillDirectory = path.join(directoryPath, skillName);
+    input.skillNames.map(async (skillName) => {
+      const skillDirectory = path.join(skillsPath, skillName);
+
+      if (!(await fileExists(path.join(skillDirectory, aieStructure.files.skillFileName)))) {
+        throw new Error(
+          `Persona "${input.personaName}" declares unknown skill "${skillName}": expected ${path.join(skillDirectory, aieStructure.files.skillFileName)}`,
+        );
+      }
+
       const skillMetadata = await loadSkillMetadata(skillDirectory);
 
       return {
         description: skillMetadata.description,
         entrypoint: aieStructure.files.skillFileName,
         name: skillName,
-        scope,
-        source: toOutputFileReference(projectPath, skillDirectory),
+        source: toOutputFileReference(input.projectPath, skillDirectory),
         warnings: skillMetadata.warnings,
       };
     }),
@@ -463,7 +487,7 @@ async function loadSkillMetadata(skillDirectory: string): Promise<{
   }
 
   const contents = await readText(skillFilePath);
-  const description = readFrontmatterField(contents, "description");
+  const description = frontmatter.readField(contents, "description");
 
   if (description === "") {
     return {
@@ -480,61 +504,17 @@ async function loadSkillMetadata(skillDirectory: string): Promise<{
   };
 }
 
-function readFrontmatterField(contents: string, fieldName: string): string {
-  const match = contents.match(/^---\r?\n([\s\S]*?)\r?\n---/u);
-  if (!match) {
-    return "";
-  }
-
-  const lines = match[1].split(/\r?\n/u);
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index];
-    const fieldMatch = line.match(new RegExp(`^${fieldName}:(?:\\s*(.*))?$`, "u"));
-
-    if (!fieldMatch) {
-      continue;
-    }
-
-    const rawValue = (fieldMatch[1] ?? "").trim();
-    if (rawValue === "|" || rawValue === ">") {
-      const blockLines: string[] = [];
-      let nextIndex = index + 1;
-
-      while (nextIndex < lines.length) {
-        const nextLine = lines[nextIndex];
-        if (!nextLine.startsWith("  ")) {
-          break;
-        }
-
-        blockLines.push(nextLine.slice(2));
-        nextIndex += 1;
-      }
-
-      return trimYamlScalar(
-        rawValue === ">"
-          ? blockLines.join(" ")
-          : blockLines.join("\n"),
-      );
-    }
-
-    return trimYamlScalar(rawValue);
-  }
-
-  return "";
-}
-
 function parseConditionalAppliesTo(
   contents: string,
   filePath: string,
 ): ConditionalAppliesTo | null {
-  const frontmatter = readFrontmatterBlock(contents);
+  const frontmatterBlock = frontmatter.readBlock(contents);
 
-  if (!frontmatter) {
+  if (!frontmatterBlock) {
     return null;
   }
 
-  const lines = frontmatter.split(/\r?\n/u);
+  const lines = frontmatterBlock.split(/\r?\n/u);
   const rawAppliesToLine = lines.find((line) => line.trimStart().startsWith("applies_to:"));
 
   if (rawAppliesToLine && rawAppliesToLine.trim() !== "applies_to:") {
@@ -587,7 +567,7 @@ function parseConditionalAppliesTo(
       );
     }
 
-    const values = parseInlineStringArray(match[2], filePath);
+    const values = frontmatter.parseInlineStringArray(match[2], filePath);
 
     switch (match[1]) {
       case "languages":
@@ -615,43 +595,6 @@ function parseConditionalAppliesTo(
   }
 
   return parsed;
-}
-
-function readFrontmatterBlock(contents: string): string | null {
-  const match = contents.match(/^---\r?\n([\s\S]*?)\r?\n---/u);
-  return match ? match[1] : null;
-}
-
-function parseInlineStringArray(value: string, filePath: string): string[] {
-  const match = value.trim().match(/^\[(.*)\]$/u);
-
-  if (!match) {
-    throw new Error(
-      `Expected frontmatter values to be inline string arrays: ${filePath}`,
-    );
-  }
-
-  const inner = match[1].trim();
-
-  if (inner === "") {
-    return [];
-  }
-
-  return inner
-    .split(",")
-    .map((item) => trimYamlScalar(item))
-    .filter((item) => item !== "");
-}
-
-function trimYamlScalar(value: string): string {
-  const trimmed = value.trim();
-  const quotedMatch = trimmed.match(/^(['"])([\s\S]*)\1$/u);
-
-  if (quotedMatch) {
-    return quotedMatch[2].trim();
-  }
-
-  return trimmed;
 }
 
 function matchesConditionalAppliesTo(

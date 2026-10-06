@@ -31,8 +31,6 @@ The extension model is:
 
 ### When a new adapter is justified
 
-The output file name is not a reason to add an adapter. `build --output-file <name>` already names the generated file, so a tool that only wants a different file name needs no code at all.
-
 Add an adapter only when the rendering itself differs: a different file format, a different section structure, extra generated files, or a different bootstrap prompt. When two adapters would render nearly the same content, factor the shared rendering into a helper under `src/agentAdapters/shared/` parameterized by the differing inputs, and have both adapter files call it, rather than duplicating a renderer that must stay byte-for-byte in sync.
 
 ### Adapter input
@@ -45,8 +43,6 @@ Add an adapter only when the rendering itself differs: a different file format, 
     - `criticalRules`
     - `sections`
     - `skills`
-- `instructionsFileName`
-  - name of the generated instructions file, from `--output-file`
 - `projectPath`
   - target project root
 
@@ -54,10 +50,12 @@ Add an adapter only when the rendering itself differs: a different file format, 
 
 - `bootstrapPrompt`
   - agent-specific session bootstrap prompt printed by `build` after successful artifact generation
-- `files`
-  - file path and contents for each generated agent artifact
-- `primaryArtifact`
-  - main generated file name, for example `AGENTS.md`
+- `instructionsFile`
+  - path and contents of the generated instructions file, for example `CLAUDE.md`
+- `commandFiles`
+  - path and contents of each generated command file (empty when the tool has no commands)
+- `skillCopies`
+  - source skill folder, destination folder, and files to exclude, for each skill to install
 
 `build` refuses to overwrite an existing primary artifact that does not contain the `generatedFileMarker` exported from `src/agentAdapters`, unless `--force-overwrite` is passed. An adapter that writes a markdown instructions file must include that marker so repeated builds do not require the flag.
 

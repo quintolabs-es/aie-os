@@ -8,6 +8,7 @@ async function createInitFixture() {
   const sharedPath = path.join(rootPath, "shared");
   const knowledgeBasePath = path.join(sharedPath, "knowledge-base");
   const agentPath = path.join(sharedPath, "agent");
+  const skillsPath = path.join(sharedPath, "skills");
 
   await fs.mkdir(projectPath, { recursive: true });
   await fs.mkdir(path.join(agentPath, "universal"), { recursive: true });
@@ -33,6 +34,17 @@ async function createInitFixture() {
     recursive: true,
   });
   await fs.mkdir(path.join(agentPath, "persona"), { recursive: true });
+  for (const skillName of ["skill-a", "skill-b"]) {
+    await fs.mkdir(path.join(skillsPath, skillName, "agents"), { recursive: true });
+    await fs.writeFile(
+      path.join(skillsPath, skillName, "SKILL.md"),
+      `---\nname: ${skillName}\ndescription: Description of ${skillName}.\n---\n\n# ${skillName}\n`,
+    );
+    await fs.writeFile(
+      path.join(skillsPath, skillName, "agents", "openai.yaml"),
+      `interface:\n  display_name: "${skillName}"\n`,
+    );
+  }
 
   await fs.writeFile(
     path.join(agentPath, "persona", "software-developer.md"),
@@ -63,6 +75,7 @@ applies_to:
     knowledgeBasePath,
     projectPath,
     rootPath,
+    skillsPath,
   };
 }
 

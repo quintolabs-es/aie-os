@@ -28,32 +28,43 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   }
 
   const manifest = await loadManifest(manifestPath);
+  if (manifest.selection.tools.length === 0) {
+    throw new Error(
+      `No tools selected in ${manifestPath}. Run "init --tool <claude|codex>" to select at least one.`,
+    );
+  }
+
   const buildOutput = await buildAgentContext({
     manifest,
     projectPath: options.projectPath,
-    tool: "default",
   });
-  const adapter = getAdapter("default");
-  const adapterOutput = await adapter.build({
-    effectiveContext: buildOutput.effectiveContext,
-    instructionsFileName: options.outputFile,
-    projectPath: options.projectPath,
-  });
+  const adapterOutputs = await Promise.all(
+    manifest.selection.tools.map((tool) =>
+      getAdapter(tool).build({
+        effectiveContext: buildOutput.effectiveContext,
+      }),
+    ),
+  );
 
-  await ensureOutputFileIsReplaceable({
-    forceOverwrite: options.forceOverwrite,
-    outputFile: options.outputFile,
-    projectPath: options.projectPath,
-  });
+  for (const adapterOutput of adapterOutputs) {
+    await ensureOutputFileIsReplaceable({
+      forceOverwrite: options.forceOverwrite,
+      outputFile: adapterOutput.instructionsFile.path,
+      projectPath: options.projectPath,
+    });
+  }
 
   await writeText(
     path.join(options.projectPath, aieRelativePaths.effectiveContextFile),
     `${JSON.stringify(buildOutput.effectiveContext, null, 2)}\n`,
   );
-  await agentArtifactWriter.write(options.projectPath, adapterOutput);
+  await agentArtifactWriter.write(options.projectPath, adapterOutputs, {
+    forceOverwrite: options.forceOverwrite,
+  });
 
+  const generatedFiles = adapterOutputs.map((adapterOutput) => adapterOutput.instructionsFile.path);
   const buildCompleteBox = terminalStyle.promptHeaderBox(
-    `Build complete. Generated canonical context file ${aieRelativePaths.effectiveContextFile} and ${adapterOutput.primaryArtifact}.`,
+    `Build complete. Generated canonical context file ${aieRelativePaths.effectiveContextFile} and ${generatedFiles.join(", ")}.`,
   );
 
   output.write(
@@ -64,7 +75,9 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
       `${ansi.bold}${ansi.cyan}Bootstrap prompt${ansi.reset}`,
       "Use this first prompt in the next agent session to make sure the agent reloads and follows the instructions from the context you just built.",
       "",
-      `${ansi.yellow}${adapterOutput.bootstrapPrompt}${ansi.reset}`,
+      ...adapterOutputs.flatMap((adapterOutput) => [
+        `${ansi.yellow}${adapterOutput.bootstrapPrompt}${ansi.reset}`,
+      ]),
       "",
     ].join("\n"),
   );

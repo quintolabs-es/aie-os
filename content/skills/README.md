@@ -8,4 +8,5 @@ content/skills/
 
 - Add shared skill folders under `content/skills/`.
 - Each skill must live in its own folder and include `SKILL.md`.
-- Project-specific skills live in each repository under `.aie-os/project-skills/`.
+- A persona installs the skills it lists in its frontmatter (`skills: [<skill-folder>, ...]`).
+- Skills are copied to the folder each tool expects. Project-specific skills are managed by hand in the tool's own skills folder, not by AIE OS.

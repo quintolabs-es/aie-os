@@ -10,6 +10,7 @@ docker compose -f docker-compose.yaml run --rm aie-os init \
   --kb-path aie-os/content/knowledge-base \
   --agent-path aie-os/content/agent \
   --agent-persona software-developer \
+  --tool codex \
   --skills-path aie-os/content/skills \
   --languages typescript \
   --application-type cli 

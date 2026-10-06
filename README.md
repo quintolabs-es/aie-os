@@ -4,7 +4,7 @@
 
 - Define coding **principles**, **rules**, and **skills** in a simple, maintainable structure.
 - Maintain those rules centrally and **reuse them** across multiple projects and agents.
-- Add **project-specific** rules and skills **only** where local variation is needed.
+- Add **project-specific** rules **only** where local variation is needed.
 - Build deterministic **agent context** from the same shared rules and skills.
 
 ## Problem
@@ -14,7 +14,7 @@ I want to build this knowledge base of rules and be able to use them to create a
 ## How AIE-OS works in a nutshell
 On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
-Skills are copied to project folder (.aie-os) and referenced in the aggregated context file. Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
+Each persona declares the skills it needs in its frontmatter. `build` installs those skills, and a slash command per skill where the tool supports commands, in the folders each tool expects (see Agent Adapters). Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
 
 ## Create content
 The content structure is intentionally simple: add clear, direct, reusable files under the appropriate folders so `init` can discover options from folder names and `build` can resolve them deterministically.
@@ -36,29 +36,33 @@ xample-app/
   .aie-os/
     aie-os.json
     project-coding-rules/
-    project-skills/
     build/
       effective-context.json
-      skills/
-  AGENTS.md
+      installed-artifacts.json
+  CLAUDE.md                 # tool: claude
+  AGENTS.md                 # tool: codex
+  .claude/skills/           # tool: claude
+  .claude/commands/aie/     # tool: claude
+  .agents/skills/           # tool: codex
 ```
 
 - `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo.
 - `aie-os/` is the local clone of this repository. ignore it in the target project's `.gitignore`.
-- `AGENTS.md` is generated at the target project root. Use `build --output-file <name>` to generate it under a different name.
+- The instructions file is generated at the target project root: `CLAUDE.md` for `claude`, `AGENTS.md` for `codex`.
 
 ## Building Context
 
-- `build` resolves shared knowledge, agent configuration, shared coding rules, shared skills, project coding rules, and project skills into one canonical output.
+- `build` resolves shared knowledge, agent configuration, shared coding rules, and project coding rules into one canonical output, then installs the persona skills for each selected tool.
 - Engineering principles always load; architecture principles load with a technical selection or a persona `includes: [architecture-principles]`. Coding rules are included only when the project selects at least one language, application type, or framework. With no technical selection, the context is the persona, agent rules, principles, project coding rules, and skills.
 - Rendering order:
   - selected persona
   - all matched `critical-rules.md`
   - all other matched markdown files
 - Final section labels come from the folder structure, not from headings inside the content files.
-- Skills are represented separately in the canonical context so adapters can integrate them without inlining each skill body.
+- Persona skills are listed separately in the canonical context so adapters can install them without inlining each skill body.
 - Canonical outputs:
   - `.aie-os/build/effective-context.json`
+  - `.aie-os/build/installed-artifacts.json` (paths installed by AIE OS, used for cleanup)
 - `effective-context.json` is the machine-readable canonical build artifact and adapter contract.
 - `effective-context.json` includes `metadata.inputs` as provenance about which persona, languages, application types, and frameworks were used to build the context.
 - Adapters write tool-specific artifacts only.
@@ -66,7 +70,15 @@ xample-app/
 
 ## Agent Adapters
 - Adapters transform the canonical effective context into the agent-specific files each tool expects.
-- `build --output-file <name>` names the generated instructions file. Defaults to `AGENTS.md`. The value must be a file name, not a path.
-- Name the file to match the agent you target (`CLAUDE.md`, `AGENTS.md`, …) or to avoid clashing with a file the repository already owns.
-- `build` replaces its own generated file on every run, but refuses to overwrite a file AIE OS did not generate. Pass `--force-overwrite` to replace such a file anyway.
-- Every adapter also snapshots all configured skills under `.aie-os/build/skills/` and renders an `Available Skills` section in its output file with the copied `SKILL.md` paths and usage descriptions.
+- `init --tool <claude,codex>` selects the tools. The selection is stored in `.aie-os/aie-os.json` and `build` reads it.
+- A persona declares its skills in frontmatter: `skills: [<skill-folder>, ...]`. Names are folders under the skills path.
+- Installed locations:
+
+| Tool | Instructions file | Skills | Commands |
+|---|---|---|---|
+| `claude` | `CLAUDE.md` | `.claude/skills/<skill>/` | `.claude/commands/aie/<skill>.md` (`/aie:<skill>`) |
+| `codex` | `AGENTS.md` | `.agents/skills/<skill>/` | none (skills only) |
+
+- Skill folders are copied as they are. `agents/openai.yaml` is copied for `codex` only.
+- `build` records what it installs in `.aie-os/build/installed-artifacts.json` and removes installed skills and commands the persona no longer declares. Files it did not install are never removed.
+- `build` replaces its own generated files on every run. It refuses to overwrite an instructions file it did not generate and skips a skill or command that exists but was not installed by AIE OS. Pass `--force-overwrite` to replace them.

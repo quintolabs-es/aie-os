@@ -30,16 +30,43 @@ export async function writeText(filePath: string, contents: string): Promise<voi
   await fs.writeFile(filePath, contents, "utf8");
 }
 
-export async function copyDirectory(sourcePath: string, destinationPath: string): Promise<void> {
+export async function copyDirectory(
+  sourcePath: string,
+  destinationPath: string,
+  excludedRelativePaths: string[] = [],
+): Promise<void> {
+  const excluded = new Set(excludedRelativePaths.map((entry) => path.normalize(entry)));
+
   await ensureDirectory(path.dirname(destinationPath));
-  await fs.rm(destinationPath, {
-    force: true,
-    recursive: true,
-  });
+  await removePath(destinationPath);
   await fs.cp(sourcePath, destinationPath, {
+    filter: (entryPath) => !excluded.has(path.relative(sourcePath, entryPath)),
     force: true,
     recursive: true,
   });
+
+  for (const excludedPath of excluded) {
+    await removeEmptyDirectory(path.dirname(path.join(destinationPath, excludedPath)), destinationPath);
+  }
+}
+
+export async function removePath(targetPath: string): Promise<void> {
+  await fs.rm(targetPath, {
+    force: true,
+    recursive: true,
+  });
+}
+
+async function removeEmptyDirectory(directoryPath: string, stopAtPath: string): Promise<void> {
+  if (path.resolve(directoryPath) === path.resolve(stopAtPath)) {
+    return;
+  }
+
+  try {
+    await fs.rmdir(directoryPath);
+  } catch {
+    // Directory is missing or not empty; leave it in place.
+  }
 }
 
 export async function listDirectoryNames(directoryPath: string): Promise<string[]> {

@@ -24,6 +24,8 @@ test("Build uses the default adapter and prints the bootstrap prompt after a suc
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   const { stderr, stdout } = await execFileAsync(process.execPath, [
@@ -65,39 +67,6 @@ test("Build uses the default adapter and prints the bootstrap prompt after a suc
   await fs.access(path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"));
 });
 
-test("Build writes the file named by --output-file and not the default name", async () => {
-  const fixture = await createInitFixture();
-
-  await execFileAsync(process.execPath, [
-    cliEntry,
-    "init",
-    "--project-path",
-    fixture.projectPath,
-    "--kb-path",
-    fixture.knowledgeBasePath,
-    "--agent-path",
-    fixture.agentPath,
-    "--agent-persona",
-    "software-developer",
-  ]);
-
-  const { stdout } = await execFileAsync(process.execPath, [
-    cliEntry,
-    "build",
-    "--project-path",
-    fixture.projectPath,
-    "--output-file",
-    "CLAUDE.md",
-  ]);
-  const normalizedStdout = stdout.replace(ansiPattern, "");
-
-  assert.match(normalizedStdout, /Generated canonical context file .* and CLAUDE\.md\./u);
-  assert.match(normalizedStdout, /Read `CLAUDE\.md` at the repo root/u);
-
-  await fs.access(path.join(fixture.projectPath, "CLAUDE.md"));
-  await assert.rejects(fs.access(path.join(fixture.projectPath, "AGENTS.md")));
-});
-
 test("Build overwrites its own generated file without requiring a flag", async () => {
   const fixture = await createInitFixture();
 
@@ -112,6 +81,8 @@ test("Build overwrites its own generated file without requiring a flag", async (
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   const buildArguments = [cliEntry, "build", "--project-path", fixture.projectPath];
@@ -140,6 +111,8 @@ test("Build refuses to overwrite a file it did not generate and explains the way
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   await fs.writeFile(outputFilePath, "# Hand written instructions\n");
@@ -154,7 +127,7 @@ test("Build refuses to overwrite a file it did not generate and explains the way
       );
       assert.match(
         error.stderr,
-        /Pass --force-overwrite to replace it, or choose another name with --output-file\./u,
+        /Pass --force-overwrite to replace it\./u,
       );
       return true;
     },
@@ -178,6 +151,8 @@ test("Build replaces a file it did not generate when --force-overwrite is passed
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   await fs.writeFile(outputFilePath, "# Hand written instructions\n");
@@ -209,6 +184,8 @@ test("Build keeps Conditional Rules in effective context but merges them into Co
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
     "--languages",
     "typescript",
     "--application-type",
@@ -258,6 +235,8 @@ test("Build loads selected application-type and framework Markdown files", async
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
     "--application-type",
     "cli",
     "--frameworks",
@@ -306,6 +285,8 @@ test("Build succeeds when the knowledge-base layer is disabled", async () => {
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   await execFileAsync(process.execPath, [
@@ -366,6 +347,8 @@ test("Build renders one section heading per layer and a sub-heading for every fi
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
     "--languages",
     "typescript",
   ]);
@@ -415,6 +398,8 @@ test("Build loads only the principles from the knowledge base when no language, 
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
   ]);
 
   await execFileAsync(process.execPath, [
@@ -465,6 +450,8 @@ test("Build gives a persona that includes architecture principles both principle
     fixture.agentPath,
     "--agent-persona",
     "solutions-architect",
+    "--tool",
+    "codex",
   ]);
 
   await execFileAsync(process.execPath, [
@@ -514,6 +501,8 @@ test("Build gives a persona without the architecture include only the engineerin
     fixture.agentPath,
     "--agent-persona",
     "solutions-engineer",
+    "--tool",
+    "codex",
   ]);
 
   await execFileAsync(process.execPath, [
@@ -563,6 +552,8 @@ test("Build adds architecture principles and coding rules to any persona when a 
     fixture.agentPath,
     "--agent-persona",
     "solutions-engineer",
+    "--tool",
+    "codex",
     "--languages",
     "typescript",
   ]);
@@ -602,6 +593,8 @@ test("Build loads the knowledge base when only a framework is selected", async (
     fixture.agentPath,
     "--agent-persona",
     "software-developer",
+    "--tool",
+    "codex",
     "--frameworks",
     "react",
   ]);

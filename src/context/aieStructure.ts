@@ -11,9 +11,10 @@ export const aieStructure = {
     readmeFileName: "README.md",
     skillFileName: "SKILL.md",
   },
-  personaIncludes: {
-    architecturePrinciples: "architecture-principles",
-    fieldName: "includes",
+  personaFrontmatter: {
+    architecturePrinciplesValue: "architecture-principles",
+    includesField: "includes",
+    skillsField: "skills",
   },
   knowledgeBase: {
     applicationTypeDirectoryName: "application-type",
@@ -27,12 +28,11 @@ export const aieStructure = {
   },
   project: {
     buildDirectoryName: "build",
-    buildSkillsDirectoryName: "skills",
     directoryName: ".aie-os",
     effectiveContextFileName: "effective-context.json",
+    installedArtifactsFileName: "installed-artifacts.json",
     manifestFileName: "aie-os.json",
     projectCodingRulesDirectoryName: "project-coding-rules",
-    projectSkillsDirectoryName: "project-skills",
   },
 } as const;
 
@@ -41,15 +41,15 @@ export const aieRelativePaths = {
     aieStructure.project.directoryName,
     aieStructure.project.buildDirectoryName,
   ),
-  buildSkillsDirectory: path.join(
-    aieStructure.project.directoryName,
-    aieStructure.project.buildDirectoryName,
-    aieStructure.project.buildSkillsDirectoryName,
-  ),
   effectiveContextFile: path.join(
     aieStructure.project.directoryName,
     aieStructure.project.buildDirectoryName,
     aieStructure.project.effectiveContextFileName,
+  ),
+  installedArtifactsFile: path.join(
+    aieStructure.project.directoryName,
+    aieStructure.project.buildDirectoryName,
+    aieStructure.project.installedArtifactsFileName,
   ),
   manifestFile: path.join(
     aieStructure.project.directoryName,
@@ -58,9 +58,5 @@ export const aieRelativePaths = {
   projectCodingRulesDirectory: path.join(
     aieStructure.project.directoryName,
     aieStructure.project.projectCodingRulesDirectoryName,
-  ),
-  projectSkillsDirectory: path.join(
-    aieStructure.project.directoryName,
-    aieStructure.project.projectSkillsDirectoryName,
   ),
 } as const;

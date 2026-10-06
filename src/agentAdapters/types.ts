@@ -1,4 +1,6 @@
-export type AdapterTool = "default";
+export const adapterTools = ["claude", "codex"] as const;
+
+export type AdapterTool = (typeof adapterTools)[number];
 
 export type EffectiveContextBlock = {
   content: string;
@@ -17,19 +19,17 @@ export type EffectiveContextInputs = {
   frameworks: string[];
   languages: string[];
   persona: string;
+  tools: string[];
 };
 
 export type EffectiveContextMetadata = {
   inputs: EffectiveContextInputs;
 };
 
-export type EffectiveContextSkillScope = "project" | "shared";
-
 export type EffectiveContextSkill = {
   description: string;
   entrypoint: string;
   name: string;
-  scope: EffectiveContextSkillScope;
   source: string;
   warnings: string[];
 };
@@ -45,8 +45,6 @@ export type EffectiveContext = {
 
 export type AdapterInput = {
   effectiveContext: EffectiveContext;
-  instructionsFileName: string;
-  projectPath: string;
 };
 
 export type AdapterOutputFile = {
@@ -56,20 +54,23 @@ export type AdapterOutputFile = {
 
 export type SkillCopyItem = {
   destination: string;
+  excludedFiles: string[];
   source: string;
-};
-
-export type SkillAdapterOutput = {
-  copies: SkillCopyItem[];
-  markdown: string;
 };
 
 export type AdapterOutput = {
   bootstrapPrompt: string;
-  files: AdapterOutputFile[];
-  primaryArtifact: string;
-  skillAdapterOutput?: SkillAdapterOutput;
+  commandFiles: AdapterOutputFile[];
+  instructionsFile: AdapterOutputFile;
+  skillCopies: SkillCopyItem[];
   warnings: string[];
+};
+
+export type ToolProfile = {
+  commandsDirectory: string | null;
+  excludedSkillFiles: string[];
+  instructionsFileName: string;
+  skillsDirectory: string;
 };
 
 export type Adapter = {

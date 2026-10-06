@@ -9,7 +9,6 @@ export type ParsedOptions = {
 export type BuildExecutionOptions = {
   command: "build";
   forceOverwrite: boolean;
-  outputFile: string;
   projectPath: string;
 };
 
@@ -24,6 +23,7 @@ export type InitSelections = {
   frameworks: string[];
   languages: string[];
   persona: string;
+  tools: string[];
 };
 
 export type InitExecutionOptions = {

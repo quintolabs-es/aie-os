@@ -1,8 +1,10 @@
-import { defaultAdapter } from "./default/defaultAdapter";
+import { claudeAdapter } from "./claude/claudeAdapter";
+import { codexAdapter } from "./codex/codexAdapter";
 import type { Adapter, AdapterTool } from "./types";
 
 const adapters = {
-  default: defaultAdapter,
+  claude: claudeAdapter,
+  codex: codexAdapter,
 } satisfies Record<AdapterTool, Adapter>;
 
 export function getAdapter(tool: AdapterTool): Adapter {
@@ -16,6 +18,7 @@ export function getAdapter(tool: AdapterTool): Adapter {
 }
 
 export { generatedFileMarker } from "./shared/markdownAdapterRenderer";
+export { adapterTools } from "./types";
 
 export type {
   Adapter,
@@ -26,10 +29,9 @@ export type {
   EffectiveContextBlock,
   EffectiveContext,
   EffectiveContextSkill,
-  EffectiveContextSkillScope,
   EffectiveContextInputs,
   EffectiveContextMetadata,
   EffectiveContextPersona,
-  SkillAdapterOutput,
   SkillCopyItem,
+  ToolProfile,
 } from "./types";

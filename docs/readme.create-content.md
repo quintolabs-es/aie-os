@@ -59,8 +59,6 @@ Expected structure
 .aie-os/
   project-coding-rules/
     *.md
-  project-skills/
-    <skill-name>/
 ```
 
 Rules:
@@ -74,9 +72,10 @@ Rules:
 - Universal agent files should hold agent-wide operational rules that apply across all personas.
 - Persona files should define both the agent role and the communication style for that persona.
 - Skills should follow the Agent Skills packaging specification: https://agentskills.io/specification
-- AIE OS integrates skills by folder and does not validate skill internals beyond discovering the skill directory.
+- AIE OS integrates skills by folder and does not validate skill internals beyond requiring `SKILL.md` and reading its `description`.
+- A persona installs a skill only if it lists the skill folder name in frontmatter: `skills: [<skill-folder>, ...]`. Skills no persona lists are never installed.
 - Add concise markdown files only. `README.md` is descriptive and ignored by `build`.
-- Project-specific coding rules and skills may override shared ones.
+- Project-specific coding rules may override shared ones.
 - Shared engineering principles do not have a project-specific override layer.
 - `general-principles/universal/` always loads. `general-principles/architecture/` loads with a technical selection or when the persona frontmatter has `includes: [architecture-principles]`. `coding-rules/` is skipped when a project selects no language, application type, or framework. A project with no technical selection gets the persona, agent rules, principles, project coding rules, and skills.
 - Architecture principles live in `general-principles/architecture/`; they are technology-agnostic design principles, not stack-specific coding rules.

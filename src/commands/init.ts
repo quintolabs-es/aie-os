@@ -9,12 +9,10 @@ import {
   listMarkdownBasenames,
   writeText,
 } from "../context/filesystem";
-import { aieRelativePaths, aieStructure } from "../context/aieStructure";
+import { adapterTools } from "../agentAdapters";
+import { aieStructure } from "../context/aieStructure";
 import { saveManifest, type Manifest } from "../context/manifest";
-import {
-  projectCodingRulesReadmeTemplate,
-  projectSkillsReadmeTemplate,
-} from "./scaffoldTemplates";
+import { projectCodingRulesReadmeTemplate } from "./scaffoldTemplates";
 import {
   canPromptInteractively,
   promptMultiSelect,
@@ -84,7 +82,7 @@ async function collectManifest(
     : interactive
       ? await promptOptionalPath({
           defaultValue: defaults.skillsPath,
-          description: "AIE OS reads shared skills from this folder. Leave it empty to disable shared skills.",
+          description: "AIE OS installs the skills declared by the persona from this folder. Leave it empty to disable skills.",
           promptLabel: "skills path",
           optionName: "--skills-path",
           projectPath,
@@ -178,6 +176,19 @@ async function collectSelections(
         })
       : missingRequiredInitOption("--agent-persona", input.mode));
 
+  const tools =
+    validateMultiSelection(initial.tools, [...adapterTools], "tools", false) ??
+    (interactive
+      ? await promptMultiSelect({
+          allowEmpty: false,
+          command: "init",
+          defaultValue: [],
+          explanation: "Tools select the agents to build for: instructions file, skills, and commands.",
+          label: "Select tools",
+          options: [...adapterTools],
+        })
+      : missingRequiredInitOption("--tool", input.mode));
+
   const languages = resolvedKnowledgeBasePath
     ? validateMultiSelection(initial.languages, languageOptions, "languages", true) ??
       (interactive
@@ -225,6 +236,7 @@ async function collectSelections(
     frameworks,
     languages,
     persona,
+    tools,
   };
 }
 
@@ -233,17 +245,11 @@ async function scaffoldProject(projectPath: string, manifest: Manifest): Promise
   await ensureDirectory(aieDirectory);
 
   const projectCodingRulesPath = resolveAgainstProject(projectPath, manifest.paths.projectCodingRules);
-  const projectSkillsPath = resolveAgainstProject(projectPath, manifest.paths.projectSkills);
 
   await ensureDirectory(projectCodingRulesPath);
-  await ensureDirectory(projectSkillsPath);
   await writeTemplateIfMissing(
     path.join(projectCodingRulesPath, aieStructure.files.readmeFileName),
     projectCodingRulesReadmeTemplate,
-  );
-  await writeTemplateIfMissing(
-    path.join(projectSkillsPath, aieStructure.files.readmeFileName),
-    projectSkillsReadmeTemplate,
   );
 
   await saveManifest(manifest, path.join(aieDirectory, aieStructure.project.manifestFileName));

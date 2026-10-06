@@ -1,5 +1,6 @@
 import { aieRelativePaths } from "../context/aieStructure";
 import type { Manifest } from "../context/manifest";
+import type { AdapterTool } from "../agentAdapters";
 import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
 
 export type PlanInitManifestInput = {
@@ -29,13 +30,13 @@ export function planInitManifest(input: PlanInitManifestInput): Manifest {
       skills: skillsPath,
       knowledgeBase: knowledgeBasePath,
       projectCodingRules: aieRelativePaths.projectCodingRulesDirectory,
-      projectSkills: aieRelativePaths.projectSkillsDirectory,
     },
     selection: {
       applicationTypes: [...input.selections.applicationTypes],
       frameworks: [...input.selections.frameworks],
       languages: [...input.selections.languages],
       persona: input.selections.persona,
+      tools: input.selections.tools as AdapterTool[],
     },
   };
 }

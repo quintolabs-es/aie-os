@@ -28,6 +28,7 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
       frameworks: [],
       languages: [],
       persona: "software-developer",
+      tools: ["claude"],
     },
   });
 
@@ -37,7 +38,6 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
       agent: "content/agent",
       knowledgeBase: "content/knowledge-base",
       projectCodingRules: ".aie-os/project-coding-rules",
-      projectSkills: ".aie-os/project-skills",
       skills: "",
     },
     selection: {
@@ -45,6 +45,7 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
       frameworks: [],
       languages: [],
       persona: "software-developer",
+      tools: ["claude"],
     },
   });
 });

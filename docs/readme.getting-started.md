@@ -34,6 +34,7 @@ docker compose -f aie-os/docker-compose.yaml run --rm aie-os init \
   --kb-path <value> \
   --agent-path <value> \
   --agent-persona <value> \
+  --tool <claude,codex> \
   [--languages <value1,value2>] \
   [--application-type <value1,value2>] \
   [--frameworks <value1,value2>] \
@@ -44,23 +45,23 @@ docker compose -f aie-os/docker-compose.yaml run --rm aie-os init \
 * `--project-path /path/to/app/project/dir`: optional, defaults to current directory;
 * `--kb-path /path/to/knowledge-base/dir`: required in explicit mode; prompted in interactive mode;
 * `--agent-path /path/to/agent/dir`: required in explicit mode; prompted in interactive mode;
-* `--skills-path /path/to/skills/dir`: optional, empty disables shared skills;
+* `--skills-path /path/to/skills/dir`: optional, empty disables skills. Persona skills are resolved from this folder;
 * `--agent-persona <name>`: required in explicit mode; prompted in interactive mode. Available values come from markdown file names under `[agent-path]/persona/`;
+* `--tool <name1,name2>`: required in explicit mode; prompted in interactive mode. Accepted values: `claude`, `codex`;
 * `--languages <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/language/`;
 * `--application-type <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/application-type/`;
 * `--frameworks <name1,name2>`: optional. Available values come from folder names under `[kb-path]/coding-rules/framework/`.
 
 `init` modes:
 - no init config arguments: interactive mode
-- any init config argument (`--kb-path`, `--agent-path`, `--skills-path`, `--agent-persona`, `--languages`, `--application-type`, `--frameworks`): explicit mode
+- any init config argument (`--kb-path`, `--agent-path`, `--skills-path`, `--agent-persona`, `--tool`, `--languages`, `--application-type`, `--frameworks`): explicit mode
 - `--project-path` alone does not switch `init` to explicit mode
 - in explicit mode, omitted optional values become empty/unset and `init` does not prompt
 
 ### Build agent context.
-Build context and generate the agent artifacts. `build` writes `AGENTS.md` when `--output-file` is omitted.
+Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`) and the persona skills and commands.
 ```bash
-docker compose -f aie-os/docker-compose.yaml run --rm aie-os build [--project-path <value>] [--output-file <name>] [--force-overwrite]
+docker compose -f aie-os/docker-compose.yaml run --rm aie-os build [--project-path <value>] [--force-overwrite]
 ```
-* `--output-file CLAUDE.md`: optional. Defaults to `AGENTS.md`. Must be a file name, not a path. Use it to match the agent you target, or to avoid clashing with a file the repository already owns.
-* `--force-overwrite`: optional. `build` replaces its own generated file freely, but refuses to overwrite a file AIE OS did not generate. Pass this flag to replace such a file anyway.
+* `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.
 * `--project-path /path/to/project` optional, defaults to current directory.

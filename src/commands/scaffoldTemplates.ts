@@ -1,7 +1,6 @@
 import { aieStructure } from "../context/aieStructure";
 
-const { criticalRulesFileName, readmeFileName, skillFileName } = aieStructure.files;
-const { directoryName: projectDirectoryName, projectSkillsDirectoryName } = aieStructure.project;
+const { criticalRulesFileName, readmeFileName } = aieStructure.files;
 
 export const projectCodingRulesReadmeTemplate = `# Project Coding Rules
 
@@ -23,25 +22,5 @@ Add repo-specific markdown files here.
 \`\`\`md
 - Keep feature-specific code close together in this repo.
 - Prefer small adapters around external services used by this repo.
-\`\`\`
-`;
-
-export const projectSkillsReadmeTemplate = `# Project Skills
-
-Add repo-specific skills here.
-
-- Each skill is a folder, not a single markdown file.
-- Each skill folder must contain \`${skillFileName}\`.
-- Skills must follow the Agent Skills packaging specification:
-  https://agentskills.io/specification
-- Skills are copied to the project \`${projectDirectoryName}\` folder and referenced in the aggregated context file.
-- \`${readmeFileName}\` is ignored by build.
-
-Example:
-
-\`\`\`text
-${projectSkillsDirectoryName}/
-  add-endpoint/
-    ${skillFileName}
 \`\`\`
 `;

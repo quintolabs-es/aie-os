@@ -34,36 +34,36 @@ test("Init defaults stay the same when --project-path is provided", () => {
   });
 });
 
-test("Build defaults to AGENTS.md and no forced overwrite when options are omitted", () => {
+test("Build defaults to no forced overwrite when options are omitted", () => {
   const executionOptions = resolveExecutionOptions(parseCommandInput(["build"]), "/tmp/example-project");
 
   assert.equal(executionOptions.command, "build");
   assert.equal(executionOptions.projectPath, "/tmp/example-project");
-  assert.equal(executionOptions.outputFile, "AGENTS.md");
   assert.equal(executionOptions.forceOverwrite, false);
 });
 
-test("Build accepts a custom output file and the force-overwrite flag", () => {
+test("Build accepts the force-overwrite flag", () => {
   const executionOptions = resolveExecutionOptions(
-    parseCommandInput(["build", "--output-file", "CLAUDE.md", "--force-overwrite"]),
+    parseCommandInput(["build", "--force-overwrite"]),
     "/tmp/example-project",
   );
 
-  assert.equal(executionOptions.outputFile, "CLAUDE.md");
   assert.equal(executionOptions.forceOverwrite, true);
 });
 
-test("Build rejects an output file that is a path instead of a file name", () => {
-  for (const outputFile of ["docs/AGENTS.md", "../AGENTS.md", ".."]) {
-    assert.throws(
-      () =>
-        resolveExecutionOptions(
-          parseCommandInput(["build", "--output-file", outputFile]),
-          "/tmp/example-project",
-        ),
-      /expected a file name, not a path/u,
-    );
-  }
+test("Build explains how to replace the removed output-file option", () => {
+  assert.throws(
+    () =>
+      resolveExecutionOptions(
+        parseCommandInput(["build", "--output-file", "CLAUDE.md"]),
+        "/tmp/example-project",
+      ),
+    (error) => {
+      assert.match(error.message, /--output-file has been removed\./u);
+      assert.match(error.message, /init --tool/u);
+      return true;
+    },
+  );
 });
 
 test("Build explains how to replace the removed target-agent option", () => {
@@ -74,11 +74,21 @@ test("Build explains how to replace the removed target-agent option", () => {
         "/tmp/example-project",
       ),
     (error) => {
-      assert.match(error.message, /--target-agent has been removed\. Use --output-file <name> instead\./u);
-      assert.match(error.message, /build --output-file CLAUDE\.md/u);
+      assert.match(error.message, /--target-agent has been removed\. Select tools with --tool at init instead\./u);
+      assert.match(error.message, /init --tool claude/u);
       return true;
     },
   );
+});
+
+test("Init parses a comma-separated --tool list", () => {
+  const executionOptions = resolveExecutionOptions(
+    parseCommandInput(["init", "--tool", "claude,codex"]),
+    "/tmp/example-project",
+  );
+
+  assert.deepEqual(executionOptions.initialSelections.tools, ["claude", "codex"]);
+  assert.equal(executionOptions.mode, "explicit");
 });
 
 test("Build lists the supported options when an unknown option is passed", () => {
@@ -90,7 +100,7 @@ test("Build lists the supported options when an unknown option is passed", () =>
       ),
     (error) => {
       assert.match(error.message, /Unsupported option\(s\) for build: --nope/u);
-      assert.match(error.message, /Supported options: --project-path, --output-file, --force-overwrite/u);
+      assert.match(error.message, /Supported options: --project-path, --force-overwrite/u);
       return true;
     },
   );
@@ -108,6 +118,8 @@ test("Explicit init preserves an explicitly empty knowledge-base path in the exe
       "content/agent",
       "--agent-persona",
       "software-developer",
+      "--tool",
+      "codex",
     ]),
     "/tmp/workspace",
   );

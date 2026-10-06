@@ -1,3 +1,4 @@
+import { adapterTools, type AdapterTool } from "../agentAdapters/types";
 import { readText, writeText } from "./filesystem";
 
 export type Manifest = {
@@ -6,13 +7,13 @@ export type Manifest = {
     skills: string;
     knowledgeBase: string;
     projectCodingRules: string;
-    projectSkills: string;
   };
   selection: {
     applicationTypes: string[];
     frameworks: string[];
     languages: string[];
     persona: string;
+    tools: AdapterTool[];
   };
   version: string;
 };
@@ -56,10 +57,10 @@ function normalizeManifest(rawManifest: unknown, manifestPath: string): Manifest
         "paths.projectCodingRules",
         manifestPath,
       ),
-      projectSkills: expectString(paths.projectSkills, "paths.projectSkills", manifestPath),
     },
     selection: {
       persona: expectString(selection.persona, "selection.persona", manifestPath),
+      tools: expectTools(selection.tools, manifestPath),
       languages: expectStringArray(
         selection.languages,
         "selection.languages",
@@ -113,4 +114,19 @@ function expectStringArray(
   }
 
   return value;
+}
+
+function expectTools(value: unknown, manifestPath: string): AdapterTool[] {
+  const tools = expectStringArray(value, "selection.tools", manifestPath);
+  const unsupported = tools.filter(
+    (tool) => !(adapterTools as readonly string[]).includes(tool),
+  );
+
+  if (unsupported.length > 0) {
+    throw new Error(
+      `Unsupported selection.tools in manifest ${manifestPath}: ${unsupported.join(", ")}. Supported: ${adapterTools.join(", ")}`,
+    );
+  }
+
+  return tools as AdapterTool[];
 }
