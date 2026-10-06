@@ -1,1 +1,1 @@
-export const commandName = process.env.AIE_OS_COMMAND_NAME?.trim() || "aie-os";
+export const commandName = "npx --yes github:quintolabs-es/aie-os#<version>";

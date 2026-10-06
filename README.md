@@ -12,7 +12,8 @@ I want all the coding agents I use across all my projects/repositories, create c
 I want to build this knowledge base of rules and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
 ## How AIE-OS works in a nutshell
-On `init`, it captures the project configuration (rules/skills/agent files path, project language, application type, etc).
+AIE OS runs with `npx` straight from GitHub, pinned to a release tag: `npx --yes github:quintolabs-es/aie-os#v0.1.0 <init|build>`. Nothing is cloned or installed in the target project.
+On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc). Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
 Each persona declares the skills it needs in its frontmatter. `build` installs those skills, and a slash command per skill where the tool supports commands, in the folders each tool expects (see Agent Adapters). Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
 
@@ -27,12 +28,11 @@ Check [docs/readme.getting-started.md](docs/readme.getting-started.md) for insta
 **Coding agent instructions:** if you are a coding agent asked to set up, build, or create AIE OS context for a project, use the [`setup-project-agent-context-skill`](content/skills/setup-project-agent-context-skill/SKILL.md) skill to gather configuration and run the CLI, instead of improvising commands.
 
 ## Target project structure
-AIE OS is intended to be cloned into the target project as a local tool. The target project stores project-local AIE OS configuration and generated artifacts under `.aie-os/`.
+AIE OS runs with `npx`, so the target project holds only its AIE OS configuration and generated artifacts.
 
 Below is the typical target project structure after `init` and `build`.
 ```text
 xample-app/
-  aie-os/
   .aie-os/
     aie-os.json
     project-coding-rules/
@@ -47,7 +47,6 @@ xample-app/
 ```
 
 - `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo.
-- `aie-os/` is the local clone of this repository. ignore it in the target project's `.gitignore`.
 - The instructions file is generated at the target project root: `CLAUDE.md` for `claude`, `AGENTS.md` for `codex`.
 
 ## Building Context
@@ -64,6 +63,7 @@ xample-app/
   - `.aie-os/build/effective-context.json`
   - `.aie-os/build/installed-artifacts.json` (paths installed by AIE OS, used for cleanup)
 - `effective-context.json` is the machine-readable canonical build artifact and adapter contract.
+- Every `source` in `effective-context.json` is a portable reference: a project-relative path for files inside the project, `bundled:<path>` for content shipped with AIE OS, or an absolute path otherwise. Resolve it with `contentPath.fromReference`; do not treat it as a filesystem path.
 - `effective-context.json` includes `metadata.inputs` as provenance about which persona, languages, application types, and frameworks were used to build the context.
 - Adapters write tool-specific artifacts only.
 - After `build`, AIE OS prints the adapter-specific bootstrap prompt to use when starting a new agent session.

@@ -1,11 +1,10 @@
 import { aieRelativePaths } from "../context/aieStructure";
 import type { Manifest } from "../context/manifest";
 import type { AdapterTool } from "../agentAdapters";
-import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
+import type { InitPromptDefaults, InitSelections } from "./types";
 
 export type PlanInitManifestInput = {
   defaults: InitPromptDefaults;
-  mode: InitExecutionOptions["mode"];
   paths: Partial<InitPromptDefaults>;
   selections: InitSelections;
 };
@@ -19,9 +18,7 @@ export function planInitManifest(input: PlanInitManifestInput): Manifest {
     : input.defaults.kbPath;
   const skillsPath = input.paths.skillsPath !== undefined
     ? input.paths.skillsPath
-    : input.mode === "interactive"
-      ? input.defaults.skillsPath
-      : "";
+    : input.defaults.skillsPath;
 
   return {
     version: "0.1",

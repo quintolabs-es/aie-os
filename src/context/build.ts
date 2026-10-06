@@ -5,6 +5,7 @@ import {
   readText,
 } from "./filesystem";
 import { aieStructure } from "./aieStructure";
+import { contentPath } from "./contentPath";
 import { frontmatter } from "./frontmatter";
 import type { Manifest } from "./manifest";
 import type {
@@ -63,13 +64,18 @@ async function resolveContext(input: BuildInput): Promise<{
   const sections: EffectiveContextBlock[] = [];
   const skills: EffectiveContextSkill[] = [];
   const projectPath = input.projectPath;
-  const knowledgeBasePath = resolveOptionalProjectPath(projectPath, input.manifest.paths.knowledgeBase);
-  const agentPath = resolveProjectPath(projectPath, input.manifest.paths.agent);
-  const skillsPath = resolveOptionalProjectPath(projectPath, input.manifest.paths.skills);
-  const projectCodingRulesPath = resolveProjectPath(
+  const knowledgeBasePath = contentPath.resolve(
     projectPath,
-    input.manifest.paths.projectCodingRules,
+    input.manifest.paths.knowledgeBase,
+    "knowledgeBase",
   );
+  const agentPath = contentPath.resolve(projectPath, input.manifest.paths.agent, "agent");
+  const skillsPath = contentPath.resolve(projectPath, input.manifest.paths.skills, "skills");
+  const projectCodingRulesPath = path.resolve(projectPath, input.manifest.paths.projectCodingRules);
+
+  if (!agentPath) {
+    throw new Error("Expected paths.agent to be set in the manifest.");
+  }
 
   const personaPath = path.join(
     agentPath,
@@ -275,7 +281,7 @@ function toPersona(
 ): EffectiveContextPersona {
   return {
     content: normalizeMarkdownContents(contents),
-    source: toOutputFileReference(projectPath, filePath),
+    source: contentPath.toReference(projectPath, filePath),
   };
 }
 
@@ -402,7 +408,7 @@ async function loadBlocksFromFiles(
         input.baseSectionLabel,
         filePath,
       ),
-      source: toOutputFileReference(input.projectPath, filePath),
+      source: contentPath.toReference(input.projectPath, filePath),
     };
 
     if (path.basename(filePath) === aieStructure.files.criticalRulesFileName) {
@@ -467,7 +473,7 @@ async function loadPersonaSkills(input: {
         description: skillMetadata.description,
         entrypoint: aieStructure.files.skillFileName,
         name: skillName,
-        source: toOutputFileReference(input.projectPath, skillDirectory),
+        source: contentPath.toReference(input.projectPath, skillDirectory),
         warnings: skillMetadata.warnings,
       };
     }),
@@ -622,36 +628,4 @@ function normalizeMarkdownContents(contents: string): string {
   normalized = normalized.replace(/^\s*#\s+.*(?:\r?\n)+/u, "");
 
   return normalized.trim();
-}
-
-function resolveProjectPath(projectPath: string, configuredPath: string): string {
-  if (path.isAbsolute(configuredPath)) {
-    return configuredPath;
-  }
-
-  return path.resolve(projectPath, configuredPath);
-}
-
-function resolveOptionalProjectPath(
-  projectPath: string,
-  configuredPath: string,
-): string | null {
-  if (configuredPath.trim() === "") {
-    return null;
-  }
-
-  return resolveProjectPath(projectPath, configuredPath);
-}
-
-function toOutputFileReference(projectPath: string, filePath: string): string {
-  const relativePath = path.relative(projectPath, filePath);
-
-  if (
-    relativePath === aieStructure.project.directoryName ||
-    relativePath.startsWith(`${aieStructure.project.directoryName}${path.sep}`)
-  ) {
-    return relativePath;
-  }
-
-  return filePath;
 }

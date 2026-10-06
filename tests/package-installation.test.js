@@ -19,10 +19,11 @@ test("Package metadata exposes the installed aie-os command", async () => {
   });
   assert.equal(packageJson.scripts.compile, "tsc -p tsconfig.json");
   assert.equal(packageJson.scripts.build, "pnpm install && pnpm compile");
-  assert.equal(packageJson.scripts.prepare, "pnpm compile");
+  assert.equal(packageJson.scripts.prepare, "tsc -p tsconfig.json");
+  assert.deepEqual(packageJson.files, ["dist", "content"]);
 });
 
-test("Packed install exposes the aie-os bin", async () => {
+test("Packed install exposes the aie-os bin and builds from its bundled content", async () => {
   const rootPath = await fs.mkdtemp(path.join(os.tmpdir(), "aie-os-package-"));
   const consumerPath = path.join(rootPath, "consumer");
   const npmCachePath = path.join(rootPath, ".npm-cache");
@@ -54,13 +55,19 @@ test("Packed install exposes the aie-os bin", async () => {
   const tarballs = (await fs.readdir(rootPath)).filter((entry) => entry.endsWith(".tgz"));
   assert.equal(tarballs.length, 1);
 
-  await execFileAsync("pnpm", ["add", "-D", path.join(rootPath, tarballs[0])], {
+  await execFileAsync("npm", ["install", "--save-dev", path.join(rootPath, tarballs[0])], {
     cwd: consumerPath,
+    env: {
+      ...process.env,
+      npm_config_cache: npmCachePath,
+    },
     maxBuffer: 10 * 1024 * 1024,
   });
 
+  const installedBin = path.join(consumerPath, "node_modules", ".bin", "aie-os");
+
   const { stdout, stderr } = await execFileAsync(
-    path.join(consumerPath, "node_modules", ".bin", "aie-os"),
+    installedBin,
     ["--help"],
     {
       cwd: consumerPath,
@@ -70,5 +77,21 @@ test("Packed install exposes the aie-os bin", async () => {
 
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
-  assert.match(stdout, /aie-os build \[options\]/u);
+  assert.match(stdout, /aie-os#<version> build \[options\]/u);
+
+  await execFileAsync(
+    installedBin,
+    ["init", "--agent-persona", "software-developer", "--tool", "claude"],
+    { cwd: consumerPath },
+  );
+  await execFileAsync(installedBin, ["build"], { cwd: consumerPath });
+
+  const manifest = JSON.parse(
+    await fs.readFile(path.join(consumerPath, ".aie-os", "aie-os.json"), "utf8"),
+  );
+  assert.equal(manifest.paths.agent, "bundled");
+  await fs.access(
+    path.join(consumerPath, ".claude", "skills", "sdd-product-discovery-skill", "SKILL.md"),
+  );
+  await fs.access(path.join(consumerPath, "CLAUDE.md"));
 });

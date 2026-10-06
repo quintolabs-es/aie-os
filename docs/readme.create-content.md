@@ -21,11 +21,9 @@ Expected structure
       <name>/
         *.md
     application-type/
-      <name>/
-        *.md
+      <name>.md
     framework/
-      <name>/
-        *.md
+      <name>.md
     conditional/
       **/*.md
 ```
@@ -62,11 +60,11 @@ Expected structure
 ```
 
 Rules:
-- `<name>` folder names under `language/`, `application-type/`, and `framework/` are the option names discovered by `init`.
+- Folder names under `language/` and markdown file names (without `.md`) under `application-type/` and `framework/` are the option names discovered by `init`.
 - The available languages are exactly the folder names under `[kb-path]/coding-rules/language/`.
-- The available application types are exactly the folder names under `[kb-path]/coding-rules/application-type/`.
-- The available frameworks are exactly the folder names under `[kb-path]/coding-rules/framework/`.
-- Make discovered option names legible, e.g., `language/csharp/*.md`, `application-type/console/*.md`, etc.
+- The available application types are exactly the markdown file names under `[kb-path]/coding-rules/application-type/`.
+- The available frameworks are exactly the markdown file names under `[kb-path]/coding-rules/framework/`.
+- Make discovered option names legible, e.g., `language/csharp/*.md`, `application-type/console.md`, etc.
 - Shared content should stay reusable across many repositories. Put repo-specific commands and conventions in `.aie-os/project-coding-rules/`.
 - An application-type folder may exist only to expose a valid option name to `init`; use `conditional/` when the actual rules depend on a language + application-type combination.
 - Universal agent files should hold agent-wide operational rules that apply across all personas.
@@ -109,7 +107,7 @@ Example, for `general-principles/universal/1-engineering-principles.md` and `2-a
 Examples:
 - `[kb-path]/general-principles/universal/*.md` and `architecture/*.md` -> `Engineering Principles`
 - `[kb-path]/coding-rules/language/typescript/*.md` -> `Language: typescript`
-- `[kb-path]/coding-rules/application-type/api/*.md` -> `Application Type: api`
+- `[kb-path]/coding-rules/application-type/api.md` -> `Application Type: api`
 - `[agent-path]/universal/*.md` -> `Agent Rules`
 - `.aie-os/project-coding-rules/*.md` -> `Project Coding Rules`
 
@@ -162,7 +160,7 @@ Examples:
 Use this for true cross-dimension rules such as:
 
 - defaults for new C# APIs
-- rules for TypeScript CLI tools consumed through a repo-local wrapper such as `aie-os/bin/cli`
+- rules for TypeScript CLI tools run through the package `bin`, for example with `npx`
 - rules that apply only to TypeScript mobile apps
 
 Do not use `conditional/` for normal language-only, application-type-only, or framework-only rules.

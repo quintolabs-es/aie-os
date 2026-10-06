@@ -7,14 +7,14 @@ const {
   resolveExecutionOptions,
 } = require(path.join(__dirname, "..", "dist", "commands", "commandLine.js"));
 
-test("Init defaults are fixed project-local content paths", () => {
+test("Init defaults content paths to the bundled content", () => {
   const executionOptions = resolveExecutionOptions(parseCommandInput(["init"]), "/tmp/example-project");
 
   assert.equal(executionOptions.command, "init");
   assert.deepEqual(executionOptions.defaults, {
-    agentPath: "aie-os/content/agent",
-    kbPath: "aie-os/content/knowledge-base",
-    skillsPath: "aie-os/content/skills",
+    agentPath: "bundled",
+    kbPath: "bundled",
+    skillsPath: "bundled",
   });
   assert.equal(executionOptions.mode, "interactive");
 });
@@ -28,10 +28,30 @@ test("Init defaults stay the same when --project-path is provided", () => {
   assert.equal(executionOptions.command, "init");
   assert.equal(executionOptions.projectPath, "/tmp/workspace/nested/project");
   assert.deepEqual(executionOptions.defaults, {
-    agentPath: "aie-os/content/agent",
-    kbPath: "aie-os/content/knowledge-base",
-    skillsPath: "aie-os/content/skills",
+    agentPath: "bundled",
+    kbPath: "bundled",
+    skillsPath: "bundled",
   });
+});
+
+test("Explicit init keeps a project folder named bundled distinct from the bundled keyword", () => {
+  const executionOptions = resolveExecutionOptions(
+    parseCommandInput(["init", "--kb-path", "./bundled", "--skills-path", "bundled/"]),
+    "/tmp/example-project",
+  );
+
+  assert.equal(executionOptions.providedPaths.kbPath, "./bundled");
+  assert.equal(executionOptions.providedPaths.skillsPath, "./bundled");
+});
+
+test("Explicit init keeps the bundled keyword instead of resolving it as a path", () => {
+  const executionOptions = resolveExecutionOptions(
+    parseCommandInput(["init", "--agent-path", "bundled", "--kb-path", " bundled "]),
+    "/tmp/example-project",
+  );
+
+  assert.equal(executionOptions.providedPaths.agentPath, "bundled");
+  assert.equal(executionOptions.providedPaths.kbPath, "bundled");
 });
 
 test("Build defaults to no forced overwrite when options are omitted", () => {

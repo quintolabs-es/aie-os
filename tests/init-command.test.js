@@ -40,18 +40,27 @@ test("Init with only --project-path still uses interactive mode", async () => {
 });
 
 test("Explicit init requires all mandatory options", async () => {
+  const fixture = await createInitFixture();
+
   await assert.rejects(
-    execFileAsync(process.execPath, [cliEntry, "init", "--agent-persona", "software-developer"]),
+    execFileAsync(process.execPath, [
+      cliEntry,
+      "init",
+      "--project-path",
+      fixture.projectPath,
+      "--agent-persona",
+      "software-developer",
+    ]),
     (error) => {
       assert.equal(error.code, 1);
-      assert.match(error.stderr, /Missing required option --kb-path\./u);
+      assert.match(error.stderr, /Missing required option --tool\./u);
       assert.doesNotMatch(error.stderr, /prompted interactively/u);
       return true;
     },
   );
 });
 
-test("Explicit init succeeds with required args and defaults optional values to empty", async () => {
+test("Explicit init succeeds with required args and defaults the skills path to bundled", async () => {
   const fixture = await createInitFixture();
 
   await execFileAsync(process.execPath, [
@@ -72,7 +81,7 @@ test("Explicit init succeeds with required args and defaults optional values to 
   const manifestPath = path.join(fixture.projectPath, ".aie-os", "aie-os.json");
   const manifest = JSON.parse(await fs.readFile(manifestPath, "utf8"));
 
-  assert.equal(manifest.paths.skills, "");
+  assert.equal(manifest.paths.skills, "bundled");
   assert.deepEqual(manifest.selection.applicationTypes, []);
   assert.deepEqual(manifest.selection.frameworks, []);
   assert.deepEqual(manifest.selection.languages, []);

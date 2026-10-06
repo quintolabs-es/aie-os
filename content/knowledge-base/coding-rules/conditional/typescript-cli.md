@@ -4,12 +4,9 @@ applies_to:
   application_types: [cli]
 ---
 - Expose the real installed CLI through the package `bin` field.
-- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.
+- Run the CLI through the package `bin`, for example with `npx`. Do not add repo-local wrapper scripts.
 - Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.
 - Put command implementations under `src/commands/`.
-- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.
 - Prefer one real executable entrypoint even when local and installed command surfaces differ.
-- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.
 - Prefer command parsing and command execution implemented in TypeScript source.
-- Do not put business logic in shell wrappers.
 - Do not create generic catch-all files such as `utils.ts` for unrelated behavior.

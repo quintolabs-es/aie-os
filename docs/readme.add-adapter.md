@@ -55,7 +55,7 @@ Add an adapter only when the rendering itself differs: a different file format, 
 - `commandFiles`
   - path and contents of each generated command file (empty when the tool has no commands)
 - `skillCopies`
-  - source skill folder, destination folder, and files to exclude, for each skill to install
+  - source skill reference, destination folder, and files to exclude, for each skill to install. The source is a portable reference (`bundled:<path>`, project-relative, or absolute); the artifact writer resolves it with `contentPath.fromReference`
 
 `build` refuses to overwrite an existing primary artifact that does not contain the `generatedFileMarker` exported from `src/agentAdapters`, unless `--force-overwrite` is passed. An adapter that writes a markdown instructions file must include that marker so repeated builds do not require the flag.
 

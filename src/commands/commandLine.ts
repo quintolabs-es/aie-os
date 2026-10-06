@@ -1,5 +1,6 @@
 import path from "node:path";
 import { adapterTools } from "../agentAdapters";
+import { contentPath } from "../context/contentPath";
 import { commandName } from "./commandName";
 import type { ExecutionOptions, InitExecutionOptions, ParsedOptions } from "./types";
 
@@ -17,9 +18,9 @@ const INIT_OPTIONS = [
   "--frameworks",
 ];
 const INIT_DEFAULTS = {
-  agentPath: "aie-os/content/agent",
-  kbPath: "aie-os/content/knowledge-base",
-  skillsPath: "aie-os/content/skills",
+  agentPath: contentPath.bundledValue,
+  kbPath: contentPath.bundledValue,
+  skillsPath: contentPath.bundledValue,
 } as const;
 
 export const usageText = `AIE OS
@@ -27,6 +28,8 @@ export const usageText = `AIE OS
 Usage:
   ${commandName} init [options]
   ${commandName} build [options]
+
+  Replace <version> with a release tag, for example v0.1.0. Use the same tag for init and build.
 
 Commands:
   init
@@ -37,19 +40,20 @@ Commands:
 Notes:
   - init prompts only when no init configuration arguments are provided.
   - Passing any init configuration argument switches init to explicit mode.
-  - In explicit mode, omitted optional values are treated as empty and required values must be provided.
+  - In explicit mode, required values must be provided. Omitted content paths default to "${contentPath.bundledValue}"; other omitted optional values are treated as empty.
   - build never prompts and fails explicitly when required values are missing.
+  - Content paths default to "${contentPath.bundledValue}": the content shipped with AIE OS. Pass a folder to use your own content, or an empty value to disable knowledge base or skills.
 
 Init options:
   --project-path                    Target repository. Defaults to the current directory.
-  --kb-path                         Knowledge-base path.
-  --agent-path                      Agent path.
-  --skills-path                     (optional) Skills path.
+  --kb-path                         (optional) Knowledge-base path. Defaults to ${contentPath.bundledValue}.
+  --agent-path                      (optional) Agent path. Defaults to ${contentPath.bundledValue}.
+  --skills-path                     (optional) Skills path. Defaults to ${contentPath.bundledValue}.
   --agent-persona                   Persona. Accepted values are markdown file names from [agent-path]/persona without .md.
   --tool                            Comma-separated agent tools. Accepted values: ${adapterTools.join(", ")}.
   --languages                       (optional) Comma-separated language folder names from [kb-path]/coding-rules/language.
-  --application-type                (optional) Comma-separated application-type folder names from [kb-path]/coding-rules/application-type.
-  --frameworks                      (optional) Comma-separated framework folder names from [kb-path]/coding-rules/framework.
+  --application-type                (optional) Comma-separated application-type markdown file names from [kb-path]/coding-rules/application-type without .md.
+  --frameworks                      (optional) Comma-separated framework markdown file names from [kb-path]/coding-rules/framework without .md.
 
 Build options:
   --project-path                    Target repository. Defaults to the current directory.
@@ -61,8 +65,9 @@ Other options:
 Examples:
   ${commandName} init
   ${commandName} init --project-path /repo
-  ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --tool claude
-  ${commandName} init --kb-path content/knowledge-base --agent-path content/agent --agent-persona software-developer --tool claude,codex --languages typescript --application-type cli
+  ${commandName} init --agent-persona software-developer --tool claude
+  ${commandName} init --agent-persona software-developer --tool claude,codex --languages typescript --application-type cli
+  ${commandName} init --kb-path my-content/knowledge-base --agent-path my-content/agent --skills-path my-content/skills --agent-persona software-developer --tool codex
   ${commandName} build
   ${commandName} build --force-overwrite`;
 
@@ -264,6 +269,10 @@ function normalizeCliPathOption(
     return "";
   }
 
+  if (contentPath.isBundled(configuredPath)) {
+    return contentPath.bundledValue;
+  }
+
   const absolutePath = path.isAbsolute(configuredPath)
     ? configuredPath
     : path.resolve(cwd, configuredPath);
@@ -276,6 +285,10 @@ function toProjectRelative(projectPath: string, absolutePath: string): string {
 
   if (relativePath === "") {
     return ".";
+  }
+
+  if (contentPath.isBundled(relativePath)) {
+    return `.${path.sep}${relativePath}`;
   }
 
   if (!relativePath.startsWith("..")) {

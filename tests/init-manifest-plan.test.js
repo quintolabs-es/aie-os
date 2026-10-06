@@ -17,7 +17,6 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
       kbPath: "aie-os/content/knowledge-base",
       skillsPath: "aie-os/content/skills",
     },
-    mode: "explicit",
     paths: {
       agentPath: "content/agent",
       kbPath: "content/knowledge-base",
@@ -57,7 +56,6 @@ test("Init manifest planner keeps an explicitly empty knowledge-base path", () =
       kbPath: "aie-os/content/knowledge-base",
       skillsPath: "aie-os/content/skills",
     },
-    mode: "explicit",
     paths: {
       agentPath: "content/agent",
       kbPath: "",

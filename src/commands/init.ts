@@ -11,6 +11,7 @@ import {
 } from "../context/filesystem";
 import { adapterTools } from "../agentAdapters";
 import { aieStructure } from "../context/aieStructure";
+import { contentPath, type ContentKind } from "../context/contentPath";
 import { saveManifest, type Manifest } from "../context/manifest";
 import { projectCodingRulesReadmeTemplate } from "./scaffoldTemplates";
 import {
@@ -53,44 +54,47 @@ async function collectManifest(
     : interactive
       ? await promptPath({
           allowEmpty: true,
+          contentKind: "knowledgeBase",
           defaultValue: defaults.kbPath,
-          description: "AIE OS reads shared engineering principles and coding rules from this folder. Leave it empty to disable the knowledge-base layer. Principles always load; coding rules load only when a language, application type, or framework is selected.",
+          description: `AIE OS reads shared engineering principles and coding rules from this folder. Keep "${contentPath.bundledValue}" to use the content shipped with AIE OS, or leave it empty to disable the knowledge-base layer. Principles always load; coding rules load only when a language, application type, or framework is selected.`,
           promptLabel: "knowledge base path",
           optionName: "--kb-path",
           projectPath,
         })
-      : missingRequiredInitOption("--kb-path", mode);
-  if (knowledgeBasePath.trim() !== "") {
-    await ensureDirectoryType(resolveAgainstProject(projectPath, knowledgeBasePath), "Knowledge base path");
-  }
+      : defaults.kbPath;
+  await ensureContentDirectory(projectPath, knowledgeBasePath, "knowledgeBase", "Knowledge base path");
 
   const agentPath = providedPaths.agentPath !== undefined
     ? providedPaths.agentPath
     : interactive
       ? await promptPath({
+          contentKind: "agent",
           defaultValue: defaults.agentPath,
-          description: "AIE OS reads persona definitions from this folder.",
+          description: `AIE OS reads persona definitions from this folder. Keep "${contentPath.bundledValue}" to use the content shipped with AIE OS.`,
           promptLabel: "agent path",
           optionName: "--agent-path",
           projectPath,
         })
-      : missingRequiredInitOption("--agent-path", mode);
-  await ensureDirectoryType(resolveAgainstProject(projectPath, agentPath), "Agent path");
+      : defaults.agentPath;
+  if (agentPath.trim() === "") {
+    throw new Error("Agent path cannot be empty.");
+  }
+  await ensureContentDirectory(projectPath, agentPath, "agent", "Agent path");
 
   const skillsPath = providedPaths.skillsPath !== undefined
-    ? normalizeOptionalProvidedPath(projectPath, providedPaths.skillsPath)
+    ? normalizeConfiguredPath(projectPath, providedPaths.skillsPath)
     : interactive
-      ? await promptOptionalPath({
+      ? await promptPath({
+          allowEmpty: true,
+          contentKind: "skills",
           defaultValue: defaults.skillsPath,
-          description: "AIE OS installs the skills declared by the persona from this folder. Leave it empty to disable skills.",
+          description: `AIE OS installs the skills declared by the persona from this folder. Keep "${contentPath.bundledValue}" to use the skills shipped with AIE OS, or leave it empty to disable skills.`,
           promptLabel: "skills path",
           optionName: "--skills-path",
           projectPath,
         })
-      : "";
-  if (skillsPath.trim() !== "") {
-    await ensureDirectoryType(resolveAgainstProject(projectPath, skillsPath), "Skills path");
-  }
+      : defaults.skillsPath;
+  await ensureContentDirectory(projectPath, skillsPath, "skills", "Skills path");
 
   const selections = await collectSelections(
     projectPath,
@@ -105,7 +109,6 @@ async function collectManifest(
 
   return planInitManifest({
     defaults,
-    mode,
     paths: {
       agentPath,
       kbPath: knowledgeBasePath,
@@ -125,10 +128,12 @@ async function collectSelections(
   },
   interactive: boolean,
 ): Promise<InitSelections> {
-  const resolvedAgentPath = resolveAgainstProject(projectPath, input.agentPath);
-  const resolvedKnowledgeBasePath = input.knowledgeBasePath.trim() === ""
-    ? null
-    : resolveAgainstProject(projectPath, input.knowledgeBasePath);
+  const resolvedAgentPath = contentPath.resolve(projectPath, input.agentPath, "agent") as string;
+  const resolvedKnowledgeBasePath = contentPath.resolve(
+    projectPath,
+    input.knowledgeBasePath,
+    "knowledgeBase",
+  );
 
   const personaOptions = await listMarkdownBasenames(
     path.join(resolvedAgentPath, aieStructure.agent.personaDirectoryName),
@@ -287,6 +292,7 @@ async function writeTemplateIfMissing(targetPath: string, content: string): Prom
 
 async function promptPath(inputOptions: {
   allowEmpty?: boolean;
+  contentKind: ContentKind;
   defaultValue: string;
   description: string;
   promptLabel: string;
@@ -319,8 +325,10 @@ async function promptPath(inputOptions: {
     }
 
     try {
-      await ensureDirectoryType(
-        resolveAgainstProject(inputOptions.projectPath, normalizedValue),
+      await ensureContentDirectory(
+        inputOptions.projectPath,
+        normalizedValue,
+        inputOptions.contentKind,
         capitalizeLabel(inputOptions.promptLabel),
       );
       return normalizedValue;
@@ -331,47 +339,6 @@ async function promptPath(inputOptions: {
   }
 }
 
-async function promptOptionalPath(inputOptions: {
-  defaultValue: string;
-  description: string;
-  promptLabel: string;
-  optionName: string;
-  projectPath: string;
-}): Promise<string> {
-  let errorMessage: string | undefined;
-  let currentValue = inputOptions.defaultValue;
-
-  while (true) {
-    const rawValue = await promptTextInput({
-      command: "init",
-      defaultValue: currentValue,
-      description: inputOptions.description,
-      errorMessage,
-      optionName: inputOptions.optionName,
-      promptLabel: inputOptions.promptLabel,
-      submitHint: "Enter to accept, delete to empty and disable, type to replace, or press Esc to cancel.",
-    });
-
-    const normalizedValue = rawValue.trim() === ""
-      ? ""
-      : normalizeConfiguredPath(inputOptions.projectPath, rawValue.trim());
-
-    if (normalizedValue === "") {
-      return "";
-    }
-
-    try {
-      await ensureDirectoryType(
-        resolveAgainstProject(inputOptions.projectPath, normalizedValue),
-        capitalizeLabel(inputOptions.promptLabel),
-      );
-      return normalizedValue;
-    } catch (error) {
-      currentValue = rawValue.trim() === "" ? currentValue : rawValue.trim();
-      errorMessage = error instanceof Error ? error.message : "Invalid path.";
-    }
-  }
-}
 
 function validateSingleSelection(
   selectedValue: string | undefined,
@@ -436,6 +403,10 @@ function normalizeConfiguredPath(projectPath: string, configuredPath: string): s
     return "";
   }
 
+  if (contentPath.isBundled(configuredPath)) {
+    return contentPath.bundledValue;
+  }
+
   if (path.isAbsolute(configuredPath)) {
     return configuredPath;
   }
@@ -443,13 +414,6 @@ function normalizeConfiguredPath(projectPath: string, configuredPath: string): s
   return toProjectRelative(projectPath, path.resolve(projectPath, configuredPath));
 }
 
-function normalizeOptionalProvidedPath(projectPath: string, configuredPath: string): string {
-  if (configuredPath.trim() === "") {
-    return "";
-  }
-
-  return normalizeConfiguredPath(projectPath, configuredPath);
-}
 
 function resolveAgainstProject(projectPath: string, configuredPath: string): string {
   if (path.isAbsolute(configuredPath)) {
@@ -466,11 +430,28 @@ function toProjectRelative(projectPath: string, absolutePath: string): string {
     return ".";
   }
 
+  if (contentPath.isBundled(relativePath)) {
+    return `.${path.sep}${relativePath}`;
+  }
+
   if (!relativePath.startsWith("..")) {
     return relativePath;
   }
 
   return absolutePath;
+}
+
+async function ensureContentDirectory(
+  projectPath: string,
+  configuredPath: string,
+  kind: ContentKind,
+  label: string,
+): Promise<void> {
+  const resolvedPath = contentPath.resolve(projectPath, configuredPath, kind);
+
+  if (resolvedPath) {
+    await ensureDirectoryType(resolvedPath, label);
+  }
 }
 
 async function ensureProjectDirectory(projectPath: string): Promise<void> {

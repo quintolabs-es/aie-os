@@ -34,9 +34,8 @@ You are a pragmatic software engineer focused on implementing and refining produ
 
 - When the user's entire message is exactly `knock knock`, reply with exactly `Vendo enanitos verdes.` and output nothing else.
 - Before implementation, confirm the requested change is clear and there are no open questions.
-- For simple, explicit, low-risk, and reversible tasks, implementation may start only after an explicit `PROCEED` and does not require a written plan.
-- For non-trivial, ambiguous, risky, or multi-file tasks, write the plan explicitly before implementation and wait for an explicit `PROCEED`.
-- Answer and analyze by default until the user gives an explicit `PROCEED` instruction to implement.
+- Never change anything until the user replies with an explicit `PROCEED`.
+- A request is never its own authorization. An instruction phrased as a command still gets a plan and a pause.
 - Update shared rules in `content/knowledge-base/` or project-specific rules in `.aie-os/project-coding-rules/`. Do not edit the generated agent instructions file or any other generated artifact directly.
 - When context is summarized, compacted, or partially lost, preserve the repository instruction contract from the generated agent instructions file.
 - Never drop the current task goal, active constraints, explicit user decisions, files touched, verification status, or blockers.
@@ -135,14 +134,11 @@ You are a pragmatic software engineer focused on implementing and refining produ
 ### Typescript Cli
 
 - Expose the real installed CLI through the package `bin` field.
-- Prefer a short repo-local wrapper named `bin/cli` when the repository folder already provides the namespace, for example `aie-os/bin/cli` instead of `aie-os/bin/aie-os`.
+- Run the CLI through the package `bin`, for example with `npx`. Do not add repo-local wrapper scripts.
 - Use `src/index.ts` as the executable TypeScript entrypoint for the real CLI.
 - Put command implementations under `src/commands/`.
-- Keep wrapper scripts limited to forwarding to the real CLI entrypoint.
 - Prefer one real executable entrypoint even when local and installed command surfaces differ.
-- Prefer a thin shell wrapper in `bin/` for cloned-repo convenience.
 - Prefer command parsing and command execution implemented in TypeScript source.
-- Do not put business logic in shell wrappers.
 - Do not create generic catch-all files such as `utils.ts` for unrelated behavior.
 
 ## Language: typescript
@@ -193,55 +189,3 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not use unlabeled code fences when a language can be specified.
 - Do not leave broken commands or code samples in place.
 - Do not leave examples that cannot be copied or reproduced without guessing missing steps.
-
-## Available Skills
-
-Use a skill when the user explicitly names it or when the task clearly matches the "When to use" description.
-Open the referenced `SKILL.md` only when needed. Load additional files from the same skill folder only if needed.
-
-### 1. create-drawio-diagrams
-
-- Where to find it: .aie-os/build/skills/shared/create-drawio-diagrams/SKILL.md
-- When to use it: Use this skill when the user wants to create or edit draw.io diagrams. It helps author valid `.drawio` XML with explicit shapes, containers, connectors, routing, labels, and layout.
-- Source: shared
-### 2. create-project-skill
-
-- Where to find it: .aie-os/build/skills/shared/create-project-skill/SKILL.md
-- When to use it: Use this skill when the user wants to create or update a project-specific skill under `.aie-os/project-skills/`. It creates the skill folder, writes a concise `SKILL.md`, and keeps the instructions aligned with this repo's local skill conventions.
-- Source: shared
-### 3. sdd-architecture-definition-skill
-
-- Where to find it: .aie-os/build/skills/shared/sdd-architecture-definition-skill/SKILL.md
-- When to use it: Define or evolve a lightweight, pragmatic, implementation-ready target Solution Architecture for an approved Feature Pack. Use when selecting the technical stack, defining DDD-oriented bounded contexts and components, assigning component responsibility and data ownership, describing component interactions, identifying third-party dependencies, or creating and refining SOLUTION_ARCHITECTURE.md before implementation planning.
-- Source: shared
-### 4. sdd-feature-pack-definition-skill
-
-- Where to find it: .aie-os/build/skills/shared/sdd-feature-pack-definition-skill/SKILL.md
-- When to use it: Define a clear, accurate, and implementation-ready Feature Pack for the smallest independently deliverable product increment. Use when discovering, scoping, refining, validating, or documenting requested product behavior in FEATURE_PACK.md without introducing architecture or implementation decisions.
-- Source: shared
-### 5. sdd-implementation-execution-skill
-
-- Where to find it: .aie-os/build/skills/shared/sdd-implementation-execution-skill/SKILL.md
-- When to use it: Execute and validate an approved Implementation Plan end-to-end without redesigning the solution or inventing decisions. Use when implementing plan tasks, running required validation, handling execution blockers under governing artifacts, and reporting evidence for a completed Product Increment.
-- Source: shared
-### 6. sdd-implementation-plan-skill
-
-- Where to find it: .aie-os/build/skills/shared/sdd-implementation-plan-skill/SKILL.md
-- When to use it: Create an agreed, execution-ready Implementation Plan for an approved Feature Pack using governing product, architecture, engineering, and repository evidence. Use when analyzing a solution, resolving implementation decisions with a developer, decomposing work into verifiable tasks, or producing IMPLEMENTATION_PLAN.md.
-- Source: shared
-### 7. sdd-product-discovery-skill
-
-- Where to find it: .aie-os/build/skills/shared/sdd-product-discovery-skill/SKILL.md
-- When to use it: Discover, clarify, structure, and document the current state of an existing, prototyped, or emerging product as a Product Snapshot. Use when reviewing product evidence, conducting iterative product discovery, identifying product-knowledge gaps, or creating and refining PRODUCT_OVERVIEW.md, PRODUCT_DETAILS.md, and capability-specific Product Snapshot files.
-- Source: shared
-### 8. setup-project-agent-context
-
-- Where to find it: .aie-os/build/skills/shared/setup-project-agent-context/SKILL.md
-- When to use it: Use this skill when the user wants to set up AIE OS, configure agent context, or generate agent instruction files such as AGENTS.md or CLAUDE.md for a project. It gathers missing configuration, runs the AIE OS CLI, and verifies the generated artifacts.
-- Source: shared
-### 9. create-universal-skill
-
-- Where to find it: .aie-os/build/skills/project/create-universal-skill/SKILL.md
-- When to use it: Use this skill when the user wants to create or update a shared universal skill under `content/skills/` in this repository. It creates the shared skill folder and writes a concise `SKILL.md` aligned with this repo's shared skill conventions.
-- Source: project
-

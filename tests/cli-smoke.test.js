@@ -13,9 +13,9 @@ test("CLI help command prints usage text", async () => {
   assert.equal(stderr, "");
   assert.match(stdout, /^AIE OS\r?\n/u);
   assert.match(stdout, /Usage:\r?\n/u);
-  assert.match(stdout, /aie-os build \[options\]/u);
-  assert.match(stdout, /--kb-path\s+Knowledge-base path\./u);
-  assert.match(stdout, /--skills-path\s+\(optional\) Skills path\./u);
+  assert.match(stdout, /aie-os#<version> build \[options\]/u);
+  assert.match(stdout, /--kb-path\s+\(optional\) Knowledge-base path\. Defaults to bundled\./u);
+  assert.match(stdout, /--skills-path\s+\(optional\) Skills path\. Defaults to bundled\./u);
   assert.match(
     stdout,
     /--agent-persona\s+Persona\. Accepted values are markdown file names from \[agent-path\]\/persona without \.md\./u,

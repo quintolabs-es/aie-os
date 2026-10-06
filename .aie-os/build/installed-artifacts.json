@@ -1,0 +1,10 @@
+{
+  "paths": [
+    ".agents/skills/create-drawio-diagrams-skill",
+    ".agents/skills/sdd-architecture-definition-skill",
+    ".agents/skills/sdd-feature-pack-definition-skill",
+    ".agents/skills/sdd-implementation-execution-skill",
+    ".agents/skills/sdd-implementation-plan-skill",
+    ".agents/skills/sdd-product-discovery-skill"
+  ]
+}

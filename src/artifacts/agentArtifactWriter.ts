@@ -1,6 +1,7 @@
 import path from "node:path";
 import { stdout as output } from "node:process";
 import { aieRelativePaths } from "../context/aieStructure";
+import { contentPath } from "../context/contentPath";
 import { copyDirectory, fileExists, readText, removePath, writeText } from "../context/filesystem";
 import { planArtifactInstall } from "./planArtifactInstall";
 import type { AdapterOutput } from "../agentAdapters";
@@ -41,7 +42,7 @@ export const agentArtifactWriter = {
 
     for (const copy of plan.skillCopies) {
       await copyDirectory(
-        resolveSourcePath(projectPath, copy.source),
+        contentPath.fromReference(projectPath, copy.source),
         resolveInsideProject(projectPath, copy.destination),
         copy.excludedFiles,
       );
@@ -93,8 +94,4 @@ function resolveInsideProject(projectPath: string, relativePath: string): string
   }
 
   return resolvedPath;
-}
-
-function resolveSourcePath(projectPath: string, sourcePath: string): string {
-  return path.isAbsolute(sourcePath) ? sourcePath : path.resolve(projectPath, sourcePath);
 }

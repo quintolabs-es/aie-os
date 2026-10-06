@@ -203,3 +203,46 @@ test("Init requires at least one supported tool", async () => {
     },
   );
 });
+
+test("Build installs bundled persona skills when init uses the default content paths", async () => {
+  const fixture = await createInitFixture();
+
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--agent-persona",
+    "software-developer",
+    "--tool",
+    "claude",
+  ]);
+  await build(fixture);
+
+  const manifest = JSON.parse(
+    await fs.readFile(path.join(fixture.projectPath, ".aie-os", "aie-os.json"), "utf8"),
+  );
+  assert.deepEqual(
+    [manifest.paths.agent, manifest.paths.knowledgeBase, manifest.paths.skills],
+    ["bundled", "bundled", "bundled"],
+  );
+
+  const effectiveContext = JSON.parse(
+    await fs.readFile(
+      path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"),
+      "utf8",
+    ),
+  );
+  assert.equal(effectiveContext.persona.source, "bundled:agent/persona/software-developer.md");
+  assert.equal(
+    effectiveContext.skills.every((skill) => skill.source.startsWith("bundled:skills/")),
+    true,
+  );
+
+  assert.equal(
+    await exists(
+      path.join(fixture.projectPath, ".claude", "skills", "sdd-product-discovery-skill", "SKILL.md"),
+    ),
+    true,
+  );
+});
