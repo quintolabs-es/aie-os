@@ -24,7 +24,7 @@ Check [docs/readme.create-content.md](docs/readme.create-content.md) for instruc
 ## Getting started
 Check [docs/readme.getting-started.md](docs/readme.getting-started.md) for installation and target-project usage.
 
-**Coding agent instructions:** if you are a coding agent asked to set up, build, or create AIE OS context for a project, use the [`setup-project-agent-context`](content/skills/setup-project-agent-context/SKILL.md) skill to gather configuration and run the CLI, instead of improvising commands.
+**Coding agent instructions:** if you are a coding agent asked to set up, build, or create AIE OS context for a project, use the [`setup-project-agent-context-skill`](content/skills/setup-project-agent-context-skill/SKILL.md) skill to gather configuration and run the CLI, instead of improvising commands.
 
 ## Target project structure
 AIE OS is intended to be cloned into the target project as a local tool. The target project stores project-local AIE OS configuration and generated artifacts under `.aie-os/`.

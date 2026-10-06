@@ -51,36 +51,6 @@ test("Build accepts the force-overwrite flag", () => {
   assert.equal(executionOptions.forceOverwrite, true);
 });
 
-test("Build explains how to replace the removed output-file option", () => {
-  assert.throws(
-    () =>
-      resolveExecutionOptions(
-        parseCommandInput(["build", "--output-file", "CLAUDE.md"]),
-        "/tmp/example-project",
-      ),
-    (error) => {
-      assert.match(error.message, /--output-file has been removed\./u);
-      assert.match(error.message, /init --tool/u);
-      return true;
-    },
-  );
-});
-
-test("Build explains how to replace the removed target-agent option", () => {
-  assert.throws(
-    () =>
-      resolveExecutionOptions(
-        parseCommandInput(["build", "--target-agent", "claude"]),
-        "/tmp/example-project",
-      ),
-    (error) => {
-      assert.match(error.message, /--target-agent has been removed\. Select tools with --tool at init instead\./u);
-      assert.match(error.message, /init --tool claude/u);
-      return true;
-    },
-  );
-});
-
 test("Init parses a comma-separated --tool list", () => {
   const executionOptions = resolveExecutionOptions(
     parseCommandInput(["init", "--tool", "claude,codex"]),

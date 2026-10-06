@@ -16,16 +16,6 @@ const INIT_OPTIONS = [
   "--application-type",
   "--frameworks",
 ];
-const REMOVED_OPTIONS: Record<string, string> = {
-  "--output-file": [
-    "--output-file has been removed. The instructions file name is set by the tool: claude writes CLAUDE.md and codex writes AGENTS.md.",
-    `Select tools with: ${commandName} init --tool <claude,codex>`,
-  ].join("\n"),
-  "--target-agent": [
-    "--target-agent has been removed. Select tools with --tool at init instead.",
-    `For example: ${commandName} init --tool claude`,
-  ].join("\n"),
-};
 const INIT_DEFAULTS = {
   agentPath: "aie-os/content/agent",
   kbPath: "aie-os/content/knowledge-base",
@@ -229,14 +219,6 @@ function rejectUnsupportedOptions(
 
   if (unsupported.length === 0) {
     return;
-  }
-
-  const removedGuidance = unsupported
-    .map((option) => REMOVED_OPTIONS[option])
-    .filter((guidance) => guidance !== undefined);
-
-  if (removedGuidance.length > 0) {
-    throw new Error(removedGuidance.join("\n"));
   }
 
   throw new Error(

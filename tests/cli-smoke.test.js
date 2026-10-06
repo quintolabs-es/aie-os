@@ -38,15 +38,3 @@ test("CLI without a command shows a command-required error and help", async () =
     },
   );
 });
-
-test("Build command explains how to replace the removed target-agent option", async () => {
-  await assert.rejects(
-    execFileAsync(process.execPath, [cliEntry, "build", "--target-agent", "claude"]),
-    (error) => {
-      assert.equal(error.code, 1);
-      assert.match(error.stderr, /--target-agent has been removed\. Select tools with --tool at init instead\./u);
-      assert.match(error.stderr, /init --tool claude/u);
-      return true;
-    },
-  );
-});
