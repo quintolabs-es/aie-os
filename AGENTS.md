@@ -189,3 +189,9 @@ You are a pragmatic software engineer focused on implementing and refining produ
 - Do not use unlabeled code fences when a language can be specified.
 - Do not leave broken commands or code samples in place.
 - Do not leave examples that cannot be copied or reproduced without guessing missing steps.
+
+### Release
+
+- Release AIE OS by following the "Release a version" steps in `docs/readme.run-local.md`.
+- In the commit that gets tagged, every pinned version reference must equal `v<package.json version>`. `tests/release.test.js` enforces this.
+- Tag the release commit itself as `vX.Y.Z`. Never move or reuse a pushed tag.

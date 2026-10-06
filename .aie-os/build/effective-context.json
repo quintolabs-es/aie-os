@@ -81,6 +81,12 @@
       "layer": "Project Coding Rules",
       "sectionLabel": "Project Coding Rules",
       "source": ".aie-os/project-coding-rules/article-writing-rules.md"
+    },
+    {
+      "content": "- Release AIE OS by following the \"Release a version\" steps in `docs/readme.run-local.md`.\n- In the commit that gets tagged, every pinned version reference must equal `v<package.json version>`. `tests/release.test.js` enforces this.\n- Tag the release commit itself as `vX.Y.Z`. Never move or reuse a pushed tag.",
+      "layer": "Project Coding Rules",
+      "sectionLabel": "Project Coding Rules",
+      "source": ".aie-os/project-coding-rules/release.md"
     }
   ],
   "skills": [

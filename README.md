@@ -27,6 +27,9 @@ Check [docs/readme.getting-started.md](docs/readme.getting-started.md) for insta
 
 **Coding agent instructions:** if you are a coding agent asked to set up, build, or create AIE OS context for a project, use the [`setup-project-agent-context-skill`](content/skills/setup-project-agent-context-skill/SKILL.md) skill to gather configuration and run the CLI, instead of improvising commands.
 
+## Develop and release
+Check [docs/readme.run-local.md](docs/readme.run-local.md) for working on AIE OS itself and for the release steps.
+
 ## Target project structure
 AIE OS runs with `npx`, so the target project holds only its AIE OS configuration and generated artifacts.
 

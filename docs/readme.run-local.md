@@ -18,11 +18,22 @@ node dist/index.js build
 
 ### Release a version
 
+Every pinned version reference must equal `v<package.json version>` in the commit that gets tagged, because that commit's docs and bundled setup skill ship with the release. `pnpm test` fails when a pin differs (`tests/release.test.js`).
+
+Pinned references live in:
+- `README.md`
+- `docs/readme.getting-started.md`
+- `content/skills/setup-project-agent-context-skill/SKILL.md`
+- `src/commands/commandLine.ts` (help text example)
+
 ```bash
-# 1. bump "version" in package.json, for example 0.2.0, and commit
-# 2. tag that commit and push the tag
-git tag v0.2.0
-git push origin v0.2.0
+npm pkg set version=<X.Y.Z>
+grep -rn "v<old-X.Y.Z>" README.md docs/readme.getting-started.md content/skills/setup-project-agent-context-skill/SKILL.md src/commands/commandLine.ts
+# replace each match with v<X.Y.Z>
+pnpm test
+git commit -am "Release v<X.Y.Z>"
+git tag v<X.Y.Z>
+git push origin main v<X.Y.Z>
 ```
 
-Then update the pinned tag in the docs and in `content/skills/setup-project-agent-context-skill/SKILL.md`.
+Never move or reuse a pushed tag. Projects pin to it.
