@@ -29,7 +29,7 @@ Usage:
   ${commandName} init [options]
   ${commandName} build [options]
 
-  Replace <version> with a release tag, for example v0.1.0. Use the same tag for init and build.
+  Replace <version> with a release tag, for example v0.2.0. Use the same tag for init and build.
 
 Commands:
   init

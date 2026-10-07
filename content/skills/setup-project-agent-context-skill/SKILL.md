@@ -16,7 +16,7 @@ Use this skill when the user wants to configure or generate agent context for a 
 ## Required Input
 
 - target project path
-- AIE OS version tag to pin, defaulting to `v0.1.0`
+- AIE OS version tag to pin, defaulting to `v0.2.0`
 - explicit user-selected configuration choices gathered through a conversational flow for all CLI parameters that will be passed to AIE OS
 
 ## Workflow

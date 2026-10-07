@@ -12,7 +12,7 @@ I want all the coding agents I use across all my projects/repositories, create c
 I want to build this knowledge base of rules and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
 ## How AIE-OS works in a nutshell
-AIE OS runs with `npx` straight from GitHub, pinned to a release tag: `npx --yes github:quintolabs-es/aie-os#v0.1.0 <init|build>`. Nothing is cloned or installed in the target project.
+AIE OS runs with `npx` straight from GitHub, pinned to a release tag: `npx --yes github:quintolabs-es/aie-os#v0.2.0 <init|build>`. Nothing is cloned or installed in the target project.
 On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc). Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
 Each persona declares the skills it needs in its frontmatter. `build` installs those skills, and a slash command per skill where the tool supports commands, in the folders each tool expects (see Agent Adapters). Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.

@@ -5,7 +5,7 @@
 AIE OS runs with `npx` straight from GitHub. Nothing is cloned or installed in the target project. Always pin a release tag so `init` and `build` run the same version:
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.1.0 <init|build> [options]
+npx --yes github:quintolabs-es/aie-os#v0.2.0 <init|build> [options]
 ```
 
 To upgrade, change the tag and run `build` again.
@@ -25,10 +25,10 @@ See [`docs/readme.create-content.md`](./readme.create-content.md) for the conten
 cd xample-app
 
 # interactive
-npx --yes github:quintolabs-es/aie-os#v0.1.0 init
+npx --yes github:quintolabs-es/aie-os#v0.2.0 init
 
 # OR explicit
-npx --yes github:quintolabs-es/aie-os#v0.1.0 init \
+npx --yes github:quintolabs-es/aie-os#v0.2.0 init \
   --agent-persona <value> \
   --tool <claude,codex> \
   [--languages <value1,value2>] \
@@ -60,7 +60,7 @@ npx --yes github:quintolabs-es/aie-os#v0.1.0 init \
 Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`), the rule files in `.claude/rules/aie/` for `claude`, and the persona skills and commands.
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.1.0 build [--project-path <value>] [--force-overwrite]
+npx --yes github:quintolabs-es/aie-os#v0.2.0 build [--project-path <value>] [--force-overwrite]
 ```
 
 * `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file or rule file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.
