@@ -13,8 +13,8 @@ I want to build this knowledge base of rules and be able to use them to create a
 
 ## How AIE-OS works in a nutshell
 AIE OS runs straight from GitHub, pinned to a release tag. Nothing is cloned or installed in the target project. Run it in one of two ways:
-- Run with npx (requires Node): `npx --yes github:quintolabs-es/aie-os#v0.2.1 <init|build>`
-- Run with Docker (requires only Docker): `curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build>`. [`aie-os-docker.sh`](aie-os-docker.sh) runs the same `npx` command inside a `node:24` Docker container.
+- Run with npx (requires Node): `npx --yes github:quintolabs-es/aie-os#v0.3.0 <init|build>`
+- Run with Docker (requires only Docker): `curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s <init|build>`. [`aie-os-docker.sh`](aie-os-docker.sh) runs the same `npx` command inside a `node:24` Docker container.
 
 On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc) and records the release tag it ran with as `aieOsVersion`. Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.

@@ -1,6 +1,6 @@
 {
   "version": "0.1",
-  "aieOsVersion": "v0.2.1",
+  "aieOsVersion": "v0.3.0",
   "paths": {
     "agent": "content/agent",
     "skills": "content/skills",

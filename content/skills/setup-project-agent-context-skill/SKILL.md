@@ -16,7 +16,7 @@ Use this skill when the user wants to configure or generate agent context for a 
 ## Required Input
 
 - target project path
-- AIE OS version tag: `aieOsVersion` from the target project's `.aie-os/aie-os.json` when it exists, otherwise the latest release, defaulting to `v0.2.1`
+- AIE OS version tag: `aieOsVersion` from the target project's `.aie-os/aie-os.json` when it exists, otherwise the latest release, defaulting to `v0.3.0`
 - explicit user-selected configuration choices gathered through a conversational flow for all CLI parameters that will be passed to AIE OS
 
 ## Workflow

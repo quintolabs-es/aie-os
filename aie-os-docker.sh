@@ -4,11 +4,11 @@
 # in the official node:24 image, with the current directory mounted at the same path.
 #
 # Run it from the target project directory:
-#   curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build> [options]
+#   curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s <init|build> [options]
 
 set -euo pipefail
 
-aie_os_version="v0.2.1"
+aie_os_version="v0.3.0"
 node_image="node:24"
 
 main() {

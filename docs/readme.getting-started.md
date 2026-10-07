@@ -22,13 +22,13 @@ set -o pipefail; curl -fsSL "https://raw.githubusercontent.com/quintolabs-es/aie
 ### Run with npx (requires Node)
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.2.1 <init|build> [options]
+npx --yes github:quintolabs-es/aie-os#v0.3.0 <init|build> [options]
 ```
 
 ### Run with Docker (requires only Docker)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build> [options]
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s <init|build> [options]
 ```
 
 [`aie-os-docker.sh`](../aie-os-docker.sh) runs the same pinned `npx` command inside a `node:24` Docker container:
@@ -54,13 +54,13 @@ See [`docs/readme.create-content.md`](./readme.create-content.md) for the conten
 cd xample-app
 
 # interactive
-npx --yes github:quintolabs-es/aie-os#v0.2.1 init
+npx --yes github:quintolabs-es/aie-os#v0.3.0 init
 
 # OR interactive with Docker
-curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s init
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s init
 
 # OR explicit
-npx --yes github:quintolabs-es/aie-os#v0.2.1 init \
+npx --yes github:quintolabs-es/aie-os#v0.3.0 init \
   --agent-persona <value> \
   --tool <claude,codex> \
   [--languages <value1,value2>] \
@@ -71,7 +71,7 @@ npx --yes github:quintolabs-es/aie-os#v0.2.1 init \
   [--skills-path <value>]
 
 # OR explicit with Docker
-curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s init \
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s init \
   --agent-persona <value> \
   --tool <claude,codex> \
   [--languages <value1,value2>] \
@@ -103,10 +103,10 @@ curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-
 Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`), the rule files in `.claude/rules/aie/` for `claude`, and the persona skills and commands.
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.2.1 build [--project-path <value>] [--force-overwrite]
+npx --yes github:quintolabs-es/aie-os#v0.3.0 build [--project-path <value>] [--force-overwrite]
 
 # OR with Docker
-curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s build [--force-overwrite]
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.3.0/aie-os-docker.sh | bash -s build [--force-overwrite]
 ```
 
 * `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file or rule file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.
