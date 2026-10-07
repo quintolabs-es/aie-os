@@ -1,5 +1,9 @@
 import path from "node:path";
+import { generatedFileMarker } from "../generatedFileMarker";
 import type { EffectiveContext, EffectiveContextBlock } from "../types";
+
+const aieOsVersionPointer =
+  "Run AIE OS for this project with the release tag recorded as `aieOsVersion` in `.aie-os/aie-os.json`.";
 
 export type RenderedSection = {
   label: string;
@@ -9,6 +13,10 @@ export type RenderedSection = {
 export const contextSections = {
   renderTitle(instructionsFileName: string): string {
     return `# ${path.basename(instructionsFileName, path.extname(instructionsFileName))}`;
+  },
+
+  renderGeneratedHeader(): string {
+    return `${generatedFileMarker}\n${aieOsVersionPointer}`;
   },
 
   renderPersona(effectiveContext: EffectiveContext): string {

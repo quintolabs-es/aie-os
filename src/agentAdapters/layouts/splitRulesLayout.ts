@@ -21,7 +21,7 @@ export function splitRulesLayout(options: SplitRulesLayoutOptions): Instructions
       instructionsFile: {
         contents: contextSections.joinParts([
           contextSections.renderTitle(options.instructionsFileName),
-          generatedFileMarker,
+          contextSections.renderGeneratedHeader(),
           contextSections.renderPersona(effectiveContext),
           contextSections.renderCriticalRules(effectiveContext.criticalRules),
           renderRulesPointer(ruleFiles, options.rulesDirectory),

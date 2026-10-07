@@ -29,7 +29,7 @@ Usage:
   ${commandName} init [options]
   ${commandName} build [options]
 
-  Replace <version> with a release tag, for example v0.2.1. Use the same tag for init and build.
+  Replace <version> with a release tag, for example v0.2.1. init records it as aieOsVersion in .aie-os/aie-os.json; use that tag for later runs. An older tag is refused, and a newer tag updates the record.
 
 Commands:
   init

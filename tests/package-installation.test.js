@@ -90,8 +90,13 @@ test("Packed install exposes the aie-os bin and builds from its bundled content"
     await fs.readFile(path.join(consumerPath, ".aie-os", "aie-os.json"), "utf8"),
   );
   assert.equal(manifest.paths.agent, "bundled");
+  const { version } = JSON.parse(await fs.readFile(path.join(repoRoot, "package.json"), "utf8"));
+  assert.equal(manifest.aieOsVersion, `v${version}`);
   await fs.access(
     path.join(consumerPath, ".claude", "skills", "sdd-product-discovery-skill", "SKILL.md"),
   );
-  await fs.access(path.join(consumerPath, "CLAUDE.md"));
+  assert.match(
+    await fs.readFile(path.join(consumerPath, "CLAUDE.md"), "utf8"),
+    /Run AIE OS for this project with the release tag recorded as `aieOsVersion` in `\.aie-os\/aie-os\.json`\./u,
+  );
 });

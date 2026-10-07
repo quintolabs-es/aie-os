@@ -56,4 +56,4 @@ The artifact writer is the only component that writes files. Each output field h
 | `ruleFiles` | `generatedFileMarker` | yes, removed when no longer generated | build fails unless `--force-overwrite` |
 | `commandFiles`, `skillCopies` | ledger | yes, removed when no longer generated | skipped with a warning unless `--force-overwrite` |
 
-Instructions and rule files must contain `generatedFileMarker` from `src/agentAdapters` so repeated builds do not need `--force-overwrite`.
+Instructions and rule files must contain `generatedFileMarker` from `src/agentAdapters` so repeated builds do not need `--force-overwrite`. Instructions files render `contextSections.renderGeneratedHeader()` right after `contextSections.renderTitle()`; the header adds the line pointing agents to `aieOsVersion`. Rule files use the bare `generatedFileMarker`.

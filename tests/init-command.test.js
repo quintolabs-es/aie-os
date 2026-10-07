@@ -265,3 +265,81 @@ test("Explicit init does not discover nested application-type or framework folde
     },
   );
 });
+
+function explicitInitArguments(fixture) {
+  return [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+    "--tool",
+    "codex",
+  ];
+}
+
+function manifestPathOf(fixture) {
+  return path.join(fixture.projectPath, ".aie-os", "aie-os.json");
+}
+
+async function readManifest(fixture) {
+  return JSON.parse(await fs.readFile(manifestPathOf(fixture), "utf8"));
+}
+
+async function runningTag() {
+  const { version } = JSON.parse(await fs.readFile(path.join(__dirname, "..", "package.json"), "utf8"));
+  return `v${version}`;
+}
+
+test("Explicit init records the running AIE OS tag as aieOsVersion", async () => {
+  const fixture = await createInitFixture();
+  const tag = await runningTag();
+
+  const { stdout } = await execFileAsync(process.execPath, explicitInitArguments(fixture));
+  const manifest = await readManifest(fixture);
+
+  assert.equal(manifest.aieOsVersion, tag);
+  assert.deepEqual(Object.keys(manifest), ["version", "aieOsVersion", "paths", "selection"]);
+  assert.match(stdout, new RegExp(`Recorded AIE OS ${tag.replace(/\./gu, "\\.")} in `, "u"));
+});
+
+test("Re-running init with the same tag prints no version notice", async () => {
+  const fixture = await createInitFixture();
+  await execFileAsync(process.execPath, explicitInitArguments(fixture));
+
+  const { stdout } = await execFileAsync(process.execPath, explicitInitArguments(fixture));
+
+  assert.doesNotMatch(stdout, /Recorded AIE OS|Upgraded AIE OS/u);
+});
+
+test("Re-running init with a newer tag upgrades aieOsVersion", async () => {
+  const fixture = await createInitFixture();
+  await execFileAsync(process.execPath, explicitInitArguments(fixture));
+  await fs.writeFile(manifestPathOf(fixture), JSON.stringify({ ...(await readManifest(fixture)), aieOsVersion: "v0.0.1" }));
+  const tag = await runningTag();
+
+  const { stdout } = await execFileAsync(process.execPath, explicitInitArguments(fixture));
+
+  assert.equal((await readManifest(fixture)).aieOsVersion, tag);
+  assert.match(stdout, /Upgraded AIE OS in .+ from v0\.0\.1 to /u);
+});
+
+test("Init refuses an older running tag and keeps the manifest", async () => {
+  const fixture = await createInitFixture();
+  await execFileAsync(process.execPath, explicitInitArguments(fixture));
+  await fs.writeFile(manifestPathOf(fixture), JSON.stringify({ ...(await readManifest(fixture)), aieOsVersion: "v999.0.0" }));
+  const manifestText = await fs.readFile(manifestPathOf(fixture), "utf8");
+
+  await assert.rejects(execFileAsync(process.execPath, explicitInitArguments(fixture)), (error) => {
+    assert.equal(error.code, 1);
+    assert.match(error.stderr, /^Refusing to init with AIE OS v\d+\.\d+\.\d+: .+ requires v999\.0\.0 \("aieOsVersion"\)\.\nRerun the same command with tag v999\.0\.0\.\n$/u);
+    return true;
+  });
+
+  assert.equal(await fs.readFile(manifestPathOf(fixture), "utf8"), manifestText);
+});

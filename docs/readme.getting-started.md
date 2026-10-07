@@ -3,7 +3,21 @@ AIE OS runs straight from GitHub. Nothing is cloned or installed in the target p
 - Run with npx (requires Node): Node.js 20 or later, which includes `npm` and `npx`, and `git`, used by `npx` to fetch AIE OS from GitHub.
 - Run with Docker (requires only Docker): a running Docker on macOS, Linux, or Windows with WSL. The command also uses `curl` and `bash`, which macOS and Linux include.
 
-Always pin a release tag so `init` and `build` run the same version. To upgrade, pick the latest tag from https://github.com/quintolabs-es/aie-os/tags, change the tag in your command, and run `build` again.
+Always pin a release tag. `init` records it as `aieOsVersion` in `.aie-os/aie-os.json`; use that tag for every later `init` and `build`, and commit the manifest when it changes.
+- Upgrade: pick the latest tag from https://github.com/quintolabs-es/aie-os/tags, change the tag in your command, run `build`, and commit `.aie-os/aie-os.json`.
+- An older tag is refused: `Refusing to build with AIE OS <tag>: .aie-os/aie-os.json requires <pinned-tag>`. To downgrade on purpose, edit `aieOsVersion` first.
+- Releases from before `aieOsVersion` existed do not check it, and their `init` removes it, so do not run them on a project that records `aieOsVersion`.
+- Projects set up before `aieOsVersion` existed get it on their next `build`.
+
+To run the recorded tag in a script or CI:
+
+```bash
+tag="$(sed -n 's/.*"aieOsVersion": *"\(v[0-9.]*\)".*/\1/p' .aie-os/aie-os.json)"
+# with npx
+npx --yes "github:quintolabs-es/aie-os#${tag:?aieOsVersion is missing from .aie-os/aie-os.json}" build
+# OR with Docker
+set -o pipefail; curl -fsSL "https://raw.githubusercontent.com/quintolabs-es/aie-os/${tag:?aieOsVersion is missing from .aie-os/aie-os.json}/aie-os-docker.sh" | bash -s build
+```
 
 ### Run with npx (requires Node)
 
@@ -29,7 +43,7 @@ curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-
 AIE OS ships with ready-to-use content (personas, principles, coding rules, and skills). Content paths default to `bundled`, which means the content inside the pinned AIE OS version.
 
 To use your own content, either:
-- fork the repo, edit [`/content`](../content), and run `npx --yes github:<owner>/<fork>#<tag> <init|build>`; or
+- fork the repo, edit [`/content`](../content), and run `npx --yes github:<owner>/<fork>#<tag> <init|build>`. Keep the fork's version at or above the upstream version it is based on, because `aieOsVersion` compares version numbers only; or
 - keep the content folders in your project and pass `--kb-path`, `--agent-path`, and `--skills-path` to `init`.
 
 See [`docs/readme.create-content.md`](./readme.create-content.md) for the content structure and authoring rules.

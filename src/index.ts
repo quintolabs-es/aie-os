@@ -5,6 +5,8 @@ import { buildProject } from "./commands/build";
 import { initProject } from "./commands/init";
 import { parseCommandInput, resolveExecutionOptions, usageText } from "./commands/commandLine";
 import { CommandCanceledError } from "./commands/terminalPrompts";
+import { aieOsVersion } from "./context/aieOsVersion";
+import { findPackageRoot } from "./context/findPackageRoot";
 
 async function run(): Promise<void> {
   const commandInput = parseCommandInput(process.argv.slice(2));
@@ -22,13 +24,14 @@ async function run(): Promise<void> {
   }
 
   const executionOptions = resolveExecutionOptions(commandInput, path.resolve(process.cwd()));
+  const runningTag = await aieOsVersion.readRunning(findPackageRoot(__dirname));
 
   switch (executionOptions.command) {
     case "init":
-      await initProject(executionOptions);
+      await initProject(executionOptions, runningTag);
       return;
     case "build":
-      await buildProject(executionOptions);
+      await buildProject(executionOptions, runningTag);
       return;
     default:
       throw new Error(`Unsupported command: ${commandInput.command}`);

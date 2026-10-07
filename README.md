@@ -16,7 +16,7 @@ AIE OS runs straight from GitHub, pinned to a release tag. Nothing is cloned or 
 - Run with npx (requires Node): `npx --yes github:quintolabs-es/aie-os#v0.2.1 <init|build>`
 - Run with Docker (requires only Docker): `curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build>`. [`aie-os-docker.sh`](aie-os-docker.sh) runs the same `npx` command inside a `node:24` Docker container.
 
-On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc). Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
+On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc) and records the release tag it ran with as `aieOsVersion`. Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
 Each persona declares the skills it needs in its frontmatter. `build` installs those skills, and a slash command per skill where the tool supports commands, in the folders each tool expects (see Agent Adapters). Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
 
@@ -40,7 +40,7 @@ Below is the typical target project structure after `init` and `build`.
 ```text
 xample-app/
   .aie-os/
-    aie-os.json
+    aie-os.json             # configuration and the AIE OS release tag (aieOsVersion)
     project-coding-rules/
     build/
       effective-context.json
@@ -53,7 +53,7 @@ xample-app/
   .agents/skills/           # tool: codex
 ```
 
-- `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo.
+- `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo, and commit `.aie-os/aie-os.json` whenever `init` or `build` records a new `aieOsVersion`.
 - The instructions file is generated at the target project root: `CLAUDE.md` for `claude`, `AGENTS.md` for `codex`.
 - For `claude`, `CLAUDE.md` holds the persona and critical rules; every other section is written to its own rule file in `.claude/rules/aie/`, which Claude Code loads automatically. For `codex`, `AGENTS.md` holds everything.
 
@@ -75,6 +75,7 @@ xample-app/
 - `effective-context.json` includes `metadata.inputs` as provenance about which persona, languages, application types, and frameworks were used to build the context.
 - Adapters write tool-specific artifacts only.
 - After `build`, AIE OS prints the adapter-specific bootstrap prompt to use when starting a new agent session.
+- `init` and `build` compare the running release tag with `aieOsVersion` in `.aie-os/aie-os.json`: they record it when it is missing, move it forward when the running tag is newer, and refuse to run when the running tag is older.
 
 ## Agent Adapters
 - Adapters transform the canonical effective context into the agent-specific files each tool expects.

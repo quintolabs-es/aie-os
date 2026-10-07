@@ -12,6 +12,7 @@ const { planInitManifest } = require(path.join(
 
 test("Init manifest planner builds the aie-os.json model from in-memory input", () => {
   const manifest = planInitManifest({
+    aieOsVersion: "v1.2.3",
     defaults: {
       agentPath: "aie-os/content/agent",
       kbPath: "aie-os/content/knowledge-base",
@@ -33,6 +34,7 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
 
   assert.deepEqual(manifest, {
     version: "0.1",
+    aieOsVersion: "v1.2.3",
     paths: {
       agent: "content/agent",
       knowledgeBase: "content/knowledge-base",
@@ -47,10 +49,12 @@ test("Init manifest planner builds the aie-os.json model from in-memory input", 
       tools: ["claude"],
     },
   });
+  assert.deepEqual(Object.keys(manifest), ["version", "aieOsVersion", "paths", "selection"]);
 });
 
 test("Init manifest planner keeps an explicitly empty knowledge-base path", () => {
   const manifest = planInitManifest({
+    aieOsVersion: "v1.2.3",
     defaults: {
       agentPath: "aie-os/content/agent",
       kbPath: "aie-os/content/knowledge-base",

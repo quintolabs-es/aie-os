@@ -1,5 +1,5 @@
-import fs from "node:fs";
 import path from "node:path";
+import { findPackageRoot } from "./findPackageRoot";
 
 export type ContentKind = "agent" | "knowledgeBase" | "skills";
 
@@ -60,22 +60,6 @@ export const contentPath = {
 
 function bundledContentRoot(): string {
   return path.join(findPackageRoot(__dirname), bundledContentDirectoryName);
-}
-
-function findPackageRoot(startDirectory: string): string {
-  let directory = startDirectory;
-
-  while (!fs.existsSync(path.join(directory, "package.json"))) {
-    const parent = path.dirname(directory);
-
-    if (parent === directory) {
-      throw new Error(`Unable to locate the AIE OS package root from ${startDirectory}`);
-    }
-
-    directory = parent;
-  }
-
-  return directory;
 }
 
 function isInside(relativePath: string): boolean {

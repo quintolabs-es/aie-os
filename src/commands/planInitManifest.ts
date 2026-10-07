@@ -4,6 +4,7 @@ import type { AdapterTool } from "../agentAdapters";
 import type { InitPromptDefaults, InitSelections } from "./types";
 
 export type PlanInitManifestInput = {
+  aieOsVersion: string;
   defaults: InitPromptDefaults;
   paths: Partial<InitPromptDefaults>;
   selections: InitSelections;
@@ -22,6 +23,7 @@ export function planInitManifest(input: PlanInitManifestInput): Manifest {
 
   return {
     version: "0.1",
+    aieOsVersion: input.aieOsVersion,
     paths: {
       agent: agentPath,
       skills: skillsPath,

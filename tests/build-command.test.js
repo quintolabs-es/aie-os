@@ -611,3 +611,165 @@ test("Build loads the knowledge base when only a framework is selected", async (
   assert.match(agents, /## Engineering Principles/u);
   assert.match(agents, /- Ship small and fast\./u);
 });
+
+async function initCodexProject(fixture) {
+  await execFileAsync(process.execPath, [
+    cliEntry,
+    "init",
+    "--project-path",
+    fixture.projectPath,
+    "--kb-path",
+    fixture.knowledgeBasePath,
+    "--agent-path",
+    fixture.agentPath,
+    "--agent-persona",
+    "software-developer",
+    "--tool",
+    "codex",
+  ]);
+}
+
+function manifestPathOf(fixture) {
+  return path.join(fixture.projectPath, ".aie-os", "aie-os.json");
+}
+
+async function readManifest(fixture) {
+  return JSON.parse(await fs.readFile(manifestPathOf(fixture), "utf8"));
+}
+
+async function writeManifest(fixture, manifest) {
+  await fs.writeFile(manifestPathOf(fixture), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+async function runningTag() {
+  const { version } = JSON.parse(await fs.readFile(path.join(__dirname, "..", "package.json"), "utf8"));
+  return `v${version}`;
+}
+
+function buildProject(fixture) {
+  return execFileAsync(process.execPath, [cliEntry, "build", "--project-path", fixture.projectPath]);
+}
+
+test("Build records aieOsVersion in a project that has none and inserts only that line", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  const { aieOsVersion, ...legacyManifest } = await readManifest(fixture);
+  await writeManifest(fixture, legacyManifest);
+  const legacyText = await fs.readFile(manifestPathOf(fixture), "utf8");
+  const tag = await runningTag();
+
+  const { stderr, stdout } = await buildProject(fixture);
+  const recordedText = await fs.readFile(manifestPathOf(fixture), "utf8");
+
+  assert.equal(aieOsVersion, tag);
+  assert.equal(stderr, "");
+  assert.match(stdout, new RegExp(`Recorded AIE OS ${tag.replace(/\./gu, "\\.")} in \\.aie-os[\\\\/]aie-os\\.json \\("aieOsVersion"\\)\\.`, "u"));
+  assert.equal(recordedText, legacyText.replace('"version": "0.1",\n', `"version": "0.1",\n  "aieOsVersion": "${tag}",\n`));
+});
+
+test("Build leaves the manifest untouched when aieOsVersion matches the running tag", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  const compactText = JSON.stringify(await readManifest(fixture));
+  await fs.writeFile(manifestPathOf(fixture), compactText);
+
+  const { stdout } = await buildProject(fixture);
+
+  assert.equal(await fs.readFile(manifestPathOf(fixture), "utf8"), compactText);
+  assert.doesNotMatch(stdout, /Recorded AIE OS|Upgraded AIE OS/u);
+});
+
+test("Build upgrades aieOsVersion when the running tag is newer", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  await writeManifest(fixture, { ...(await readManifest(fixture)), aieOsVersion: "v0.0.1" });
+  const tag = await runningTag();
+
+  const { stdout } = await buildProject(fixture);
+
+  assert.equal((await readManifest(fixture)).aieOsVersion, tag);
+  assert.match(stdout, new RegExp(`Upgraded AIE OS in \\.aie-os[\\\\/]aie-os\\.json \\("aieOsVersion"\\) from v0\\.0\\.1 to ${tag.replace(/\./gu, "\\.")}\\.`, "u"));
+});
+
+test("Build refuses an older running tag before writing anything", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  await writeManifest(fixture, { ...(await readManifest(fixture)), aieOsVersion: "v999.0.0" });
+  const manifestText = await fs.readFile(manifestPathOf(fixture), "utf8");
+  const tag = await runningTag();
+
+  await assert.rejects(buildProject(fixture), (error) => {
+    assert.equal(error.code, 1);
+    assert.equal(
+      error.stderr,
+      [
+        `Refusing to build with AIE OS ${tag}: ${path.join(".aie-os", "aie-os.json")} requires v999.0.0 ("aieOsVersion").`,
+        "Rerun the same command with tag v999.0.0.",
+        "",
+      ].join("\n"),
+    );
+    return true;
+  });
+
+  assert.equal(await fs.readFile(manifestPathOf(fixture), "utf8"), manifestText);
+  await assert.rejects(fs.access(path.join(fixture.projectPath, "AGENTS.md")));
+  await assert.rejects(fs.access(path.join(fixture.projectPath, ".aie-os", "build")));
+});
+
+test("Build refuses an older running tag even when the newer manifest does not validate", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  const { selection, ...manifest } = await readManifest(fixture);
+  await writeManifest(fixture, { ...manifest, aieOsVersion: "v999.0.0" });
+
+  await assert.rejects(buildProject(fixture), (error) => {
+    assert.match(error.stderr, /^Refusing to build with AIE OS v\d+\.\d+\.\d+: /u);
+    assert.doesNotMatch(error.stderr, /Expected selection/u);
+    return true;
+  });
+});
+
+test("Build keeps the previous aieOsVersion when the build fails", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  await writeManifest(fixture, { ...(await readManifest(fixture)), aieOsVersion: "v0.0.1" });
+  await fs.writeFile(path.join(fixture.projectPath, "AGENTS.md"), "# Hand written instructions\n");
+
+  await assert.rejects(buildProject(fixture), /Refusing to overwrite AGENTS\.md/u);
+
+  assert.equal((await readManifest(fixture)).aieOsVersion, "v0.0.1");
+});
+
+test("Build keeps the previous aieOsVersion when writing artifacts fails", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  await writeManifest(fixture, { ...(await readManifest(fixture)), aieOsVersion: "v0.0.1" });
+  await fs.mkdir(path.join(fixture.projectPath, ".aie-os", "build"), { recursive: true });
+  await fs.writeFile(path.join(fixture.projectPath, ".aie-os", "build", "installed-artifacts.json"), "{");
+
+  await assert.rejects(buildProject(fixture), /Invalid JSON installed-artifacts file/u);
+
+  await fs.access(path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"));
+  assert.equal((await readManifest(fixture)).aieOsVersion, "v0.0.1");
+});
+
+test("Build rejects an aieOsVersion that is not a release tag", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+  await writeManifest(fixture, { ...(await readManifest(fixture)), aieOsVersion: "latest" });
+
+  await assert.rejects(buildProject(fixture), (error) => {
+    assert.match(error.stderr, /Expected aieOsVersion to be a release tag like v1\.2\.3 in manifest: /u);
+    return true;
+  });
+});
+
+test("Build never copies aieOsVersion into the effective context", async () => {
+  const fixture = await createInitFixture();
+  await initCodexProject(fixture);
+
+  await buildProject(fixture);
+
+  const effectiveContext = await fs.readFile(path.join(fixture.projectPath, ".aie-os", "build", "effective-context.json"), "utf8");
+  assert.equal(effectiveContext.includes("aieOsVersion"), false);
+});

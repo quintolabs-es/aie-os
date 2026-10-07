@@ -1,4 +1,3 @@
-import { generatedFileMarker } from "../generatedFileMarker";
 import { contextSections } from "../shared/contextSections";
 import type { InstructionsLayout } from "../types";
 
@@ -8,7 +7,7 @@ export function singleFileLayout(instructionsFileName: string): InstructionsLayo
     instructionsFile: {
       contents: contextSections.joinParts([
         contextSections.renderTitle(instructionsFileName),
-        generatedFileMarker,
+        contextSections.renderGeneratedHeader(),
         contextSections.renderPersona(effectiveContext),
         contextSections.renderCriticalRules(effectiveContext.criticalRules),
         contextSections

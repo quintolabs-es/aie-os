@@ -5,6 +5,7 @@ const test = require("node:test");
 
 const repoRoot = path.join(__dirname, "..");
 const pinnedFiles = [
+  ".aie-os/aie-os.json",
   "README.md",
   "aie-os-docker.sh",
   "docs/readme.getting-started.md",

@@ -7,6 +7,8 @@ import { buildAgentContext } from "../context/build";
 import { ensureOutputFilesAreReplaceable } from "../artifacts/outputFileGuard";
 import { fileExists, writeText } from "../context/filesystem";
 import { loadManifest } from "../context/manifest";
+import { manifestAieOsVersion } from "../context/manifestAieOsVersion";
+import { planAieOsVersion } from "./planAieOsVersion";
 import { terminalStyle } from "./terminalStyle";
 import type { BuildExecutionOptions } from "./types";
 
@@ -19,12 +21,21 @@ const ansi = {
   yellow: "\u001B[33m",
 } as const;
 
-export async function buildProject(options: BuildExecutionOptions): Promise<void> {
+export async function buildProject(options: BuildExecutionOptions, runningTag: string): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
 
   const manifestPath = path.join(options.projectPath, aieRelativePaths.manifestFile);
   if (!(await fileExists(manifestPath))) {
     throw new Error(`Missing manifest: ${manifestPath}. Run "init" from the target project first.`);
+  }
+
+  const versionPlan = planAieOsVersion({
+    command: "build",
+    pinnedTag: await manifestAieOsVersion.read(manifestPath),
+    runningTag,
+  });
+  if (versionPlan.kind === "refuse") {
+    throw new Error(versionPlan.message);
   }
 
   const manifest = await loadManifest(manifestPath);
@@ -62,6 +73,9 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
   await agentArtifactWriter.write(options.projectPath, adapterOutputs, {
     forceOverwrite: options.forceOverwrite,
   });
+  if (versionPlan.kind === "record") {
+    await manifestAieOsVersion.save(manifestPath, versionPlan.tag);
+  }
 
   const generatedFiles = adapterOutputs.map((adapterOutput) => adapterOutput.instructionsFile.path);
   const buildCompleteBox = terminalStyle.promptHeaderBox(
@@ -73,6 +87,7 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
       "",
       ...buildCompleteBox,
       "",
+      ...(versionPlan.kind === "record" ? [versionPlan.notice, ""] : []),
       `${ansi.bold}${ansi.cyan}Bootstrap prompt${ansi.reset}`,
       "Use this first prompt in the next agent session to make sure the agent reloads and follows the instructions from the context you just built.",
       "",

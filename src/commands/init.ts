@@ -10,9 +10,10 @@ import {
   writeText,
 } from "../context/filesystem";
 import { adapterTools } from "../agentAdapters";
-import { aieStructure } from "../context/aieStructure";
+import { aieRelativePaths, aieStructure } from "../context/aieStructure";
 import { contentPath, type ContentKind } from "../context/contentPath";
 import { saveManifest, type Manifest } from "../context/manifest";
+import { manifestAieOsVersion } from "../context/manifestAieOsVersion";
 import { projectCodingRulesReadmeTemplate } from "./scaffoldTemplates";
 import {
   canPromptInteractively,
@@ -21,14 +22,23 @@ import {
   promptTextInput,
 } from "./terminalPrompts";
 import { commandName } from "./commandName";
+import { planAieOsVersion } from "./planAieOsVersion";
 import { planInitManifest } from "./planInitManifest";
 import type { InitExecutionOptions, InitPromptDefaults, InitSelections } from "./types";
 
-export async function initProject(options: InitExecutionOptions): Promise<void> {
+export async function initProject(options: InitExecutionOptions, runningTag: string): Promise<void> {
   await ensureProjectDirectory(options.projectPath);
   const canPrompt = options.mode === "interactive" && canPromptInteractively();
   if (options.mode === "interactive" && !canPrompt) {
     throw new Error("Init requires a terminal when no init configuration arguments are provided.");
+  }
+  const versionPlan = planAieOsVersion({
+    command: "init",
+    pinnedTag: await manifestAieOsVersion.read(path.join(options.projectPath, aieRelativePaths.manifestFile)),
+    runningTag,
+  });
+  if (versionPlan.kind === "refuse") {
+    throw new Error(versionPlan.message);
   }
   const manifest = await collectManifest(
     options.projectPath,
@@ -37,8 +47,12 @@ export async function initProject(options: InitExecutionOptions): Promise<void> 
     options.mode,
     options.providedPaths,
     canPrompt,
+    runningTag,
   );
   await scaffoldProject(options.projectPath, manifest);
+  if (versionPlan.kind === "record") {
+    output.write(`${versionPlan.notice}\n`);
+  }
 }
 
 async function collectManifest(
@@ -48,6 +62,7 @@ async function collectManifest(
   mode: InitExecutionOptions["mode"],
   providedPaths: Partial<InitPromptDefaults>,
   interactive: boolean,
+  runningTag: string,
 ): Promise<Manifest> {
   const knowledgeBasePath = providedPaths.kbPath !== undefined
     ? providedPaths.kbPath
@@ -108,6 +123,7 @@ async function collectManifest(
   );
 
   return planInitManifest({
+    aieOsVersion: runningTag,
     defaults,
     paths: {
       agentPath,

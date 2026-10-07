@@ -1,7 +1,9 @@
 import { adapterTools, type AdapterTool } from "../agentAdapters/types";
 import { readText, writeText } from "./filesystem";
+import { manifestAieOsVersion } from "./manifestAieOsVersion";
 
 export type Manifest = {
+  aieOsVersion?: string;
   paths: {
     agent: string;
     skills: string;
@@ -48,6 +50,9 @@ function normalizeManifest(rawManifest: unknown, manifestPath: string): Manifest
 
   return {
     version: expectString(manifest.version, "version", manifestPath),
+    ...(manifest.aieOsVersion === undefined
+      ? {}
+      : { aieOsVersion: manifestAieOsVersion.expectTag(manifest.aieOsVersion, manifestPath) }),
     paths: {
       knowledgeBase: expectString(paths.knowledgeBase, "paths.knowledgeBase", manifestPath),
       agent: expectString(paths.agent, "paths.agent", manifestPath),
