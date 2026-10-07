@@ -12,7 +12,10 @@ I want all the coding agents I use across all my projects/repositories, create c
 I want to build this knowledge base of rules and be able to use them to create a "context" so I can feed it to all my agents across all my projects.
 
 ## How AIE-OS works in a nutshell
-AIE OS runs with `npx` straight from GitHub, pinned to a release tag: `npx --yes github:quintolabs-es/aie-os#v0.2.0 <init|build>`. Nothing is cloned or installed in the target project.
+AIE OS runs straight from GitHub, pinned to a release tag. Nothing is cloned or installed in the target project. Run it in one of two ways:
+- Run with npx (requires Node): `npx --yes github:quintolabs-es/aie-os#v0.2.1 <init|build>`
+- Run with Docker (requires only Docker): `curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build>`. [`aie-os-docker.sh`](aie-os-docker.sh) runs the same `npx` command inside a `node:24` Docker container.
+
 On `init`, it captures the project configuration (content paths, persona, tools, project language, application type, etc). Content paths default to `bundled`: the content shipped with the pinned AIE OS version.
 On `build` it aggregates all the relevant rules from the specified locations and builds the final tool-specific context artifacts.
 Each persona declares the skills it needs in its frontmatter. `build` installs those skills, and a slash command per skill where the tool supports commands, in the folders each tool expects (see Agent Adapters). Skills are expected to follow the Agent Skills packaging specification at https://agentskills.io/specification.
@@ -28,10 +31,10 @@ Check [docs/readme.getting-started.md](docs/readme.getting-started.md) for insta
 **Coding agent instructions:** if you are a coding agent asked to set up, build, or create AIE OS context for a project, use the [`setup-project-agent-context-skill`](content/skills/setup-project-agent-context-skill/SKILL.md) skill to gather configuration and run the CLI, instead of improvising commands.
 
 ## Develop and release
-Check [docs/readme.run-local.md](docs/readme.run-local.md) for working on AIE OS itself and for the release steps.
+Check [DEVELOPER.md](DEVELOPER.md) for working on AIE OS itself, versioning, and the release steps.
 
 ## Target project structure
-AIE OS runs with `npx`, so the target project holds only its AIE OS configuration and generated artifacts.
+AIE OS runs from GitHub with `npx` or Docker, so the target project holds only its AIE OS configuration and generated artifacts.
 
 Below is the typical target project structure after `init` and `build`.
 ```text

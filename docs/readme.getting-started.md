@@ -1,14 +1,29 @@
 ### Requirements
-- Node.js 20 or later, which includes `npm` and `npx`.
-- `git`, used by `npx` to fetch AIE OS from GitHub.
+AIE OS runs straight from GitHub. Nothing is cloned or installed in the target project. Pick one way to run it:
+- Run with npx (requires Node): Node.js 20 or later, which includes `npm` and `npx`, and `git`, used by `npx` to fetch AIE OS from GitHub.
+- Run with Docker (requires only Docker): a running Docker on macOS, Linux, or Windows with WSL. The command also uses `curl` and `bash`, which macOS and Linux include.
 
-AIE OS runs with `npx` straight from GitHub. Nothing is cloned or installed in the target project. Always pin a release tag so `init` and `build` run the same version:
+Always pin a release tag so `init` and `build` run the same version. To upgrade, pick the latest tag from https://github.com/quintolabs-es/aie-os/tags, change the tag in your command, and run `build` again.
+
+### Run with npx (requires Node)
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.2.0 <init|build> [options]
+npx --yes github:quintolabs-es/aie-os#v0.2.1 <init|build> [options]
 ```
 
-To upgrade, change the tag and run `build` again.
+### Run with Docker (requires only Docker)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s <init|build> [options]
+```
+
+[`aie-os-docker.sh`](../aie-os-docker.sh) runs the same pinned `npx` command inside a `node:24` Docker container:
+- It mounts the current directory at the same path inside the container. Run it from the target project directory and do not pass `--project-path`.
+- It prompts in your terminal when one is attached. Without a terminal, for example in a coding agent or CI, use explicit `init` and `build`, and prefix the command with `set -o pipefail;` so a failed download fails the command.
+- On Linux, you own the generated files, including with rootless Docker or Podman.
+- It downloads and compiles AIE OS on every run, so a run takes about 20 to 60 seconds and needs access to GitHub and the npm registry. The first run also pulls the `node:24` image from Docker Hub.
+- Content folders outside the target project are not visible inside the container. Use `bundled` content or folders inside the project.
+- On macOS, Docker must be allowed to read the project folder. If the run fails with `Operation not permitted`, for example for a project under `~/Documents`, `~/Desktop`, or `~/Downloads`: with Docker Desktop, enable Docker in System Settings > Privacy & Security > Files and Folders; with Colima, move the project outside those folders.
 
 ### Content
 AIE OS ships with ready-to-use content (personas, principles, coding rules, and skills). Content paths default to `bundled`, which means the content inside the pinned AIE OS version.
@@ -25,10 +40,24 @@ See [`docs/readme.create-content.md`](./readme.create-content.md) for the conten
 cd xample-app
 
 # interactive
-npx --yes github:quintolabs-es/aie-os#v0.2.0 init
+npx --yes github:quintolabs-es/aie-os#v0.2.1 init
+
+# OR interactive with Docker
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s init
 
 # OR explicit
-npx --yes github:quintolabs-es/aie-os#v0.2.0 init \
+npx --yes github:quintolabs-es/aie-os#v0.2.1 init \
+  --agent-persona <value> \
+  --tool <claude,codex> \
+  [--languages <value1,value2>] \
+  [--application-type <value1,value2>] \
+  [--frameworks <value1,value2>] \
+  [--kb-path <value>] \
+  [--agent-path <value>] \
+  [--skills-path <value>]
+
+# OR explicit with Docker
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s init \
   --agent-persona <value> \
   --tool <claude,codex> \
   [--languages <value1,value2>] \
@@ -60,7 +89,10 @@ npx --yes github:quintolabs-es/aie-os#v0.2.0 init \
 Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`), the rule files in `.claude/rules/aie/` for `claude`, and the persona skills and commands.
 
 ```bash
-npx --yes github:quintolabs-es/aie-os#v0.2.0 build [--project-path <value>] [--force-overwrite]
+npx --yes github:quintolabs-es/aie-os#v0.2.1 build [--project-path <value>] [--force-overwrite]
+
+# OR with Docker
+curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/v0.2.1/aie-os-docker.sh | bash -s build [--force-overwrite]
 ```
 
 * `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file or rule file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.

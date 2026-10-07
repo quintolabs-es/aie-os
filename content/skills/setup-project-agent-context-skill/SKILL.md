@@ -16,7 +16,7 @@ Use this skill when the user wants to configure or generate agent context for a 
 ## Required Input
 
 - target project path
-- AIE OS version tag to pin, defaulting to `v0.2.0`
+- AIE OS version tag to pin, defaulting to `v0.2.1`
 - explicit user-selected configuration choices gathered through a conversational flow for all CLI parameters that will be passed to AIE OS
 
 ## Workflow
@@ -37,10 +37,13 @@ Use this skill when the user wants to configure or generate agent context for a 
 6. Accept only answers that unambiguously match the listed values. Ask a follow-up if the answer is ambiguous, unsupported, incomplete, or uses a synonym that cannot be mapped with certainty.
 7. After the conversational questions are complete, summarize the selected values in plain language and ask for explicit approval to continue.
 8. Do not run `init` or `build` until the user explicitly approves the summarized selections.
-9. Confirm `node` (20 or later), `npx`, and `git` are available.
-10. If `.aie-os/aie-os.json` does not exist, run `npx --yes github:quintolabs-es/aie-os#<tag> init` from the target project. Append the approved `--agent-persona`, `--tool`, and any approved `--kb-path`, `--agent-path`, `--skills-path`, `--languages`, `--application-type`, or `--frameworks` options. Omit the content paths to use `bundled`.
+9. Choose how to run AIE OS. Below, `<aie-os>` is the chosen command:
+   - Run with npx when `node` (20 or later), `npx`, and `git` are available: `<aie-os>` is `npx --yes github:quintolabs-es/aie-os#<tag>`.
+   - Otherwise run with Docker when `docker info` succeeds: `<aie-os>` is `set -o pipefail; curl -fsSL https://raw.githubusercontent.com/quintolabs-es/aie-os/<tag>/aie-os-docker.sh | bash -s`. It runs the same `npx` command inside a `node:24` container, sees only the current directory, and needs access to GitHub, the npm registry, and Docker Hub. Run it from the target project, and use only `bundled` content or content folders inside the project.
+   - Otherwise stop and report that AIE OS needs Node 20 or later with `git`, or Docker.
+10. If `.aie-os/aie-os.json` does not exist, run `<aie-os> init` from the target project. Append the approved `--agent-persona`, `--tool`, and any approved `--kb-path`, `--agent-path`, `--skills-path`, `--languages`, `--application-type`, or `--frameworks` options. Omit the content paths to use `bundled`.
 11. If `.aie-os/aie-os.json` exists, preserve it and skip initialization unless the user explicitly requests reconfiguration.
-12. Run `npx --yes github:quintolabs-es/aie-os#<tag> build` from the target project, with the same tag used for `init`. If the build refuses or skips a file because it was not generated or installed by AIE OS, report it and ask before re-running with `--force-overwrite`.
+12. Run `<aie-os> build` from the target project, with the same tag used for `init`. If the build refuses or skips a file because it was not generated or installed by AIE OS, report it and ask before re-running with `--force-overwrite`.
 13. Verify `.aie-os/aie-os.json`, `.aie-os/build/effective-context.json`, `.aie-os/build/installed-artifacts.json`, a non-empty instructions file per selected tool, the rule files in `.claude/rules/aie/` for `claude`, and the installed skills (`.claude/skills/` for `claude`, `.agents/skills/` for `codex`).
 14. Report the generated artifact paths, any skipped files from the build warnings, and the bootstrap prompt that `build` prints. Tell the user to start a new agent session so the installed skills and commands are picked up. If the CLI failed, report the error that prevented completion.
 

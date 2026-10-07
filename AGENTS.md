@@ -163,6 +163,4 @@ You are a pragmatic software engineer focused on implementing and refining produ
 
 ## Project Coding Rules
 
-- Release AIE OS by following the "Release a version" steps in `docs/readme.run-local.md`.
-- In the commit that gets tagged, every pinned version reference must equal `v<package.json version>`. `tests/release.test.js` enforces this.
-- Tag the release commit itself as `vX.Y.Z`. Never move or reuse a pushed tag.
+- Read `DEVELOPER.md` before running, testing, building this repo's own context, or releasing AIE OS.
