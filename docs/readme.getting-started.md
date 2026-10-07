@@ -57,11 +57,11 @@ npx --yes github:quintolabs-es/aie-os#v0.1.0 init \
 - in explicit mode, omitted content paths default to `bundled`, other omitted optional values become empty, and `init` does not prompt
 
 ### Build agent context
-Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`) and the persona skills and commands.
+Build context and generate the agent artifacts for each tool selected at `init`: the instructions file (`CLAUDE.md` for `claude`, `AGENTS.md` for `codex`), the rule files in `.claude/rules/aie/` for `claude`, and the persona skills and commands.
 
 ```bash
 npx --yes github:quintolabs-es/aie-os#v0.1.0 build [--project-path <value>] [--force-overwrite]
 ```
 
-* `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.
+* `--force-overwrite`: optional. `build` replaces its own generated files freely, but refuses to overwrite an instructions file or rule file AIE OS did not generate and skips skills or commands it did not install. Pass this flag to replace them anyway.
 * `--project-path /path/to/project` optional, defaults to current directory.

@@ -4,7 +4,7 @@ import { getAdapter } from "../agentAdapters";
 import { agentArtifactWriter } from "../artifacts/agentArtifactWriter";
 import { aieRelativePaths } from "../context/aieStructure";
 import { buildAgentContext } from "../context/build";
-import { ensureOutputFileIsReplaceable } from "../artifacts/outputFileGuard";
+import { ensureOutputFilesAreReplaceable } from "../artifacts/outputFileGuard";
 import { fileExists, writeText } from "../context/filesystem";
 import { loadManifest } from "../context/manifest";
 import { terminalStyle } from "./terminalStyle";
@@ -46,13 +46,14 @@ export async function buildProject(options: BuildExecutionOptions): Promise<void
     ),
   );
 
-  for (const adapterOutput of adapterOutputs) {
-    await ensureOutputFileIsReplaceable({
-      forceOverwrite: options.forceOverwrite,
-      outputFile: adapterOutput.instructionsFile.path,
-      projectPath: options.projectPath,
-    });
-  }
+  await ensureOutputFilesAreReplaceable({
+    forceOverwrite: options.forceOverwrite,
+    outputFiles: adapterOutputs.flatMap((adapterOutput) => [
+      adapterOutput.instructionsFile.path,
+      ...adapterOutput.ruleFiles.map((ruleFile) => ruleFile.path),
+    ]),
+    projectPath: options.projectPath,
+  });
 
   await writeText(
     path.join(options.projectPath, aieRelativePaths.effectiveContextFile),

@@ -44,6 +44,7 @@ xample-app/
       installed-artifacts.json
   CLAUDE.md                 # tool: claude
   AGENTS.md                 # tool: codex
+  .claude/rules/aie/        # tool: claude
   .claude/skills/           # tool: claude
   .claude/commands/aie/     # tool: claude
   .agents/skills/           # tool: codex
@@ -51,6 +52,7 @@ xample-app/
 
 - `.aie-os/` contains project-local AIE OS configuration and generated artifacts. keep it versioned in the project repo.
 - The instructions file is generated at the target project root: `CLAUDE.md` for `claude`, `AGENTS.md` for `codex`.
+- For `claude`, `CLAUDE.md` holds the persona and critical rules; every other section is written to its own rule file in `.claude/rules/aie/`, which Claude Code loads automatically. For `codex`, `AGENTS.md` holds everything.
 
 ## Building Context
 
@@ -77,11 +79,12 @@ xample-app/
 - A persona declares its skills in frontmatter: `skills: [<skill-folder>, ...]`. Names are folders under the skills path.
 - Installed locations:
 
-| Tool | Instructions file | Skills | Commands |
-|---|---|---|---|
-| `claude` | `CLAUDE.md` | `.claude/skills/<skill>/` | `.claude/commands/aie/<skill>.md` (`/aie:<skill>`) |
-| `codex` | `AGENTS.md` | `.agents/skills/<skill>/` | none (skills only) |
+| Tool | Instructions file | Rule files | Skills | Commands |
+|---|---|---|---|---|
+| `claude` | `CLAUDE.md` (persona, critical rules) | `.claude/rules/aie/<section>.md`, one per section | `.claude/skills/<skill>/` | `.claude/commands/aie/<skill>.md` (`/aie:<skill>`) |
+| `codex` | `AGENTS.md` (everything) | none | `.agents/skills/<skill>/` | none (skills only) |
 
 - Skill folders are copied as they are. `agents/openai.yaml` is copied for `codex` only.
-- `build` records what it installs in `.aie-os/build/installed-artifacts.json` and removes installed skills and commands the persona no longer declares. Files it did not install are never removed.
-- `build` replaces its own generated files on every run. It refuses to overwrite an instructions file it did not generate and skips a skill or command that exists but was not installed by AIE OS. Pass `--force-overwrite` to replace them.
+- Rule file names come from the section label, for example `Language: typescript` becomes `language-typescript.md`. Two labels that map to the same file name fail the build.
+- `build` records what it installs in `.aie-os/build/installed-artifacts.json` and removes installed skills, commands, and rule files that are no longer generated. Files it did not install are never removed.
+- `build` replaces its own generated files on every run. It refuses to overwrite an instructions file or rule file it did not generate, and skips a skill or command that exists but was not installed by AIE OS. Pass `--force-overwrite` to replace them.

@@ -74,8 +74,14 @@ test("Build installs persona skills and commands for claude without the codex me
   assert.match(command, /\.claude\/skills\/skill-a\/SKILL\.md/u);
   assert.match(command, /\$ARGUMENTS/u);
 
-  const instructions = await fs.readFile(path.join(fixture.projectPath, "CLAUDE.md"), "utf8");
-  assert.equal(instructions.includes("Available Skills"), false);
+  const rulesDirectory = path.join(fixture.projectPath, ".claude", "rules", "aie");
+  const ruleFiles = (await exists(rulesDirectory)) ? await fs.readdir(rulesDirectory) : [];
+  for (const generatedFile of [
+    path.join(fixture.projectPath, "CLAUDE.md"),
+    ...ruleFiles.map((ruleFile) => path.join(rulesDirectory, ruleFile)),
+  ]) {
+    assert.equal((await fs.readFile(generatedFile, "utf8")).includes("Available Skills"), false);
+  }
   assert.equal(await exists(path.join(fixture.projectPath, "AGENTS.md")), false);
 });
 

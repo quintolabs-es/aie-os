@@ -48,7 +48,7 @@ export const agentArtifactWriter = {
       );
     }
 
-    for (const file of [...plan.instructionsFiles, ...plan.commandFiles]) {
+    for (const file of [...plan.instructionsFiles, ...plan.ruleFiles, ...plan.commandFiles]) {
       await writeText(resolveInsideProject(projectPath, file.path), file.contents);
     }
 

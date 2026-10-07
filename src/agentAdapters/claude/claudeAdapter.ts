@@ -1,16 +1,16 @@
-import { buildMarkdownAdapterOutput } from "../shared/markdownAdapterRenderer";
-import type { Adapter, AdapterOutput, ToolProfile } from "../types";
+import { slashCommands } from "../commands/slashCommands";
+import { createAdapter } from "../createAdapter";
+import { splitRulesLayout } from "../layouts/splitRulesLayout";
 
-export const claudeProfile: ToolProfile = {
-  commandsDirectory: ".claude/commands/aie",
-  excludedSkillFiles: ["agents/openai.yaml"],
-  instructionsFileName: "CLAUDE.md",
-  skillsDirectory: ".claude/skills",
-};
-
-export const claudeAdapter: Adapter = {
-  async build(input): Promise<AdapterOutput> {
-    return buildMarkdownAdapterOutput(input, claudeProfile);
+export const claudeAdapter = createAdapter({
+  commands: slashCommands(".claude/commands/aie"),
+  layout: splitRulesLayout({
+    instructionsFileName: "CLAUDE.md",
+    rulesDirectory: ".claude/rules/aie",
+  }),
+  skills: {
+    directory: ".claude/skills",
+    excludedFiles: ["agents/openai.yaml"],
   },
   tool: "claude",
-};
+});

@@ -62,15 +62,27 @@ export type AdapterOutput = {
   bootstrapPrompt: string;
   commandFiles: AdapterOutputFile[];
   instructionsFile: AdapterOutputFile;
+  ruleFiles: AdapterOutputFile[];
   skillCopies: SkillCopyItem[];
   warnings: string[];
 };
 
-export type ToolProfile = {
-  commandsDirectory: string | null;
-  excludedSkillFiles: string[];
-  instructionsFileName: string;
-  skillsDirectory: string;
+export type InstructionsLayoutOutput = {
+  bootstrapPrompt: string;
+  instructionsFile: AdapterOutputFile;
+  ruleFiles: AdapterOutputFile[];
+};
+
+export type InstructionsLayout = (effectiveContext: EffectiveContext) => InstructionsLayoutOutput;
+
+export type CommandRenderer = (
+  skills: readonly EffectiveContextSkill[],
+  skillsDirectory: string,
+) => AdapterOutputFile[];
+
+export type SkillInstallTarget = {
+  directory: string;
+  excludedFiles: readonly string[];
 };
 
 export type Adapter = {

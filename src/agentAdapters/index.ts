@@ -17,7 +17,7 @@ export function getAdapter(tool: AdapterTool): Adapter {
   return adapter;
 }
 
-export { generatedFileMarker } from "./shared/markdownAdapterRenderer";
+export { generatedFileMarker } from "./generatedFileMarker";
 export { adapterTools } from "./types";
 
 export type {
@@ -32,6 +32,9 @@ export type {
   EffectiveContextInputs,
   EffectiveContextMetadata,
   EffectiveContextPersona,
+  CommandRenderer,
+  InstructionsLayout,
+  InstructionsLayoutOutput,
   SkillCopyItem,
-  ToolProfile,
+  SkillInstallTarget,
 } from "./types";

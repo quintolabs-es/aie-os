@@ -5,6 +5,7 @@ export type ArtifactInstallPlan = {
   installedPaths: string[];
   instructionsFiles: AdapterOutputFile[];
   removals: string[];
+  ruleFiles: AdapterOutputFile[];
   skillCopies: SkillCopyItem[];
   warnings: string[];
 };
@@ -47,10 +48,12 @@ export function planArtifactInstall(input: ArtifactInstallInput): ArtifactInstal
     }
   }
 
+  const ruleFiles = input.outputs.flatMap((output) => output.ruleFiles);
   const installedPaths = Array.from(
     new Set([
       ...skillCopies.map((copy) => copy.destination),
       ...commandFiles.map((file) => file.path),
+      ...ruleFiles.map((file) => file.path),
     ]),
   ).sort();
   const installedSet = new Set(installedPaths);
@@ -60,6 +63,7 @@ export function planArtifactInstall(input: ArtifactInstallInput): ArtifactInstal
     installedPaths,
     instructionsFiles: input.outputs.map((output) => output.instructionsFile),
     removals: input.previouslyInstalled.filter((target) => !installedSet.has(target)),
+    ruleFiles,
     skillCopies,
     warnings,
   };

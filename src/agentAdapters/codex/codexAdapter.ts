@@ -1,16 +1,13 @@
-import { buildMarkdownAdapterOutput } from "../shared/markdownAdapterRenderer";
-import type { Adapter, AdapterOutput, ToolProfile } from "../types";
+import { noCommands } from "../commands/noCommands";
+import { createAdapter } from "../createAdapter";
+import { singleFileLayout } from "../layouts/singleFileLayout";
 
-export const codexProfile: ToolProfile = {
-  commandsDirectory: null,
-  excludedSkillFiles: [],
-  instructionsFileName: "AGENTS.md",
-  skillsDirectory: ".agents/skills",
-};
-
-export const codexAdapter: Adapter = {
-  async build(input): Promise<AdapterOutput> {
-    return buildMarkdownAdapterOutput(input, codexProfile);
+export const codexAdapter = createAdapter({
+  commands: noCommands,
+  layout: singleFileLayout("AGENTS.md"),
+  skills: {
+    directory: ".agents/skills",
+    excludedFiles: [],
   },
   tool: "codex",
-};
+});

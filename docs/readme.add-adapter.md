@@ -1,119 +1,59 @@
 ### Add an adapter
 
-An adapter transforms the canonical effective context into the files a specific agent tool expects.
+An adapter turns the canonical effective context into the files one agent tool expects. It is a composition of strategies, not a renderer with tool checks.
 
-Adapter responsibilities:
-- read `effective-context.json` through the typed `effectiveContext` object
-- render agent-specific output files
-- return only tool-specific artifacts as a file model
+```ts
+export const exampleAdapter = createAdapter({
+  commands: noCommands,                       // or slashCommands("<commands-dir>")
+  layout: singleFileLayout("EXAMPLE.md"),     // or splitRulesLayout({ instructionsFileName, rulesDirectory })
+  skills: { directory: ".example/skills", excludedFiles: [] },
+  tool: "example",
+});
+```
 
-An adapter must not:
-- discover source files
-- decide which content is included
-- re-run build logic
-- write files directly
+Steps:
+1. add the tool key to `adapterTools` in `src/agentAdapters/types.ts`
+2. create `src/agentAdapters/<tool>/<tool>Adapter.ts` composing existing strategies with `createAdapter`
+3. add the adapter to the registry map in `src/agentAdapters/index.ts`
+4. add tests for the generated files
 
-### Architecture
+Write a new strategy only when no existing one fits, and keep it free of tool checks:
+- a layout is an `InstructionsLayout` under `src/agentAdapters/layouts/`
+- a command renderer is a `CommandRenderer` under `src/agentAdapters/commands/`
 
-The extension model is:
+An adapter must not discover source files, decide which content is included, re-run build logic, or write files directly.
 
-1. one adapter folder under:
-   - `src/agentAdapters/<tool>/`
-2. the adapter implementation file inside that folder:
-   - `src/agentAdapters/<tool>/<tool>Adapter.ts`
-3. optional adapter-local helpers in the same folder
-4. one static registry entry in:
-   - `src/agentAdapters/index.ts`
-5. one supported tool type update in:
-   - `src/agentAdapters/types.ts`
-6. adapter selection in:
-   - `src/commands/build.ts`
+### Strategies
 
-### When a new adapter is justified
+| Strategy | Contract | Implementations |
+|---|---|---|
+| Layout | `InstructionsLayout`: effective context → instructions file, rule files, bootstrap prompt | `singleFileLayout` (one file with every section, used by `codex`), `splitRulesLayout` (persona and critical rules in the instructions file, one rule file per section, used by `claude`) |
+| Commands | `CommandRenderer`: skills → command files | `noCommands`, `slashCommands(<dir>)` |
+| Skills | `SkillInstallTarget`: install folder and files to exclude | data, applied by `planSkillCopies` |
 
-Add an adapter only when the rendering itself differs: a different file format, a different section structure, extra generated files, or a different bootstrap prompt. When two adapters would render nearly the same content, factor the shared rendering into a helper under `src/agentAdapters/shared/` parameterized by the differing inputs, and have both adapter files call it, rather than duplicating a renderer that must stay byte-for-byte in sync.
+Both layouts render sections with the same `contextSections` helpers, so section content is identical across tools.
 
 ### Adapter input
 
-- `effectiveContext`
-  - canonical machine-readable build result
-  - contains:
-    - `metadata.inputs`
-    - `persona`
-    - `criticalRules`
-    - `sections`
-    - `skills`
-- `projectPath`
-  - target project root
+- `effectiveContext`: the canonical build result (`metadata.inputs`, `persona`, `criticalRules`, `sections`, `skills`)
 
 ### Adapter output
 
-- `bootstrapPrompt`
-  - agent-specific session bootstrap prompt printed by `build` after successful artifact generation
-- `instructionsFile`
-  - path and contents of the generated instructions file, for example `CLAUDE.md`
-- `commandFiles`
-  - path and contents of each generated command file (empty when the tool has no commands)
-- `skillCopies`
-  - source skill reference, destination folder, and files to exclude, for each skill to install. The source is a portable reference (`bundled:<path>`, project-relative, or absolute); the artifact writer resolves it with `contentPath.fromReference`
+- `bootstrapPrompt`: printed by `build` after a successful run
+- `instructionsFile`: path and contents of the instructions file, for example `CLAUDE.md`
+- `ruleFiles`: path and contents of each rule file (empty for single-file layouts)
+- `commandFiles`: path and contents of each command file (empty when the tool has no commands)
+- `skillCopies`: source skill reference, destination folder, and files to exclude. The source is a portable reference (`bundled:<path>`, project-relative, or absolute); the artifact writer resolves it with `contentPath.fromReference`
+- `warnings`
 
-`build` refuses to overwrite an existing primary artifact that does not contain the `generatedFileMarker` exported from `src/agentAdapters`, unless `--force-overwrite` is passed. An adapter that writes a markdown instructions file must include that marker so repeated builds do not require the flag.
+### Write policies
 
-The CLI passes this output to the artifact writer, which is the only component that writes files to disk.
+The artifact writer is the only component that writes files. Each output field has one fixed policy:
 
-### What the contributor implements
+| Output | Overwrite guard | Tracked in `installed-artifacts.json` | On conflict with a file AIE OS did not write |
+|---|---|---|---|
+| `instructionsFile` | `generatedFileMarker` | no | build fails unless `--force-overwrite` |
+| `ruleFiles` | `generatedFileMarker` | yes, removed when no longer generated | build fails unless `--force-overwrite` |
+| `commandFiles`, `skillCopies` | ledger | yes, removed when no longer generated | skipped with a warning unless `--force-overwrite` |
 
-Adding an adapter is a manual contribution. For the new tool:
-
-- create the adapter file under `src/agentAdapters/<toolKey>/`
-- add its key to `AdapterTool` in `src/agentAdapters/types.ts`
-- add its registry entry in `src/agentAdapters/index.ts`
-- implement the rendering logic, the generated file contents, and the bootstrap prompt
-- build and test the new adapter
-
-### Minimal example
-
-```ts
-import type { Adapter } from "../types";
-
-export const exampleAdapter: Adapter = {
-  tool: "example",
-  async build(input) {
-    const contents = [
-      "# EXAMPLE",
-      "",
-      "## Persona",
-      "",
-      input.effectiveContext.persona.content,
-      "",
-      "## Critical Rules",
-      "",
-      ...input.effectiveContext.criticalRules.map((section) => `### ${section.sectionLabel}`),
-      "",
-      ...input.effectiveContext.sections.map((section) => `## ${section.sectionLabel}`),
-      "",
-    ].join("\n");
-
-    return {
-      bootstrapPrompt: "Read `EXAMPLE.md` before starting work.",
-      files: [{ path: "EXAMPLE.md", contents }],
-      primaryArtifact: "EXAMPLE.md",
-      warnings: [],
-    };
-  },
-};
-```
-
-### Registry example
-
-```ts
-import { defaultAdapter } from "./default/defaultAdapter";
-import { exampleAdapter } from "./example/exampleAdapter";
-
-const adapters = {
-  default: defaultAdapter,
-  example: exampleAdapter,
-};
-```
-
-One adapter folder plus one registry line is the intended extension path. The project skill automates the rest of the deterministic setup.
+Instructions and rule files must contain `generatedFileMarker` from `src/agentAdapters` so repeated builds do not need `--force-overwrite`.
